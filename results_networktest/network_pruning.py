@@ -13,20 +13,12 @@ import numpy as np
 import csv
 import pdb
 
-device=torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-#device="cpu"
-#print(device)
 
 #######################
 # takes the network parameters from the conv layer and clusters them (with the purpose of removing some of them)
 
-
 device=torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print(device)
-print("Updated3")
-
-#device="cpu"
-#print(device)
 
 ###################################################
 # DATA
@@ -127,54 +119,61 @@ def evaluate():
     return accuracy
 
 evaluate()
-for name, param in net.named_parameters():
-    print (name)
-    print(param.shape)
 
-placeholder=net.c1.weight.data[1].clone()
-net.c1.weight.data[1]=0
+########################################################
+# RETRAIN
 
-#here retraining works
-net.train()
-for i, data in enumerate(train_loader):
-    inputs, labels = data
-    inputs, labels = inputs.to(device), labels.to(device)
+def retrain():
 
-    optimizer.zero_grad()
-    outputs = net(inputs)
-    loss = criterion(outputs, labels)
-    loss.backward()
-    optimizer.step()
-    # if i % 100==0:
-    #    print (i)
-    #   print (loss.item())
-# print (i)
-print(loss.item())
-accuracy = evaluate()
+    #PRINT
+    # for name, param in net.named_parameters():
+    #    print (name)
+    #    print(param.shape)
 
-placeholder=net.c1.weight.data[1].clone()
-net.c1.weight.data[1]=placeholder
+    placeholder_weight=net.c1.weight.data[1].clone()
+    placeholder_bias=net.c1.bias.data[1].clone()
+    net.c1.weight.data[1]=0
 
-# for i, data in enumerate(train_loader):
-#     inputs, labels = data
-#     inputs, labels = inputs.to(device), labels.to(device)
-#
-#     optimizer.zero_grad()
-#     outputs = net(inputs)
-#     loss = criterion(outputs, labels)
-#     loss.backward()
-#     optimizer.step()
-    # if i % 100==0:
-    #    print (i)
-    #   print (loss.item())
-# print (i)
-print(loss.item())
-accuracy = evaluate()
+    def gradi(module):
+        module[1]=0
+        #print(module[1])
+
+    h = net.c1.weight.register_hook(gradi)
+    #h = net.c1.weight.register_hook(lambda gradi: gradi[1] * 0)
 
 
+    #here retraining works
+    net.train()
+    for m in range(10):
+        for i, data in enumerate(train_loader):
+            inputs, labels = data
+            inputs, labels = inputs.to(device), labels.to(device)
+
+            optimizer.zero_grad()
+            outputs = net(inputs)
+            loss = criterion(outputs, labels)
+            loss.backward()
+            net.c1.weight.grad #the hook is automatically applied, here we just check the gradient
+            optimizer.step()
+            #net.c1.weight.data[1] = 0  # instead of hook
+            #net.c1.bias.data[1] = 0  # instead of hook
+            # if i % 100==0:
+            #    print (i)
+            #   print (loss.item())
+
+        print(loss.item())
+        accuracy = evaluate()
 
 
 
+    print(loss.item())
+    accuracy = evaluate()
+
+
+
+
+######################################################################
+# COMPUTE PRUNED (NOT RETRAINED) ACCURACIES
 
 from itertools import chain, combinations
 
@@ -209,53 +208,16 @@ def compute_combinations(file_write):
                 for combination in list(combinations(s, r)):
                     combination=torch.LongTensor(combination)
 
+
                     print(combination)
-                    #params_saved = net.c1.weight.data[combination].clone()
-                    net.c1.weight.data[combination] = 0
-                    net.c1.bias.data[combination] = 0
+                    params_saved = param[combination].clone()
+                    param[combination[0]] = 0
+                    param[combination] = 0
+                    accuracy = evaluate()
+                    param[combination] = params_saved
 
-
-                    h = param.register_hook(lambda grad: grad *0)  # does not work really
-                    accuracy=evaluate()
-
-                    #net.c1.weight.data[combination]=params_saved
-
-                    # for i1 in range(param.shape[0]):
-                    #     for i2 in range(param.shape[1]):
-                    #         print("%d, %d" % (i1, i2))
-                    #         params_saved=param[i1, i2].clone()
-                    #         #print(param[i1, i2])
-                    #         param[i1, i2]=0
-                    #         #print(param[i1, i2])
-                    #         evaluate()
-                    #         param[i1, i2]=params_saved
-                    #         #print(param[i1, i2])
                     results.append((combination, accuracy))
 
-
-
-                    ##############################
-                    net.train()
-                    for i, data in enumerate(train_loader):
-                        inputs, labels = data
-                        inputs, labels = inputs.to(device), labels.to(device)
-
-                        optimizer.zero_grad()
-                        outputs = net(inputs)
-                        loss = criterion(outputs, labels)
-                        loss.backward()
-                        optimizer.step()
-                        net.c1.weight.data[combination] = 0
-                        net.c1.bias.data[combination] = 0
-                        # if i % 100==0:
-                        #    print (i)
-                        #   print (loss.item())
-                    # print (i)
-                    print(loss.item())
-                    accuracy = evaluate()
-
-                    #remove hook
-                    h.remove()
 
 
 
@@ -329,12 +291,6 @@ def compute_combinations_random(file_write):
 #################
 
 file_write=False #only one file_write here (and one read fie)
-
-
 compute_combinations(file_write)
 
-
-
-###########################
-# RETRAIN
 
