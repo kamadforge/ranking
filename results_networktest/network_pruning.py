@@ -23,10 +23,12 @@ print(device)
 ###################################################
 # DATA
 
+
+
 BATCH_SIZE = 100
 # Download or load downloaded MNIST dataset
 # shuffle data at every epoch
-trainval_dataset=datasets.FashionMNIST('data', train=True, download=True,
+trainval_dataset=datasets.MNIST('data', train=True, download=True,
                     #transform=transforms.Compose([transforms.ToTensor(),
                     #transforms.Normalize((0.1307,), (0.3081,))]),
                     transform=transforms.ToTensor())
@@ -38,7 +40,7 @@ train_dataset, val_dataset = torch.utils.data.random_split(trainval_dataset, [tr
 train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
 val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=True)
 # Same for test data
-test_loader = torch.utils.data.DataLoader(datasets.FashionMNIST('data', train=False, transform=transforms.ToTensor()), batch_size=BATCH_SIZE, shuffle=False)
+test_loader = torch.utils.data.DataLoader(datasets.MNIST('data', train=False, transform=transforms.ToTensor()), batch_size=BATCH_SIZE, shuffle=False)
 
 ####################################
 # NETWORK (conv-conv-fc-fc)
@@ -89,6 +91,7 @@ criterion = nn.CrossEntropyLoss()
 optimizer=optim.Adam(net.parameters(), lr=0.001)
 
 path="models/fashionmnist_conv:20_conv:50_fc:800_fc:500_rel_bn_trainval1.0_epo:11_acc:90.01"
+path="models/conv:20_conv:50_fc:800_fc:500_rel_bn_epo:366_acc:99.34"
 net.load_state_dict(torch.load(path))
 
 ########################################################
@@ -118,6 +121,7 @@ def evaluate():
     print("accuracy: %.2f %%" % (accuracy))
     return accuracy
 
+print("Loaded model:")
 evaluate()
 
 ########################################################
@@ -130,21 +134,38 @@ def retrain():
     #    print (name)
     #    print(param.shape)
 
-    placeholder_weight=net.c1.weight.data[1].clone()
-    placeholder_bias=net.c1.bias.data[1].clone()
-    net.c1.weight.data[1]=0
+    combination=[11,  4,  8,  7, 12,  6, 16,  9,  2, 10,  0, 19, 17, 15, 5]
+    combination2=[8,49,0,26,15,19,10,22,32,29,13,4,5,23,11,24,17,35,39,36,9,3,43,2,47,20,1,31,12,14,18,48,30,38,44,40,42,45,28,7]
+    combination = torch.LongTensor(combination)
+    combination2 = torch.LongTensor(combination2)
+
+    placeholder_weight=net.c1.weight.data[combination].clone()
+    placeholder_bias=net.c1.bias.data[combination].clone()
+    net.c1.weight.data[combination]=0; net.c1.bias.data[combination] = 0
+    net.c3.weight.data[combination2] = 0; net.c3.bias.data[combination2] = 0
+
+    print("After pruning")
+    evaluate()
+
 
     def gradi(module):
-        module[1]=0
+        module[combination]=0
         #print(module[1])
-
-    h = net.c1.weight.register_hook(gradi)
+    h1 = net.c1.weight.register_hook(gradi)
     #h = net.c1.weight.register_hook(lambda gradi: gradi[1] * 0)
 
+    def gradi(module):
+        module[combination2]=0
+        #print(module[1])
+    h2 = net.c3.weight.register_hook(gradi)
 
+
+    print("Training")
     #here retraining works
     net.train()
-    for m in range(10):
+    stop = 0; epoch = 0; best_accuracy = 0; entry = np.zeros(3); best_model = -1; early_stopping=100
+    while (stop < early_stopping):
+        epoch = epoch + 1
         for i, data in enumerate(train_loader):
             inputs, labels = data
             inputs, labels = inputs.to(device), labels.to(device)
@@ -163,6 +184,18 @@ def retrain():
 
         print(loss.item())
         accuracy = evaluate()
+        print("Epoch " + str(epoch) + " ended.")
+
+        if (accuracy <= best_accuracy):
+            stop = stop + 1
+            entry[2] = 0
+        else:
+            best_accuracy = accuracy
+            print("Best updated")
+            stop = 0
+            entry[2] = 1
+            best_model = net.state_dict()
+            torch.save(best_model, "%s_retrained_epo:%d_acc:%.2f" % (path, epoch, best_accuracy))
 
 
 
@@ -170,7 +203,7 @@ def retrain():
     accuracy = evaluate()
 
 
-
+retrain()
 
 ######################################################################
 # COMPUTE PRUNED (NOT RETRAINED) ACCURACIES
@@ -291,6 +324,6 @@ def compute_combinations_random(file_write):
 #################
 
 file_write=False #only one file_write here (and one read fie)
-compute_combinations(file_write)
+#compute_combinations(file_write)
 
 
