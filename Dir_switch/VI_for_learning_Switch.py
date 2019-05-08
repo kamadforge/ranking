@@ -144,10 +144,11 @@ def main():
 
     estimated_params = list(model.parameters())
     estimated_alphas = (F.softplus(torch.Tensor(estimated_params[0]))).detach().numpy()
-    samples_from_exponential_distribution = np.random.exponential(1, (1, hidden_dim))
-    pre_normalization_S = estimated_alphas*np.squeeze(samples_from_exponential_distribution)
-
-    estimated_Switch = pre_normalization_S / np.sum(pre_normalization_S)
+    estimated_Switch = estimated_alphas / np.sum(estimated_alphas)
+    # samples_from_exponential_distribution = np.random.exponential(1, (1, hidden_dim))
+    # pre_normalization_S = estimated_alphas*np.squeeze(samples_from_exponential_distribution)
+    #
+    # estimated_Switch = pre_normalization_S / np.sum(pre_normalization_S)
 
     print('true Switch is ', trueSwitch)
     print('estimated posterior mean of Switch is', estimated_Switch)
