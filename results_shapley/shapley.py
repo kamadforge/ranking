@@ -4,21 +4,73 @@ import pickle
 import random
 import numpy as np
 
-file="/home/kamil/Documents/data/combinations_pruning_rel_bn_c3.weight.txt"
-file="/home/kamil/Dropbox/Current_research/python_tests/results_networktest/results/combinations_pruning_fashionmnist_rel_bn_c1.weight_0.txt"
+#file="/home/kamil/Dropbox/Current_research/python_tests/results_networktest/results/combinations_pruning_mnist_conv1:20_rel_bn.txt"
+file="../results_networktest/results_copied/combinations_pruning_mnist_mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_trainval_modelopt1.0_epo:309_acc:99.19_c3.weight.txt"
+file="/home/kamil/Dropbox/Current_research/python_tests/results_networktest/results/combinations_pruning_mnist_mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_trainval_modelopt1.0_epo:309_acc:99.19/combinations_pruning_mnist_mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_trainval_modelopt1.0_epo:309_acc:99.19_c1.weight.txt"
+file="/local_data/kadamczewski/Dropbox/Current_research/python_tests/results_networktest/results/combinations_pruning_mnist_mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:540_acc:99.27/combinations_pruning_mnist_mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:540_acc:99.27_c5.weight.txt"
 
-f= open(file)
-dict={():0}
+
 #for i in range(1000):
 #    line=next(f)
-for line in f:
-    linesplit=line.strip().split(":")
-    tup=tuple(int(i) for i in linesplit[0].split(","))
-    acc=float(linesplit[1])
-    dict[tup]=99.34-acc
-    print(tup, acc)
 
-###############################################################3
+
+def readdata_notsampled():
+    f = open(file)
+    dict = {(): 0}
+    for line in f:
+        linesplit=line.strip().split(":")
+        tup=tuple(int(i) for i in linesplit[0].split(","))
+        acc=float(linesplit[1])
+        dict[tup]=99.27-acc
+        print(tup, acc)
+    f.close()
+    return dict
+
+def readdata_sampled_compute_sv():
+    f = open(file, "r+")
+    dict = {(): 0}
+
+    # for index in range(5):
+    #     line = f.next()
+    #     print ("Line No %d - %s" % (index, line))
+
+    shapley_samples=np.zeros(100)
+    shapley_samples_num=np.zeros(100)
+    samples_num=0
+    for line in f:
+        samples_num+=1
+        num=int(line)
+        print(num)
+        line=f.readline()
+        print(line)
+        linesplit=line.strip().split(":")
+        line2=f.readline()
+        linesplit2=line2.strip().split(":")
+        print("%s, %s" %(linesplit[1], linesplit2[1]))
+        shap_diff=float(linesplit[1])-float(linesplit2[1])
+        shapley_samples[num]+=shap_diff
+        shapley_samples_num+=1
+
+        #tup=tuple(int(i) for i in linesplit[0].split(","))
+        #acc=float(linesplit[1])
+        #dict[tup]=99.34-acc
+        #print(tup, acc)
+    shap_array=[]
+    for i in range(len(shapley_samples)):
+        print(i)
+        shapley_value=shapley_samples[i]/shapley_samples_num[i]
+        print(shapley_value)
+        shap_array.append(shapley_value)
+    print(np.argsort(shap_array))
+    print("Number of samples: "+ str(samples_num))
+    print(",".join(str(i) for i in np.argsort(shap_array)))
+
+#readdata_sampled_compute_sv()
+
+#############################################
+# METHODS
+
+#############################################################3
 # full shplaey 1
 
 def full_shapley_1():
@@ -69,7 +121,7 @@ def full_shapley_2():
 
 
 ###########################################################
-# partial shapley 2
+# sampled shapley, "full" perms 1 (may not be all perms but not sampled)
 def partial_shapley(dict_passed):
     print("Partial Shapley")
     dict = dict_passed
@@ -103,19 +155,20 @@ def partial_shapley(dict_passed):
         print(shap)
 
 ###########################################################
-# partial sampled shapley 2
-def partial_rand_shapley(dict_passed):
+# sampled shapley, "full" perms 2
+def shapley_samp(dict_passed):
     print("Partial Random Shapley")
     dict = dict_passed
 
     #permutations = list(itertools.permutations(elements))
     shap_array=[]
-    for elem in range(20): # for each element we want to compute SV of
+    elements_num=25
+    for elem in range(elements_num): # for each element we want to compute SV of
         sum=0
         dict_elems=0
         print(elem)
-        for i in range(1000):
-            perm=np.random.permutation(20).tolist()
+        for i in range(10000):
+            perm=np.random.permutation(elements_num).tolist()
             #print(perm)
             # we look at all the permutations
             ind=perm.index(elem)
@@ -133,9 +186,48 @@ def partial_rand_shapley(dict_passed):
         shap=sum/dict_elems
         print("shap: %.2f" % shap)
         shap_array.append(shap)
-    print(np.argsort(shap_array), -1)
+    print(np.argsort(shap_array))
+    print(",".join(str(i) for i in np.argsort(shap_array)))
+
+    ###########################################################
+    # sampled permutation sampled shapley 
+    def shapley_samp_perm_samp(dict_passed):
+        print("Partial nodes and permutations Random Shapley")
+        dict = dict_passed
+
+        # permutations = list(itertools.permutations(elements))
+        shap_array = []
+        elements_num = 10
+        for elem in range(elements_num):  # for each element we want to compute SV of
+            sum = 0
+            dict_elems = 0
+            print(elem)
+            for i in range(10000):
+                perm = np.random.permutation(elements_num).tolist()
+                # print(perm)
+                # we look at all the permutations
+                ind = perm.index(elem)
+                del perm[ind + 1:]
+                perm.sort()
+                perm_tuple = tuple(perm)
+                perm.remove(elem)
+                removed_perm_tuple = tuple(perm)
+                if perm_tuple in dict and removed_perm_tuple in dict:
+                    val = dict[perm_tuple] - dict[removed_perm_tuple]
+                    sum += val
+                    # print(val)
+                    dict_elems += 1
+            # print("sum: %.2f, perms: %d" % (sum,dict_elems))
+            shap = sum / dict_elems
+            print("shap: %.2f" % shap)
+            shap_array.append(shap)
+        print(np.argsort(shap_array))
+        print(",".join(str(i) for i in np.argsort(shap_array)))
 
 
 
-partial_rand_shapley(dict)
+#dict=readdata_notsampled()
+#shapley_samp(dict)
+#partial_rand_shapley(dict)
 
+readdata_sampled_compute_sv()
