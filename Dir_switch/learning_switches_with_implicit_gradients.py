@@ -20,6 +20,7 @@ class Model(nn.Module):
         self.W2 = W2
         self.b2 = b_2
         self.hidden_dim = hidden_dim
+        # self.output_dim = W2.size(1) # output dimension
         self.parameter = Parameter(-1e-10*torch.ones(hidden_dim),requires_grad=True) # this parameter lies
 
     def forward(self, x):
@@ -27,29 +28,45 @@ class Model(nn.Module):
         pre_activation = torch.mm(x, self.W1)
         shifted_pre_activation = pre_activation - self.b1
         phi = F.softplus(self.parameter)
+        #
+        # """directly use mean of Dir RV."""
+        # S = phi/torch.sum(phi)
+        #
+        # x = shifted_pre_activation * S
+        # x = F.relu(x)
+        # x = torch.mm(x, self.W2) + self.b2
+        # label = torch.sigmoid(x)
+        #
+        # avg_S = S
+        # avg_label = label
+        # labelstack =[]
+        # Sstack =[]
 
         """ draw Gamma RVs using phi and 1 """
         num_samps = 100
         Sstack = torch.zeros((self.hidden_dim, num_samps))
-        labelstack = torch.zeros()
-        for count in np.range(0,num_samps):
+        mini_batch_size = x.size(0)
+        labelstack = torch.zeros((mini_batch_size, num_samps))
+        for count in np.arange(0,num_samps):
             Gamma_obj = Gamma(phi, 1)
             gamma_samps = Gamma_obj.rsample()
             S = gamma_samps/torch.sum(gamma_samps)
             Sstack[:,count] = S
-            # """directly use mean of Dir RV."""
-            # S = phi/torch.sum(phi)
 
             x = shifted_pre_activation * S
             x = F.relu(x)
             x = torch.mm(x, self.W2) + self.b2
             label = torch.sigmoid(x)
+            labelstack[:,count] = torch.squeeze(label)
 
-        return label,S
+        avg_label = torch.mean(labelstack,1)
+        avg_S = torch.mean(Sstack,1)
+
+        return avg_label, avg_S, labelstack, Sstack
 
 
 def loss_function(prediction, true_y, S, alpha_0, hidden_dim, how_many_samps):
-    BCE = F.binary_cross_entropy(prediction, true_y, reduction='sum')
+    BCE = F.binary_cross_entropy(prediction, true_y, reduction='mean')
 
     # KLD term
     # alpha_0 = torch.Tensor([alpha_0])
@@ -133,11 +150,13 @@ def main():
             optimizer.zero_grad()
 
             # forward + backward + optimize
-            outputs,S_tmp = model(torch.Tensor(inputs))
+            outputs,S_tmp, labelstack, Sstack = model(torch.Tensor(inputs))
             labels = torch.Tensor(labels)
             # loss = F.binary_cross_entropy(outputs, labels)
             # loss = loss_function(outputs, labels)
-            loss = loss_function(outputs, labels, S_tmp, alpha_0, hidden_dim, how_many_samps)
+            num_samps = 100
+            loss = loss_function(labelstack, labels.view(-1,1).repeat(1,num_samps), S_tmp, alpha_0, hidden_dim, how_many_samps)
+            # loss = loss_function(outputs, labels, S_tmp, alpha_0, hidden_dim, how_many_samps)
             loss.backward()
             optimizer.step()
 
