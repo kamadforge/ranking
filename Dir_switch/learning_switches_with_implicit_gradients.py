@@ -44,6 +44,15 @@ class Model(nn.Module):
 
         """ draw Gamma RVs using phi and 1 """
         num_samps = 100
+        concentration_param = phi.view(-1,1).repeat(1,num_samps)
+        beta_param = torch.ones(self.hidden_dim,1).repeat(1,num_samps)
+        Gamma_obj = Gamma(concentration_param, beta_param)
+        gamma_samps = Gamma_obj.rsample()
+        switch_samps = gamma_samps / torch.sum(gamma_samps, 0)
+        x_samps = torch.mm(shifted_pre_activation, switch_samps)
+        x_samps = F.relu(x_samps)
+
+
         Sstack = torch.zeros((self.hidden_dim, num_samps))
         mini_batch_size = x.size(0)
         labelstack = torch.zeros((mini_batch_size, num_samps))
