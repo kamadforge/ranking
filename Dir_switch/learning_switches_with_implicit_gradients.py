@@ -109,21 +109,20 @@ def shuffle_data(y,x,how_many_samps):
 def main():
 
     """ load data, parameters, and true Switch """
-    # # this is for hidden_dim = 20
-    # hidden_dim = 20
-    # x_0 = np.load('x_0.npy')
-    # x_1 = np.load('x_1.npy')
-    # y_0 = np.load('y_0.npy')
-    # y_1 = np.load('y_1.npy')
-    # # produce test data from this data
-    # how_many_samps = 2000
-    # y, X = data_test_generate(x_0, x_1, y_0, y_1, how_many_samps)
-    #
-    # W1 = np.load('W1.npy')
-    # b_1 = np.load('b_1.npy')
-    # W2 = np.load('W2.npy')
-    # b_2 = np.load('b_2.npy')
-    # trueSwitch = np.load('S.npy')
+    # this is for hidden_dim = 20
+    hidden_dim = 20
+    input_dim = 100
+    how_many_samps = 2000
+    x_0 = np.load('x_0.npy')
+    x_1 = np.load('x_1.npy')
+    y_0 = np.load('y_0.npy')
+    y_1 = np.load('y_1.npy')
+
+    W1 = np.load('W1.npy')
+    b_1 = np.load('b_1.npy')
+    W2 = np.load('W2.npy')
+    b_2 = np.load('b_2.npy')
+    trueSwitch = np.load('S.npy')
 
     # # preparing variational inference
     # input_dim = 100
@@ -138,44 +137,41 @@ def main():
     # how_many_samps = 2000
 
     # this is for hidden_dim = 500
-    input_dim = 1000
-    hidden_dim = 500
-    how_many_samps = 4000
-
-    file_name = 'x_0' + '_hidden_dim=' + np.str(hidden_dim)
-    x_0 = np.load(file_name+'.npy')
-
-    file_name = 'x_1' + '_hidden_dim=' + np.str(hidden_dim)
-    x_1 = np.load(file_name+'.npy')
-
-    file_name = 'y_0' + '_hidden_dim=' + np.str(hidden_dim)
-    y_0 = np.load(file_name+'.npy')
-
-    file_name = 'y_1' + '_hidden_dim=' + np.str(hidden_dim)
-    y_1 = np.load(file_name+'.npy')
-
-    file_name = 'W1' + '_hidden_dim=' + np.str(hidden_dim)
-    W1 = np.load(file_name+'.npy')
-
-    file_name = 'W2' + '_hidden_dim=' + np.str(hidden_dim)
-    W2 = np.load(file_name+'.npy')
-
-    b_1 = np.load('b1' + '_hidden_dim=' + np.str(hidden_dim)+'.npy')
-    b_1 = np.squeeze(b_1)
-    b_2 = np.load('b2' + '_hidden_dim=' + np.str(hidden_dim) + '.npy')
-    b_2 = np.squeeze(b_2)
+    # input_dim = 1000
+    # hidden_dim = 500
+    # how_many_samps = 4000
+    #
+    # file_name = 'x_0' + '_hidden_dim=' + np.str(hidden_dim)
+    # x_0 = np.load(file_name+'.npy')
+    #
+    # file_name = 'x_1' + '_hidden_dim=' + np.str(hidden_dim)
+    # x_1 = np.load(file_name+'.npy')
+    #
+    # file_name = 'y_0' + '_hidden_dim=' + np.str(hidden_dim)
+    # y_0 = np.load(file_name+'.npy')
+    #
+    # file_name = 'y_1' + '_hidden_dim=' + np.str(hidden_dim)
+    # y_1 = np.load(file_name+'.npy')
+    #
+    # file_name = 'W1' + '_hidden_dim=' + np.str(hidden_dim)
+    # W1 = np.load(file_name+'.npy')
+    #
+    # file_name = 'W2' + '_hidden_dim=' + np.str(hidden_dim)
+    # W2 = np.load(file_name+'.npy')
+    #
+    # b_1 = np.load('b1' + '_hidden_dim=' + np.str(hidden_dim)+'.npy')
+    # b_1 = np.squeeze(b_1)
+    # b_2 = np.load('b2' + '_hidden_dim=' + np.str(hidden_dim) + '.npy')
+    # b_2 = np.squeeze(b_2)
+    #
+    # trueSwitch = np.load('S' + '_hidden_dim=' + np.str(hidden_dim) + '.npy')
 
     y, X = data_test_generate(x_0, x_1, y_0, y_1, how_many_samps)
 
-
-    # b_1 = np.load('b_1.npy')
-    # b_2 = np.load('b_2.npy')
-    trueSwitch = np.load('S' + '_hidden_dim=' + np.str(hidden_dim) + '.npy')
-
     # preparing variational inference
-    alpha_0 = 0.05 # below 1 so that we encourage sparsity
+    alpha_0 = 0.05 # below 1 so that we encourage sparsity.
     # num_samps_for_switch = 1000
-    num_samps_for_switch = 100
+    num_samps_for_switch = 1000
     model = Model(input_dim=input_dim, hidden_dim=hidden_dim, W1=torch.Tensor(W1), b_1=torch.Tensor(b_1), W2=torch.Tensor(W2), b_2=torch.Tensor(b_2), num_samps_for_switch=num_samps_for_switch)
 
 
@@ -218,8 +214,8 @@ def main():
             # loss = F.binary_cross_entropy(outputs, labels)
             # loss = loss_function(outputs, labels)
             # num_samps = 100
-            # loss = loss_function(labelstack, labels.view(-1,1).repeat(1,num_samps_for_switch), S_tmp, alpha_0, hidden_dim, how_many_samps)
-            loss = loss_function(outputs, labels, S_tmp, alpha_0, hidden_dim, how_many_samps, annealing_rate)
+            loss = loss_function(labelstack, labels.view(-1,1).repeat(1,num_samps_for_switch), S_tmp, alpha_0, hidden_dim, how_many_samps, annealing_rate)
+            # loss = loss_function(outputs, labels, S_tmp, alpha_0, hidden_dim, how_many_samps, annealing_rate)
             loss.backward()
             optimizer.step()
 
@@ -257,13 +253,18 @@ def main():
     print('estimated posterior mean of Switch is', posterior_mean_switch)
     # print('estimated posterior mean of Switch is', estimated_Switch)
 
-    plt.figure(2)
+    f = plt.figure(2)
     plt.plot(np.arange(0, hidden_dim), trueSwitch, 'ko')
     plt.errorbar(np.arange(0, hidden_dim), posterior_mean_switch, yerr=posterior_std_switch, fmt='ro')
     # plt.plot(estimated_Switch, 'ro')
     # plt.plot(posterior_mean_switch, 'ro')
     plt.title('true Switch (black) vs estimated Switch (red)')
     plt.show()
+
+    # fig_title =
+    # f.savefig("posterior_mean_switch_without_sampling_hidden_dim_500_epoch_400.pdf")
+    # f.savefig("posterior_mean_switch_with_sampling_hidden_dim_500_epoch_400.pdf")
+    f.savefig("posterior_mean_switch_with_sampling_hidden_dim_20_epoch_400.pdf")
 
 
 if __name__ == '__main__':
