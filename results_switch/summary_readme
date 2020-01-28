@@ -26,9 +26,19 @@ Use pretrained models provided on github:
 
 Notes:
 
-to custom architecture add the switch function (definition in the file)
+to custom architecture add the switch function like that
 
 output=self.c5(output)
 if layer=='f5':
     output, Sprime = self.switch_func(output)
 output=self.f6(output)
+
+The function:
+
+   def switch_func(self, output):
+        phi = f.softplus(self.parameter)
+        S = phi / torch.sum(phi)
+        Sprime = S
+        for i in range(len(Sprime)):
+            output[:, i] *= Sprime[i].expand_as(output[:, i])
+        return output, Sprime
