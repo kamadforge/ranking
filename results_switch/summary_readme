@@ -1,0 +1,34 @@
+for vgg
+-main2vgg_script_vggswitch.py -  a script to run a file multiple times for different arguments
+-main2vgg_switch.py - runs switches but for vgg
+-main2vgg_switch_v1.py - runs switches but for vgg but for the older version with one less fc and two more conv
+-mnist.3L.conv.gpu_switch - run the program for switches and saves the swicthes values to the pt file
+-plot_switches - makes a plot out of the pt file saved in the mnist_3L.conv.gpu_switch
+
+for lenet
+-results_switch/mnist.3L.conv.gpu_switch_working_really_workingversion.py
+
+
+Steps:
+
+1. Need to pretrain a model without switches
+
+2. Load the pretrain model and run the training for a few epochs
+
+The S (switch) vector gives you the probability distribution of neuron importances.
+
+Example:
+
+Use pretrained models provided on github:
+"models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:540_acc:99.27"
+"models/fashionmnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:62_acc:90.04"
+
+
+Notes:
+
+to custom architecture add the switch function (definition in the file)
+
+output=self.c5(output)
+if layer=='f5':
+    output, Sprime = self.switch_func(output)
+output=self.f6(output)
