@@ -24,6 +24,12 @@ sys.path.append("/home/kamil/Dropbox/Current_research/python_tests/results_netwo
 #sys.path.append("/home/kamil/Dropbox/Current_research/python_tests/results_networktest/external_codes/pytorch-cifar-master/utils.py")
 import numpy as np
 
+from torch.nn.parameter import Parameter
+import torch.nn.functional as f
+
+
+
+
 
 #file_dir = os.path.dirname("utlis.p")
 #sys.path.append(file_dir)
@@ -65,12 +71,123 @@ class VGG(nn.Module):
         out = self.classifier(out)
         return out
 
+        #self.features = self._make_layers(cfg[vgg_name])
+        #self.classifier = nn.Linear(512, 10)
+
+        self.c1 = nn.Conv2d(3, 64, 3, padding=1)
+        self.bn1 = nn.BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        self.c2 = nn.Conv2d(64, 64, 3, padding=1)
+        self.bn2 = nn.BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        self.mp1 = nn.MaxPool2d(2)
+
+        self.c3 = nn.Conv2d(64, 128, 3, padding=1)
+        self.bn3 = nn.BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        self.c4 = nn.Conv2d(128, 128, 3, padding=1)
+        self.bn4 = nn.BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        self.mp2 = nn.MaxPool2d(2)
+
+        self.c5 = nn.Conv2d(128, 256, 3, padding=1)
+        self.bn5 = nn.BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        self.c6 = nn.Conv2d(256, 256, 3, padding=1)
+        self.bn6 = nn.BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        self.c7 = nn.Conv2d(256, 256, 3, padding=1)
+        self.bn7 = nn.BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        self.mp3 = nn.MaxPool2d(2)
+
+        self.c8 = nn.Conv2d(256, 512, 3, padding=1)
+        self.bn8 = nn.BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        self.c9 = nn.Conv2d(512, 512, 3, padding=1)
+        self.bn9 = nn.BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        self.c10 = nn.Conv2d(512, 512, 3, padding=1)
+        self.bn10 = nn.BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        self.c11 = nn.Conv2d(512, 512, 3, padding=1)
+        self.bn11 = nn.BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        self.mp4 = nn.MaxPool2d(2)
+
+        self.c12 = nn.Conv2d(512, 512, 3, padding=1)
+        self.bn12 = nn.BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        self.c13 = nn.Conv2d(512, 512, 3, padding=1)
+        self.bn13 = nn.BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        self.c14 = nn.Conv2d(512, 512, 3, padding=1)
+        self.bn14 = nn.BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        self.c15 = nn.Conv2d(512, 512, 3, padding=1)
+        self.bn15 = nn.BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        self.mp5 = nn.MaxPool2d(2, stride=2, dilation=1, ceil_mode=False)
+        self.ap = nn.AvgPool2d(1, stride=1)
+
+        # self.l1 = nn.Linear(512, 512)
+        # self.l2 = nn.Linear(512, 512)
+        self.l3 = nn.Linear(512, 10)
+        self.d1 = nn.Dropout()
+        self.d2 = nn.Dropout()
+
+
+        self.parameter_switch = Parameter(-1*torch.ones(128),requires_grad=True) # this parameter lies #S
+
+
+    def forward(self, x):
+        phi = f.softplus(self.parameter_switch)
+        S = phi / torch.sum(phi)
+        # Smax = torch.max(S)
+        # Sprime = S/Smax
+        Sprime = S
+
+        output = self.c1(x)
+        output = f.relu(self.bn1(output))
+        output = self.c2(output)
+
+
+
+        output = f.relu(self.bn2(output))
+        output = self.mp1(output)
+
+        output = self.c3(output)
+        for i in range(len(Sprime)):
+            output[:, i] *= Sprime[i].expand_as(output[:, i])
+
+        output = f.relu(self.bn3(output))
+
+
+        output = f.relu(self.bn4(self.c4(output)))
+        output = self.mp2(output)
+
+        output = f.relu(self.bn5(self.c5(output)))
+        output = f.relu(self.bn6(self.c6(output)))
+        output = f.relu(self.bn7(self.c7(output)))
+        output = self.mp3(output)
+
+        output = f.relu(self.bn8(self.c8(output)))
+        output = f.relu(self.bn9(self.c9(output)))
+        output = f.relu(self.bn10(self.c10(output)))
+        output = f.relu(self.bn11(self.c11(output)))
+        output = self.mp4(output)
+        output = f.relu(self.bn12(self.c12(output)))
+        output = f.relu(self.bn13(self.c13(output)))
+        output = f.relu(self.bn14(self.c14(output)))
+        output = f.relu(self.bn15(self.c15(output)))
+        output = self.mp5(output)
+        output = self.ap(output)
+
+
+        output = output.view(-1, 512)
+        output = self.l3(output)
+
+        #output = f.relu(self.l1(output))
+        #output = self.d2(output)
+        #output = f.relu(self.l2(output))
+
+        #out = self.features(x)
+        #out = out.view(out.size(0), -1)
+        #out = self.classifier(out)
+        return output, Sprime
+
     def _make_layers(self, cfg):
         layers = []
         in_channels = 3
         for x in cfg:
             if x == 'M':
                 layers += [nn.MaxPool2d(kernel_size=2, stride=2)]
+
             else:
                 layers += [nn.Conv2d(in_channels, x, kernel_size=3, padding=1),
                            nn.BatchNorm2d(x),
@@ -125,6 +242,17 @@ testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False,
 classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
 
+
+#############################
+# PARAMS
+
+how_many_epochs=200
+annealing_steps = float(8000. * how_many_epochs)
+beta_func = lambda s: min(s, annealing_steps) / annealing_steps
+alpha_0 = 0.01  # below 1 so that we encourage sparsity
+hidden_dim = 64 #it's a number of parameters we want to estimate, e.g. # conv1 filters
+BATCH_SIZE=100
+
 ###################################################
 # MAKE AN INSTANCE OD NETWORK AND (POSSIBLY) LOAD THE MODEL
 
@@ -158,13 +286,43 @@ if (resume):
     # Load checkpoint.
     print('==> Resuming from checkpoint..')
     assert os.path.isdir('checkpoint'), 'Error: no checkpoint directory found!'
-    checkpoint = torch.load('./checkpoint/ckpt_93.72.t7')
-    net.load_state_dict(checkpoint['net'])
+
+    checkpoint = torch.load('./checkpoint/ckpt_93.92.t7', map_location=lambda storage, loc: storage)
+    net.load_state_dict(checkpoint['net'], strict=False)
     best_acc = checkpoint['acc']
     start_epoch = checkpoint['epoch']
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=0.9, weight_decay=5e-4)
+
+
+
+#######################s
+# LOSS
+
+
+
+def loss_function(prediction, true_y, S, alpha_0, hidden_dim, how_many_samps):
+    # BCE = f.binary_cross_entropy(prediction, true_y, reduction='sum')
+    BCE = criterion(prediction, true_y)
+
+    return BCE
+
+
+def loss_functionKL(prediction, true_y, S, alpha_0, hidden_dim, how_many_samps, annealing_rate):
+    # BCE = F.binary_cross_entropy(prediction, true_y, reduction='mean')
+    BCE = criterion(prediction, true_y)
+
+    # KLD term
+    alpha_0 = torch.Tensor([alpha_0]).to(device)
+    hidden_dim = torch.Tensor([hidden_dim]).to(device)
+    trm1 = torch.lgamma(torch.sum(S)) - torch.lgamma(hidden_dim * alpha_0)
+    trm2 = - torch.sum(torch.lgamma(S)) + hidden_dim * torch.lgamma(alpha_0)
+    trm3 = torch.sum((S - alpha_0) * (torch.digamma(S) - torch.digamma(torch.sum(S))))
+    KLD = trm1 + trm2 + trm3
+    # annealing kl-divergence term is better
+
+    return BCE + annealing_rate * KLD / how_many_samps
 
 ########################################################
 # Training
@@ -176,11 +334,14 @@ def train(epoch):
     train_loss = 0
     correct = 0
     total = 0
+
+    annealing_rate = beta_func(epoch)
     for batch_idx, (inputs, targets) in enumerate(trainloader):
         inputs, targets = inputs.to(device), targets.to(device)
         optimizer.zero_grad()
-        outputs = net(inputs)
-        loss = criterion(outputs, targets)
+        outputs, S = net(inputs)
+        #loss = criterion(outputs, targets)
+        loss = loss_functionKL(outputs, targets, S, alpha_0, hidden_dim, BATCH_SIZE, annealing_rate)
         loss.backward()
         optimizer.step()
 
@@ -194,6 +355,8 @@ def train(epoch):
         #    % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))
     print('Loss: %.3f | Acc: %.3f%% (%d/%d)' % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))
 
+    print("S")
+    print(S)
 
 #################################################################
 # TEST
@@ -207,7 +370,7 @@ def test(epoch):
     with torch.no_grad():
         for batch_idx, (inputs, targets) in enumerate(testloader):
             inputs, targets = inputs.to(device), targets.to(device)
-            outputs = net(inputs)
+            outputs = net(inputs)[0] #[0] added because of the tuple output,S
             loss = criterion(outputs, targets)
 
             test_loss += loss.item()
@@ -295,9 +458,26 @@ def compute_combinations_random(file_write):
 file_write=True
 compute_combinations_random(file_write)
 
-train=False
+# train=False
+#
+# if train:
 
-if train:
+##########################################################################3
+# RUN EXPERIMENT
+
+file_write=True
+compute_combinations_random(file_write)
+
+training=True
+
+
+for name, param in net.named_parameters():
+    #print(name, param.shape)
+    if (name != "module.parameter"):
+        h = param.register_hook(lambda grad: grad * 0)  # double the gradient
+
+
+if training:
     session1end=start_epoch+1; session2end=start_epoch+250; session3end=start_epoch+350;
     for epoch in range(start_epoch, session1end):
         train(epoch)
