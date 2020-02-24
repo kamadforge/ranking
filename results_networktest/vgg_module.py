@@ -57,8 +57,14 @@ if dataset=="cifar10":
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=True)
 
 elif dataset=='housenums':
-    train_data = scipy.io.loadmat('/datadisk1/data/house_ numbers/train_32x32.mat')
-    test_data = scipy.io.loadmat('/datadisk1/data/house_ numbers/train_32x32.mat')
+
+    print(socket.gethostname())
+    if 'g0' not in socket.gethostname():
+        train_data = scipy.io.loadmat('/datadisk1/data/house_ numbers/train_32x32.mat')
+        test_data = scipy.io.loadmat('/datadisk1/data/house_ numbers/train_32x32.mat')
+    else:
+        train_data = scipy.io.loadmat('/home/kadamczewski/data/house_ numbers/train_32x32.mat')
+        test_data = scipy.io.loadmat('/home/kadamczewski/data/house_ numbers/test_32x32.mat')
 
     train_data_x = train_data['X'].swapaxes(2, 3).swapaxes(1, 2).swapaxes(0, 1).swapaxes(2,3).swapaxes(1,2)
     train_data_y = train_data['y']
