@@ -226,7 +226,7 @@ def weights_init(m):
 
 #vgg.apply(weights_init)
 
-stop = 0;epoch = 0;best_accuracy = 0;entry = np.zeros(3);best_model = -1; early_stopping=100
+stop = 0;epoch = 0;best_accuracy = 0;entry = np.zeros(3);best_model = -1; early_stopping=500
 while (stop < early_stopping):
     epoch = epoch + 1
     #print (epoch)
@@ -274,8 +274,8 @@ while (stop < early_stopping):
                        "models/%s_%s_rel_bn_drop_trainval_modelopt%.1f_epo_%d_acc_%.2f" % (
                        dataset, architecture, trainval_perc, epoch, best_accuracy))
         else:
-            torch.save({'/home/kadamczewski/Dropbox_from/Current_research/ranking/results_networktest/model_state_dict': best_model, 'optimizer_state_dict': best_optim},
-                       "models/%s_%s_rel_bn_drop_trainval_modelopt%.1f_epo_%d_acc_%.2f" % (
+            torch.save({'model_state_dict': best_model, 'optimizer_state_dict': best_optim},
+                       "/home/kadamczewski/Dropbox_from/Current_research/ranking/results_networktest/models/%s_%s_rel_bn_drop_trainval_modelopt%.1f_epo_%d_acc_%.2f" % (
                        dataset, architecture, trainval_perc, epoch, best_accuracy))
 
     print("\n")
