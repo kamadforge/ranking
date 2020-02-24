@@ -269,12 +269,19 @@ while (stop < early_stopping):
         entry[2]=1
         best_model=vgg.state_dict()
         best_optim=optimizer.state_dict()
-        torch.save({'model_state_dict' : best_model, 'optimizer_state_dict': best_optim}, "models/%s_%s_rel_bn_drop_trainval_modelopt%.1f_epo:%d_acc:%.2f" % (dataset, architecture, trainval_perc, epoch, best_accuracy))
+        if 'g0' not in socket.gethostname():
+            torch.save({'model_state_dict': best_model, 'optimizer_state_dict': best_optim},
+                       "models/%s_%s_rel_bn_drop_trainval_modelopt%.1f_epo_%d_acc_%.2f" % (
+                       dataset, architecture, trainval_perc, epoch, best_accuracy))
+        else:
+            torch.save({'/home/kadamczewski/Dropbox_from/Current_research/ranking/results_networktest/model_state_dict': best_model, 'optimizer_state_dict': best_optim},
+                       "models/%s_%s_rel_bn_drop_trainval_modelopt%.1f_epo_%d_acc_%.2f" % (
+                       dataset, architecture, trainval_perc, epoch, best_accuracy))
 
     print("\n")
 #write
 
-    filename="%s_test_conv_relu_bn_drop_trainval%.1f_%s.txt" % (dataset, trainval_perc, architecture)
-    entry[0]=accuracy; entry[1]=loss
-    with open(filename, "a+") as file:
-        file.write(",".join(map(str, entry))+"\n")
+    # filename="%s_test_conv_relu_bn_drop_trainval%.1f_%s.txt" % (dataset, trainval_perc, architecture)
+    # entry[0]=accuracy; entry[1]=loss
+    # with open(filename, "a+") as file:
+    #     file.write(",".join(map(str, entry))+"\n")
