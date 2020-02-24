@@ -1,3 +1,9 @@
+<<<<<<< HEAD
+#for some reason it can't import, so I just copied VGG here to test
+
+
+=======
+>>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
 '''Train CIFAR10 with PyTorch.'''
 from __future__ import print_function
 
@@ -19,16 +25,88 @@ print("newh2")
 #sys.path.append("/home/kamil/Dropbox/Current_research/python_tests/results_networktest/external_codes/pytorch-cifar-master")
 sys.path.append("/home/kamil/Dropbox/Current_research/python_tests/results_networktest/external_codes/pytorch-cifar-master/models")
 #sys.path.append("/home/kamil/Dropbox/Current_research/python_tests/results_networktest/external_codes/pytorch-cifar-master/utils.py")
+<<<<<<< HEAD
+import numpy as np
+=======
+>>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
 
 
 #file_dir = os.path.dirname("utlis.p")
 #sys.path.append(file_dir)
 
+<<<<<<< HEAD
+#from models import *
+
+#from utils import progress_bar
+
+
+##########################################
+resume=True
+
+
+'''VGG11/13/16/19 in Pytorch.'''
+import torch
+import torch.nn as nn
+
+############################################################
+# NETWORK
+
+
+cfg = {
+    'VGG11': [64, 'M', 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
+    'VGG13': [64, 64, 'M', 128, 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
+    'VGG16': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 'M', 512, 512, 512, 'M', 512, 512, 512, 'M'],
+    'VGG19': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 256, 'M', 512, 512, 512, 512, 'M', 512, 512, 512, 512, 'M'],
+}
+
+
+class VGG(nn.Module):
+    def __init__(self, vgg_name):
+        super(VGG, self).__init__()
+        self.features = self._make_layers(cfg[vgg_name])
+        self.classifier = nn.Linear(512, 10)
+
+    def forward(self, x):
+        out = self.features(x)
+        out = out.view(out.size(0), -1)
+        out = self.classifier(out)
+        return out
+
+    def _make_layers(self, cfg):
+        layers = []
+        in_channels = 3
+        for x in cfg:
+            if x == 'M':
+                layers += [nn.MaxPool2d(kernel_size=2, stride=2)]
+            else:
+                layers += [nn.Conv2d(in_channels, x, kernel_size=3, padding=1),
+                           nn.BatchNorm2d(x),
+                           nn.ReLU(inplace=True)]
+                in_channels = x
+        layers += [nn.AvgPool2d(kernel_size=1, stride=1)]
+        return nn.Sequential(*layers)
+
+
+
+
+# def test():
+#     net = VGG('VGG11')
+#     x = torch.randn(2,3,32,32)
+#     y = net(x)
+#     print(y.size())
+
+# test()
+
+#####################################
+# DATA
+
+=======
 from models import *
 
 from utils import progress_bar
 
 
+>>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
 parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
 parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
 parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')
@@ -60,9 +138,19 @@ testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False,
 
 classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
+<<<<<<< HEAD
+
+###################################################
+# MAKE AN INSTANCE OD NETWORK AND (POSSIBLY) LOAD THE MODEL
+
+# Model
+print('==> Building model..')
+net = VGG('VGG16')
+=======
 # Model
 print('==> Building model..')
 net = VGG('VGG19')
+>>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
 # net = ResNet18()
 # net = PreActResNet18()
 # net = GoogLeNet()
@@ -75,16 +163,33 @@ net = VGG('VGG19')
 # net = SENet18()
 #net = ShuffleNetV2(1)
 net = net.to(device)
+<<<<<<< HEAD
+
+for name, param in net.named_parameters():
+    print (name, param.shape)
+
+
+=======
+>>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
 if device == 'cuda':
     net = torch.nn.DataParallel(net)
     cudnn.benchmark = True
     print(device)
 
+<<<<<<< HEAD
+#if args.resume:
+if (resume):
+    # Load checkpoint.
+    print('==> Resuming from checkpoint..')
+    assert os.path.isdir('checkpoint'), 'Error: no checkpoint directory found!'
+    checkpoint = torch.load('./checkpoint/ckpt_93.72.t7')
+=======
 if args.resume:
     # Load checkpoint.
     print('==> Resuming from checkpoint..')
     assert os.path.isdir('checkpoint'), 'Error: no checkpoint directory found!'
     checkpoint = torch.load('./checkpoint/ckpt.t7')
+>>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
     net.load_state_dict(checkpoint['net'])
     best_acc = checkpoint['acc']
     start_epoch = checkpoint['epoch']
@@ -92,7 +197,14 @@ if args.resume:
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=0.9, weight_decay=5e-4)
 
+<<<<<<< HEAD
+########################################################
 # Training
+
+
+=======
+# Training
+>>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
 def train(epoch):
     print('\nEpoch: %d' % epoch)
     net.train()
@@ -118,6 +230,12 @@ def train(epoch):
     print('Loss: %.3f | Acc: %.3f%% (%d/%d)' % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))
 
 
+<<<<<<< HEAD
+#################################################################
+# TEST
+
+=======
+>>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
 def test(epoch):
     global best_acc
     net.eval()
@@ -137,6 +255,10 @@ def test(epoch):
             #progress_bar(batch_idx, len(testloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
             #    % (test_loss/(batch_idx+1), 100.*correct/total, correct, total))
     print('Loss: %.3f | Acc: %.3f%% (%d/%d)' % (test_loss/(batch_idx+1), 100.*correct/total, correct, total))
+<<<<<<< HEAD
+    return 100.*correct/total
+=======
+>>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
 
 
     # Save checkpoint.
@@ -153,7 +275,89 @@ def test(epoch):
         torch.save(state, './checkpoint/ckpt_%.2f.t7' % acc)
         best_acc = acc
 
+<<<<<<< HEAD
+###########################################################
+#copied from network pruning
+
+def compute_combinations_random(file_write):
+    for name, param in net.named_parameters():
+        print(name)
+        print(param.shape)
+        layer = "module.features.1.weight"
+        if layer in name:
+            layerbias = layer[:17] + ".bias"
+            params_bias = net.state_dict()[layerbias]
+            while (True):
+
+                all_results = {}
+                # s=torch.range(0,49) #list from 0 to 19 as these are the indices of the data tensor
+                # for r in range(1,50): #produces the combinations of the elements in s
+                #    results=[]
+                randperm = np.random.permutation(param.shape[0])
+                randint = 0
+                while (randint == 0):
+                    randint = np.random.randint(param.shape[0])
+                randint_indextoremove = np.random.randint(randint)
+                combination = randperm[:randint]
+                combination2 = np.delete(combination, randint_indextoremove)
+                print(combination[randint_indextoremove])
+
+                #if file_write:
+                print("in")
+                with open("results_running/combinations_pruning_cifar_vgg_%s.txt" % (layer),
+                          "a+") as textfile:
+                    textfile.write("%d\n" % randint_indextoremove)
+
+                for combination in [combination, combination2]:
+                    # for combination in list(combinations(s, r)):
+
+                    combination = torch.LongTensor(combination)
+
+                    print(combination)
+                    params_saved = param[combination].clone()
+                    param_bias_saved = params_bias[combination].clone()
+
+                    # param[torch.LongTensor([1, 4])] = 0
+                    # workaround, first using multiple indices does not work, but if one of the change first then it works to use  param[combinations]
+                    if len(combination) != 0:
+                        param[combination[0]] = 0
+                        # param[combination]=0
+                        params_bias[combination] = 0
+
+                    accuracy = test(-1)
+                    param[combination] = params_saved
+                    params_bias[combination] = param_bias_saved
+
+                    #if file_write:
+                    print("out")
+                    with open("results_running/combinations_pruning_cifar_vgg_%s.txt" % (layer),
+                              "a+") as textfile:
+                        textfile.write("%s: %.2f\n" % (",".join(str(x) for x in combination.numpy()), accuracy))
+
+file_write=True
+compute_combinations_random(file_write)
+
+train=False
+
+if train:
+    session1end=start_epoch+1; session2end=start_epoch+250; session3end=start_epoch+350;
+    for epoch in range(start_epoch, session1end):
+        train(epoch)
+        test(epoch)
+    optimizer = optim.SGD(net.parameters(), lr=0.01, momentum=0.9, weight_decay=5e-4)
+
+    for epoch in range(session1end+1, session2end):
+        train(epoch)
+        test(epoch)
+    optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9, weight_decay=5e-4)
+
+    for epoch in range(session2end+1, session3end):
+        train(epoch)
+        test(epoch)
+
+=======
 
 for epoch in range(start_epoch, start_epoch+200):
     train(epoch)
     test(epoch)
+>>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78

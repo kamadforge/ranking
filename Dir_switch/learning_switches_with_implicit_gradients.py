@@ -8,6 +8,19 @@ import torch.optim as optim
 from torch.nn.parameter import Parameter
 from torch.distributions import Gamma
 
+def tic():
+    #Homemade version of matlab tic and toc functions
+    import time
+    global startTime_for_tictoc
+    startTime_for_tictoc = time.time()
+
+def toc():
+    import time
+    if 'startTime_for_tictoc' in globals():
+        print("Elapsed time is " + str(time.time() - startTime_for_tictoc) + " seconds.")
+    else:
+        print("Toc: start time not set")
+
 class Model(nn.Module):
     #I'm going to define my own Model here following how I generated this dataset
 
@@ -35,7 +48,7 @@ class Model(nn.Module):
         # it looks like too large values are making softplus-transformed values very large and returns NaN.
         # this occurs when optimizing with a large step size (or/and with a high momentum value)
 
-
+        #
         # """directly use mean of Dir RV."""
         # S = phi/torch.sum(phi)
         #
@@ -110,19 +123,19 @@ def main():
 
     """ load data, parameters, and true Switch """
     # this is for hidden_dim = 20
-    hidden_dim = 20
-    input_dim = 100
-    how_many_samps = 2000
-    x_0 = np.load('x_0.npy')
-    x_1 = np.load('x_1.npy')
-    y_0 = np.load('y_0.npy')
-    y_1 = np.load('y_1.npy')
-
-    W1 = np.load('W1.npy')
-    b_1 = np.load('b_1.npy')
-    W2 = np.load('W2.npy')
-    b_2 = np.load('b_2.npy')
-    trueSwitch = np.load('S.npy')
+    # hidden_dim = 20
+    # input_dim = 100
+    # how_many_samps = 2000
+    # x_0 = np.load('x_0.npy')
+    # x_1 = np.load('x_1.npy')
+    # y_0 = np.load('y_0.npy')
+    # y_1 = np.load('y_1.npy')
+    #
+    # W1 = np.load('W1.npy')
+    # b_1 = np.load('b_1.npy')
+    # W2 = np.load('W2.npy')
+    # b_2 = np.load('b_2.npy')
+    # trueSwitch = np.load('S.npy')
 
     # # preparing variational inference
     # input_dim = 100
@@ -137,36 +150,38 @@ def main():
     # how_many_samps = 2000
 
     # this is for hidden_dim = 500
-    # input_dim = 1000
-    # hidden_dim = 500
-    # how_many_samps = 4000
-    #
-    # file_name = 'x_0' + '_hidden_dim=' + np.str(hidden_dim)
-    # x_0 = np.load(file_name+'.npy')
-    #
-    # file_name = 'x_1' + '_hidden_dim=' + np.str(hidden_dim)
-    # x_1 = np.load(file_name+'.npy')
-    #
-    # file_name = 'y_0' + '_hidden_dim=' + np.str(hidden_dim)
-    # y_0 = np.load(file_name+'.npy')
-    #
-    # file_name = 'y_1' + '_hidden_dim=' + np.str(hidden_dim)
-    # y_1 = np.load(file_name+'.npy')
-    #
-    # file_name = 'W1' + '_hidden_dim=' + np.str(hidden_dim)
-    # W1 = np.load(file_name+'.npy')
-    #
-    # file_name = 'W2' + '_hidden_dim=' + np.str(hidden_dim)
-    # W2 = np.load(file_name+'.npy')
-    #
-    # b_1 = np.load('b1' + '_hidden_dim=' + np.str(hidden_dim)+'.npy')
-    # b_1 = np.squeeze(b_1)
-    # b_2 = np.load('b2' + '_hidden_dim=' + np.str(hidden_dim) + '.npy')
-    # b_2 = np.squeeze(b_2)
-    #
-    # trueSwitch = np.load('S' + '_hidden_dim=' + np.str(hidden_dim) + '.npy')
+    input_dim = 1000
+    hidden_dim = 500
+    how_many_samps = 4000
+
+    file_name = 'x_0' + '_hidden_dim=' + np.str(hidden_dim)
+    x_0 = np.load(file_name+'.npy')
+
+    file_name = 'x_1' + '_hidden_dim=' + np.str(hidden_dim)
+    x_1 = np.load(file_name+'.npy')
+
+    file_name = 'y_0' + '_hidden_dim=' + np.str(hidden_dim)
+    y_0 = np.load(file_name+'.npy')
+
+    file_name = 'y_1' + '_hidden_dim=' + np.str(hidden_dim)
+    y_1 = np.load(file_name+'.npy')
+
+    file_name = 'W1' + '_hidden_dim=' + np.str(hidden_dim)
+    W1 = np.load(file_name+'.npy')
+
+    file_name = 'W2' + '_hidden_dim=' + np.str(hidden_dim)
+    W2 = np.load(file_name+'.npy')
+
+    b_1 = np.load('b1' + '_hidden_dim=' + np.str(hidden_dim)+'.npy')
+    b_1 = np.squeeze(b_1)
+    b_2 = np.load('b2' + '_hidden_dim=' + np.str(hidden_dim) + '.npy')
+    b_2 = np.squeeze(b_2)
+
+    trueSwitch = np.load('S' + '_hidden_dim=' + np.str(hidden_dim) + '.npy')
 
     y, X = data_test_generate(x_0, x_1, y_0, y_1, how_many_samps)
+
+    tic()
 
     # preparing variational inference
     alpha_0 = 0.05 # below 1 so that we encourage sparsity.
@@ -178,7 +193,7 @@ def main():
     # optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9)
     optimizer = optim.Adam(model.parameters(), lr=1e-1)
     mini_batch_size = 100
-    how_many_epochs = 400
+    how_many_epochs = 1
     how_many_iter = np.int(how_many_samps/mini_batch_size)
 
     training_loss_per_epoch = np.zeros(how_many_epochs)
@@ -214,8 +229,8 @@ def main():
             # loss = F.binary_cross_entropy(outputs, labels)
             # loss = loss_function(outputs, labels)
             # num_samps = 100
-            loss = loss_function(labelstack, labels.view(-1,1).repeat(1,num_samps_for_switch), S_tmp, alpha_0, hidden_dim, how_many_samps, annealing_rate)
-            # loss = loss_function(outputs, labels, S_tmp, alpha_0, hidden_dim, how_many_samps, annealing_rate)
+            # loss = loss_function(labelstack, labels.view(-1,1).repeat(1,num_samps_for_switch), S_tmp, alpha_0, hidden_dim, how_many_samps, annealing_rate)
+            loss = loss_function(outputs, labels, S_tmp, alpha_0, hidden_dim, how_many_samps, annealing_rate)
             loss.backward()
             optimizer.step()
 
@@ -226,9 +241,9 @@ def main():
 
     print('Finished Training')
 
-    plt.figure(1)
-    plt.plot(training_loss_per_epoch)
-    plt.title('cross entropy loss as a function of epoch')
+    # plt.figure(1)
+    # plt.plot(training_loss_per_epoch)
+    # plt.title('cross entropy loss as a function of epoch')
     # plt.show()
 
     estimated_params = list(model.parameters())
@@ -251,6 +266,8 @@ def main():
 
     print('true Switch is ', trueSwitch)
     print('estimated posterior mean of Switch is', posterior_mean_switch)
+
+    toc()
     # print('estimated posterior mean of Switch is', estimated_Switch)
 
     f = plt.figure(2)

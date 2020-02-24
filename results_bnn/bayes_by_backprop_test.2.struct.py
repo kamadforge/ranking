@@ -203,6 +203,25 @@ class BayesianLinear(nn.Module):
             #it takes weights and biases and does something with them
             modes=[]
 
+<<<<<<< HEAD
+            ##############
+            # log prior
+
+            #to the current log_prior adds weight_prior and bias prior
+            #updates variational prior
+            # for i in range(self.out_features):
+            #     row_weight=weight[i, :]
+            #     self.log_prior = self.log_prior+ self.weight_prior.log_prob(row_weight) # TAKES ROW WEIGHTS AND CHECKS IF IT"S NOT FAR FROM MIX GAUSS WEIGHT_PRIOR
+            #
+            # #two components of the KL in ELBO qlog(p) and qlog(q)
+            # self.log_prior = self.log_prior + self.bias_prior.log_prob(bias) #returns one number
+
+            self.log_prior = self.weight_prior.log_prob(weight) + self.bias_prior.log_prob(bias) #returns one number, weight_prior is p(z)
+
+            ##########################
+            # variation prior
+            self.log_variational_posterior = self.weight.log_prob(weight) + self.bias.log_prob(bias) #returns one number, weight is q(z)
+=======
             #to the current log_prior adds weight_prior and bias prior
             #updates variational prior
             for i in range(self.out_features):
@@ -213,6 +232,7 @@ class BayesianLinear(nn.Module):
             self.log_prior = self.log_prior + self.bias_prior.log_prob(bias) #returns one number
             #self.log_prior = self.weight_prior.log_prob(weight) + self.bias_prior.log_prob(bias) #returns one number
             self.log_variational_posterior = self.weight.log_prob(weight) + self.bias.log_prob(bias) #returns one number
+>>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
         else:
             self.log_prior, self.log_variational_posterior = 0, 0
 

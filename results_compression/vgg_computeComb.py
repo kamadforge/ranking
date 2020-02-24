@@ -1,3 +1,6 @@
+
+#it contains the module for computing the the accuracy of the network when we remove combinations of filters.
+#
 # 1. It trains the network from scratch (if "resume" is off)
 # 2. if resume is on, it loads the pretrained model,
 #     if prune_ bool , it prunes the network
@@ -73,11 +76,14 @@ import sys
 print (sys.path)
 print("newh2")
 sys.path.append("/home/kamil/Dropbox/Current_research/python_tests/results_networktest/external_codes/pytorch-cifar-master/models")
+sys.path.append("/home/kamil/Dropbox/Current_research/python_tests/results_compression")
+
 import numpy as np
 from torch.nn.parameter import Parameter
 import torch.nn.functional as f
 import logging
 import matplotlib.pyplot as plt
+
 import magnitude_pruning
 
 
@@ -94,6 +100,15 @@ import torch.nn as nn
 
 
 
+<<<<<<< HEAD
+#####################################
+# DATA
+
+# parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
+# parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
+# parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')
+# args = parser.parse_args()
+=======
 resume=True
 prune_bool=True
 retrain_bool=False #whether we retrain the model or just evaluate
@@ -256,6 +271,7 @@ parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
 parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
 parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')
 args = parser.parse_args()
+>>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 best_acc = 0  # best test accuracy
@@ -274,15 +290,60 @@ transform_test = transforms.Compose([
     transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
 ])
 
-trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=False, transform=transform_train)
-trainloader = torch.utils.data.DataLoader(trainset, batch_size=128, shuffle=True, num_workers=0)
-#with more workers there may be an error in debug mode: RuntimeError: DataLoader worker (pid 29274) is killed by signal: Terminated.
+<<<<<<< HEAD
+########## rainval
+
+trainval_dataset = torchvision.datasets.CIFAR10(root='./data', train=True, download=False, transform=transform_train)
+
+trainval_perc=0.85
+train_size = int(trainval_perc * len(trainval_dataset))
+val_size = len(trainval_dataset) - train_size
+torch.manual_seed(0)
+print(torch.rand(2))
+train_dataset, val_dataset = torch.utils.data.random_split(trainval_dataset, [train_size, val_size])
+#val_dataset=torch.load("val_dataset")
+
+#train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=128, shuffle=True)
+val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=128, shuffle=False)
+#for batch_idx, (inputs, targets) in enumerate(val_loader):
+#    inputs, targets = inputs.to(device), targets.to(device)
+
+################## test
+
+#testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=False, transform=transform_test)
+#testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False, num_workers=0)
 
 testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=False, transform=transform_test)
 testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False, num_workers=0)
 
 classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
+
+#with more workers there may be an error in debug mode: RuntimeError: DataLoader worker (pid 29274) is killed by signal: Terminated.
+
+
+
+=======
+trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=False, transform=transform_train)
+trainloader = torch.utils.data.DataLoader(trainset, batch_size=128, shuffle=True, num_workers=0)
+#with more workers there may be an error in debug mode: RuntimeError: DataLoader worker (pid 29274) is killed by signal: Terminated.
+
+>>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
+testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=False, transform=transform_test)
+testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False, num_workers=0)
+
+classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
+
+<<<<<<< HEAD
+#
+criterion = nn.CrossEntropyLoss()
+
+
+def test(epoch, net):
+    # for name, param in net.named_parameters():
+    #     print (name)
+    #     print (param)
+=======
 
 ########################################################
 # TRAIN
@@ -318,6 +379,7 @@ def train(epoch):
 # TEST
 
 def test(epoch):
+>>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
     global best_acc
     net.eval()
     test_loss = 0
@@ -326,6 +388,7 @@ def test(epoch):
     with torch.no_grad():
         for batch_idx, (inputs, targets) in enumerate(testloader):
             inputs, targets = inputs.to(device), targets.to(device)
+
             outputs = net(inputs, batch_idx) #VISU
             #outputs = net(inputs)
             loss = criterion(outputs, targets)
@@ -334,6 +397,128 @@ def test(epoch):
             _, predicted = outputs.max(1)
             total += targets.size(0)
             correct += predicted.eq(targets).sum().item()
+<<<<<<< HEAD
+            # progress_bar(batch_idx, len(testloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
+            #    % (test_loss/(batch_idx+1), 100.*correct/total, correct, total))
+    print('Test Lossds: %.3f | Acc: %.3f%% (%d/%d)' % (test_loss / (batch_idx + 1), 100. * correct / total, correct, total))
+    return 100.0*float(correct)/total
+
+def test_val(epoch, net):
+    # for name, param in net.named_parameters():
+    #     print (name)
+    #     print (param)
+    global best_acc
+    net.eval()
+    test_loss = 0
+    correct = 0
+    total = 0
+    with torch.no_grad():
+        for batch_idx, (inputs, targets) in enumerate(val_loader):
+            inputs, targets = inputs.to(device), targets.to(device)
+            #print(targets)
+            #outputs = net(inputs, batch_idx) #VISU
+            outputs = net(inputs)
+            loss = criterion(outputs, targets)
+            test_loss += loss.item()
+            _, predicted = outputs.max(1)
+            total += targets.size(0)
+            correct += predicted.eq(targets).sum().item()
+            # if (predicted.eq(targets).sum().item())!=128:
+            #     print(predicted.eq(targets))
+            #     print(predicted)
+            #     print(targets)
+            # else:
+            #     print(predicted)
+            #print("----------------------------------------------")
+
+            # progress_bar(batch_idx, len(testloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
+            #    % (test_loss/(batch_idx+1), 100.*correct/total, correct, total))
+    print('Test Lossds: %.3f | Acc: %.3f%% (%d/%d)' % (test_loss / (batch_idx + 1), 100. * correct / total, correct, total))
+    return 100.0*float(correct)/total
+
+
+
+###########################################################
+#copied from network pruning important but commented for clarity
+
+# def compute_combinations_random(file_write):
+#     for name, param in net.named_parameters():
+#         print(name)
+#         print(param.shape)
+#         layer = "module.features.1.weight"
+#         if layer in name:
+#             layerbias = layer[:17] + ".bias"
+#             params_bias = net.state_dict()[layerbias]
+#             while (True):
+#
+#                 all_results = {}
+#                 # s=torch.range(0,49) #list from 0 to 19 as these are the indices of the data tensor
+#                 # for r in range(1,50): #produces the combinations of the elements in s
+#                 #    results=[]
+#                 randperm = np.random.permutation(param.shape[0])
+#                 randint = 0
+#                 while (randint == 0):
+#                     randint = np.random.randint(param.shape[0])
+#                 randint_indextoremove = np.random.randint(randint)
+#                 combination = randperm[:randint]
+#                 combination2 = np.delete(combination, randint_indextoremove)
+#                 print(combination[randint_indextoremove])
+#
+#                 #if file_write:
+#                 print("in")
+#                 with open("results_running/combinations_pruning_cifar_vgg_%s.txt" % (layer),
+#                           "a+") as textfile:
+#                     textfile.write("%d\n" % randint_indextoremove)
+#
+#                 for combination in [combination, combination2]:
+#                     # for combination in list(combinations(s, r)):
+#
+#                     combination = torch.LongTensor(combination)
+#
+#                     print(combination)
+#                     params_saved = param[combination].clone()
+#                     param_bias_saved = params_bias[combination].clone()
+#
+#                     # param[torch.LongTensor([1, 4])] = 0
+#                     # workaround, first using multiple indices does not work, but if one of the change first then it works to use  param[combinations]
+#                     if len(combination) != 0:
+#                         param[combination[0]] = 0
+#                         # param[combination]=0
+#                         params_bias[combination] = 0
+#
+#                     accuracy = test_val(-1)
+#                     param[combination] = params_saved
+#                     params_bias[combination] = param_bias_saved
+#
+#                     #if file_write:
+#                     print("out")
+#                     with open("results_running/combinations_pruning_cifar_vgg_%s.txt" % (layer),
+#                               "a+") as textfile:
+#                         textfile.write("%s: %.2f\n" % (",".join(str(x) for x in combination.numpy()), accuracy))
+
+
+##########################
+
+from itertools import chain, combinations
+
+def compute_combinations(file_write, net, testval, channel="c13"):
+    for name, param in net.named_parameters():
+        print (name)
+        print (param.shape)
+
+        channel_name="module."+channel
+
+        if (channel_name in name and "weight" in name) :
+            layer=name
+            print(layer)
+
+        #if layer in name:
+            if ("module.c1." not in name) and ("module.c1" in name):
+                layerbias=layer[:11]+"bias"
+            else:
+                layerbias=layer[:10]+"bias"
+
+=======
             #progress_bar(batch_idx, len(testloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
             #    % (test_loss/(batch_idx+1), 100.*correct/total, correct, total))
     print('Lossds: %.3f | Acc: %.3f%% (%d/%d)' % (test_loss/(batch_idx+1), 100.*correct/total, correct, total))
@@ -748,11 +933,17 @@ def compute_combinations(file_write):
         print(layer)
         if layer in name:
             layerbias=layer[:10]+"bias"
+>>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
             params_bias = net.state_dict()[layerbias]
 
             all_results={}
             s=torch.range(0,param.shape[0]-1) #list from 0 to 19 as these are the indices of the data tensor
+<<<<<<< HEAD
+            #for r in range(1,param.shape[0]): #produces the combinations of the elements in s
+            for r in range(1, 4):  # produces the combinations of the elements in s
+=======
             for r in range(1,param.shape[0]): #produces the combinations of the elements in s
+>>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
                 results=[]
                 for combination in list(combinations(s, r)):
                     combination=torch.LongTensor(combination)
@@ -762,7 +953,12 @@ def compute_combinations(file_write):
                     params_saved = param[combination].clone(); param_bias_saved=params_bias[combination].clone()
                     param[combination[0]] = 0
                     param[combination] = 0; params_bias[combination]=0
+<<<<<<< HEAD
+                    accuracy = testval()
+                    #accuracy = test(-1, net)
+=======
                     accuracy = test(-1)
+>>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
                     param[combination] = params_saved; params_bias[combination]=param_bias_saved
 
                     results.append((combination, accuracy))
@@ -771,12 +967,13 @@ def compute_combinations(file_write):
 
 
                     if file_write:
-                        with open("results_running/combinations_pruning_cifar_vgg16_%s.txt" % (layer), "a+") as textfile:
+                        with open("combinations/combinations_pruning_cifar_vgg16_%s.txt" % (layer), "a+") as textfile:
                             textfile.write("%s: %.2f\n" % (",".join(str(x) for x in combination.numpy()), accuracy))
                         print("%s: %.2f\n" % (",".join(str(x) for x in combination.numpy()), accuracy))
                         logging.info("%s: %.2f\n" % (",".join(str(x) for x in combination.numpy()), accuracy))
 
                 all_results[r]=results
+
 
 
 ###############
@@ -812,4 +1009,5 @@ if resume==False:
     for epoch in range(session2end+1, session3end):
         train(epoch)
         test(epoch)
+
 

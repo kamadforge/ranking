@@ -49,7 +49,11 @@ beta_func = lambda s: min(s, annealing_steps) / annealing_steps
 alpha_0 = 2  # below 1 so that we encourage sparsity
 switch_init=-1
 layer='f6'
+<<<<<<< HEAD
+hidden_dims={'c1': conv1, 'c3': conv2, 'c5': fc1, 'f6' : fc2}
+=======
 hidden_dims={'c1': conv1, 'c3': conv2, 'f5': fc1, 'f6' : fc2}
+>>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
 hidden_dim = hidden_dims[layer] #it's a number of parameters we want to estimate, e.g. # conv1 filters
 
 trainval_perc=1
@@ -126,11 +130,22 @@ class Lenet(nn.Module):
 
         self.drop_layer = nn.Dropout(p=0.5)
 
+<<<<<<< HEAD
+        self.parameter_c1 = Parameter(switch_init*torch.ones(hidden_dims['c1']),requires_grad=True) # this parameter lies #S
+        self.parameter_c3 = Parameter(switch_init * torch.ones(hidden_dims['c3']), requires_grad=True)  # this parameter lies #S
+        self.parameter_c5 = Parameter(switch_init * torch.ones(hidden_dims['c5']), requires_grad=True)  # this parameter lies #S
+        self.parameter_f6 = Parameter(switch_init * torch.ones(hidden_dims['f6']), requires_grad=True)  # this parameter lies #S
+
+    def switch_func(self, output, parameter):
+        #############S
+        phi = f.softplus(parameter)
+=======
         self.parameter = Parameter(switch_init*torch.ones(hidden_dim),requires_grad=True) # this parameter lies #S
 
     def switch_func(self, output):
         #############S
         phi = f.softplus(self.parameter)
+>>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
         # """directly use mean of Dir RV."""
         S = phi / torch.sum(phi)
 
@@ -157,8 +172,12 @@ class Lenet(nn.Module):
 
         #x=x.view(-1,784)
         output=self.c1(x)
+<<<<<<< HEAD
+        output, Sprime_c1 = self.switch_func(output, self.parameter_c1)
+=======
         if layer=='c1':
             output, Sprime = self.switch_func(output)
+>>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
 
         #for i in range(len(S)):
         #output[:, i] = output[:, i] * S[i]
@@ -171,8 +190,12 @@ class Lenet(nn.Module):
         output=self.bn1(output)
         output=self.drop_layer(output)
         output=self.c3(output)
+<<<<<<< HEAD
+        output, Sprime_c3 = self.switch_func(output, self.parameter_c3)
+=======
         if layer=='c3':
             output, Sprime = self.switch_func(output)
+>>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
 
         output=f.relu(self.s4(output))
         output=self.bn2(output)
@@ -180,12 +203,19 @@ class Lenet(nn.Module):
         output=output.view(-1, self.nodesNum2*4*4)
 
         output=self.c5(output)
+<<<<<<< HEAD
+        output, Sprime_c5 = self.switch_func(output, self.parameter_c5)
+
+        output=self.f6(output)
+        output, Sprime_f6 = self.switch_func(output, self.parameter_f6)
+=======
         if layer=='f5':
             output, Sprime = self.switch_func(output)
 
         output=self.f6(output)
         if layer=='f6':
             output, Sprime = self.switch_func(output)
+>>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
 
         #output = self.f7(output)
 
@@ -194,7 +224,11 @@ class Lenet(nn.Module):
         # for i in range(len(Sprime)):
         #     output[:, i] *= Sprime[i].expand_as(output[:, i])
 
+<<<<<<< HEAD
+        return output, {'c1': Sprime_c1, 'c3':Sprime_c3, 'c5':Sprime_c5, 'f6':Sprime_f6 }
+=======
         return output, Sprime
+>>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
 
 
 ####################
@@ -266,17 +300,32 @@ def loss_function(prediction, true_y, S, alpha_0, hidden_dim, how_many_samps):
 
 ###########################
 
+<<<<<<< HEAD
+def loss_functionKL(prediction, true_y, S, alpha_0, hidden_dims, how_many_samps, annealing_rate):
+=======
 def loss_functionKL(prediction, true_y, S, alpha_0, hidden_dim, how_many_samps, annealing_rate):
+>>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
     # BCE = F.binary_cross_entropy(prediction, true_y, reduction='mean')
     BCE = criterion(prediction, true_y)
 
     # KLD term
     alpha_0 = torch.Tensor([alpha_0]).to(device)
+<<<<<<< HEAD
+    KLD_all=0
+    for i in ['c1', 'c3', 'c5', 'f6']:
+        hidden_dim = torch.Tensor([hidden_dims[i]]).to(device)
+        trm1 = torch.lgamma(torch.sum(S[i])) - torch.lgamma(hidden_dim * alpha_0)
+        trm2 = - torch.sum(torch.lgamma(S[i])) + hidden_dim * torch.lgamma(alpha_0)
+        trm3 = torch.sum((S[i] - alpha_0) * (torch.digamma(S[i]) - torch.digamma(torch.sum(S[i]))))
+        KLD = trm1 + trm2 + trm3
+        KLD_all+= KLD
+=======
     hidden_dim = torch.Tensor([hidden_dim]).to(device)
     trm1 = torch.lgamma(torch.sum(S)) - torch.lgamma(hidden_dim * alpha_0)
     trm2 = - torch.sum(torch.lgamma(S)) + hidden_dim * torch.lgamma(alpha_0)
     trm3 = torch.sum((S - alpha_0) * (torch.digamma(S) - torch.digamma(torch.sum(S))))
     KLD = trm1 + trm2 + trm3
+>>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
     # annealing kl-divergence term is better
 
     return BCE + annealing_rate * KLD / how_many_samps, BCE, KLD, annealing_rate * KLD / how_many_samps
@@ -331,7 +380,11 @@ def run_experiment(early_stopping, nodesNum1, nodesNum2, nodesFc1, nodesFc2):
     for name, param in net.named_parameters():
         # print(name, param.shape)
         #print(name)
+<<<<<<< HEAD
+        if ("parameter" not in name):
+=======
         if (name != "parameter"):
+>>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
             h = param.register_hook(lambda grad: grad * 0)  # double the gradient
 
 
@@ -352,7 +405,11 @@ def run_experiment(early_stopping, nodesNum1, nodesNum2, nodesFc1, nodesFc2):
             outputs, S=net(inputs) #when switc hes
             #outputs=net(inputs)
             #loss=criterion(outputs, labels)
+<<<<<<< HEAD
+            loss, BCE, KLD, KLD_discounted = loss_functionKL(outputs, labels, S, alpha_0, hidden_dims, BATCH_SIZE, annealing_rate)
+=======
             loss, BCE, KLD, KLD_discounted = loss_functionKL(outputs, labels, S, alpha_0, hidden_dim, BATCH_SIZE, annealing_rate)
+>>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
             #loss=loss_function(outputs, labels, 1, 1, 1, 1)
             loss.backward()
             #print(net.c1.weight.grad[1, :])
@@ -374,6 +431,27 @@ def run_experiment(early_stopping, nodesNum1, nodesNum2, nodesFc1, nodesFc2):
 
         print("S")
         print(S)
+<<<<<<< HEAD
+        for s in S:
+            print("max: %.4f, min: %.4f" % (torch.max(S[s]), torch.min(S[s])))
+            ranks_sorted = np.argsort(S[s].cpu().detach().numpy())[::-1]
+            print(",".join(map(str, ranks_sorted)))
+        # if (epoch==3):
+        #     torch.save(S, 'results/%s/switch_init_-1,alpha_2_proper/layer-%s_epoch-%s_accuracy-%.2f.pt' % (dataset, layer, epoch, accuracy))
+        # #print(torch.argsort(S), descending=True)
+        #
+        # if (accuracy<=best_accuracy):
+        #     stop=stop+1
+        #     entry[2]=0
+        # else:
+        #     best_accuracy=accuracy
+        #     print("Best updated")
+        #     stop=0
+        #     entry[2]=1
+        #     best_model=net.state_dict()
+        #     best_optim=optimizer.state_dict()
+        #     torch.save({'model_state_dict' : best_model, 'optimizer_state_dict': best_optim}, "models/%s_conv:%d_conv:%d_fc:%d_fc:%d_rel_bn_drop_trainval_modelopt%.1f_epo:%d_acc:%.2f" % (dataset, conv1, conv2, fc1, fc2, trainval_perc, epoch, best_accuracy))
+=======
         print("max: %.4f, min: %.4f" % (torch.max(S), torch.min(S)))
         ranks_sorted = np.argsort(S.cpu().detach().numpy())[::-1]
         print(",".join(map(str, ranks_sorted)))
@@ -392,6 +470,7 @@ def run_experiment(early_stopping, nodesNum1, nodesNum2, nodesFc1, nodesFc2):
             best_model=net.state_dict()
             best_optim=optimizer.state_dict()
             torch.save({'model_state_dict' : best_model, 'optimizer_state_dict': best_optim}, "models/%s_conv:%d_conv:%d_fc:%d_fc:%d_rel_bn_drop_trainval_modelopt%.1f_epo:%d_acc:%.2f" % (dataset, conv1, conv2, fc1, fc2, trainval_perc, epoch, best_accuracy))
+>>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
 
         print("\n")
         #write
