@@ -41,7 +41,7 @@ print(device)
 
 dataset = "housenums"
 trainval_perc=1
-BATCH_SIZE=1
+BATCH_SIZE=200
 
 if dataset=="cifar10":
 
@@ -231,7 +231,8 @@ while (stop < early_stopping):
     epoch = epoch + 1
     #print (epoch)
     for i, data in enumerate(train_loader):
-        #print (i)
+        if i % 50 ==0:
+            print (i)
         inputs, labels = data
         inputs, labels = inputs.to(device), labels.to(device)
         #inputs, labels = inputs, labels
