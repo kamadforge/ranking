@@ -28,6 +28,7 @@ import torch.nn.functional as f
 import numpy as np
 import torch.nn.init as init
 import scipy.io
+import socket
 import matplotlib.pyplot as plt
 
 device=torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
