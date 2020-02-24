@@ -13,6 +13,8 @@ import torch.nn.functional as f
 from torch.autograd.gradcheck import zero_gradients
 from torch.autograd import Variable
 
+
+
 import torch.utils.data
 from torchvision import datasets, transforms
 import matplotlib.pyplot as plt
@@ -20,8 +22,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import csv
 import pdb
-
-# import cv2
+#import cv2
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # device="cpu"
@@ -31,11 +32,11 @@ print(device)
 # DATA
 
 dataset = "FashionMNIST"
-adversarial_dataset = True
+adversarial_dataset=True
 adversarial_attack_when_evaluating_image = True
 evaluate_image_bool = False
 trainval_perc = 1
-BATCH_SIZE = 100  # changed to see one images at a time
+BATCH_SIZE = 100 #changed to see one images at a time
 # Download or load downloaded MNIST dataset
 # shuffle data at every epoch
 
@@ -60,7 +61,7 @@ test_loader = torch.utils.data.DataLoader(
 if adversarial_dataset:
     tensor_x = torch.load('data/FashionMNIST_adversarial/tensor_x.pt')
     tensor_y = torch.load('data/FashionMNIST_adversarial/tensor_y.pt')
-    tensor_x = tensor_x.unsqueeze(1)
+    tensor_x=tensor_x.unsqueeze(1)
 
     my_dataset = torch.utils.data.TensorDataset(tensor_x, tensor_y)  # create your datset
     test_loader = torch.utils.data.DataLoader(my_dataset)  # create your dataloader
@@ -150,19 +151,20 @@ def run_experiment(early_stopping, nodesNum1, nodesNum2, nodesFc1, nodesFc2):
         # path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_trainval_modelopt1.0_epo:309_acc:99.19"
         # path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:540_acc:99.27"
 
+
     # EVALUATE
 
     def visualize(x, x_adv, x_grad, epsilon, clean_pred, adv_pred, clean_prob, adv_prob):
         x = x.squeeze(0)  # remove batch dimension # B X C H X W ==> C X H X W
-        # x = x.mul(torch.FloatTensor(std).view(3, 1, 1)).add(torch.FloatTensor(mean).view(3, 1, 1)).numpy()  # reverse of normalization op- "unnormalize", multiply by std and add mean
-        x = x.detach().numpy()
-        # x = np.transpose(x, (1, 2, 0))  # C X H X W  ==>   H X W X C
+        #x = x.mul(torch.FloatTensor(std).view(3, 1, 1)).add(torch.FloatTensor(mean).view(3, 1, 1)).numpy()  # reverse of normalization op- "unnormalize", multiply by std and add mean
+        x=x.detach().numpy()
+        #x = np.transpose(x, (1, 2, 0))  # C X H X W  ==>   H X W X C
         x = np.clip(x, 0, 1)
 
         x_adv = x_adv.squeeze(0)
-        x_adv = x_adv.detach().numpy()
-        # x_adv = x_adv.mul(torch.FloatTensor(std).view(3, 1, 1)).add(torch.FloatTensor(mean).view(3, 1, 1)).numpy()  # reverse of normalization op
-        # x_adv = np.transpose(x_adv, (1, 2, 0))  # C X H X W  ==>   H X W X C
+        x_adv=x_adv.detach().numpy()
+        #x_adv = x_adv.mul(torch.FloatTensor(std).view(3, 1, 1)).add(torch.FloatTensor(mean).view(3, 1, 1)).numpy()  # reverse of normalization op
+        #x_adv = np.transpose(x_adv, (1, 2, 0))  # C X H X W  ==>   H X W X C
         x_adv = np.clip(x_adv, 0, 1)
 
         x_grad = x_grad.squeeze(0).numpy()
@@ -202,7 +204,7 @@ def run_experiment(early_stopping, nodesNum1, nodesNum2, nodesFc1, nodesFc2):
 
     def adversarial(image, class_least_likely):
 
-        method = 1
+        method =1
         y_target = Variable(torch.LongTensor([class_least_likely[0]]), requires_grad=False).to(device)  # 9= ostrich
         alpha = 0.025
         num_steps = 10
@@ -212,7 +214,7 @@ def run_experiment(early_stopping, nodesNum1, nodesNum2, nodesFc1, nodesFc2):
 
         img_variable_temp = image_tensor  # in previous method we assigned it to the adversarial img
 
-        if method == 1:
+        if method==1:
             eps = 0.25
 
             img_variable_temp = image_tensor  # in previous method we assigned it to the adversarial img
@@ -234,10 +236,10 @@ def run_experiment(early_stopping, nodesNum1, nodesNum2, nodesFc1, nodesFc2):
                 img_variable_temp.data = x_adv
 
             output_adv = net.forward(img_variable_temp)
-            x_adversarial = img_variable_temp
-            # x_adv_pred = labels[torch.max(output_adv.data, 1)[1][0]]
+            x_adversarial=img_variable_temp
+            #x_adv_pred = labels[torch.max(output_adv.data, 1)[1][0]]
             output_adv_softmax = f.softmax(output_adv, dim=1)
-            # softm=torch.nn.functional.softmax(predicted_prob)
+            #softm=torch.nn.functional.softmax(predicted_prob)
 
             advers_bestclass_pred_prob = round(float(torch.max(output_adv_softmax.data, 1)[0][0]) * 100, 4)
 
@@ -245,7 +247,7 @@ def run_experiment(early_stopping, nodesNum1, nodesNum2, nodesFc1, nodesFc2):
 
             print("\nAdversarial\n", advers_predicted_class, advers_bestclass_pred_prob, output_adv)
 
-        if method == 2:
+        if method==2:
 
             for i in range(num_steps):
                 zero_gradients(img_variable_temp)
@@ -258,24 +260,22 @@ def run_experiment(early_stopping, nodesNum1, nodesNum2, nodesFc1, nodesFc2):
                 x_grad = alpha * torch.sign(img_variable_temp.grad.data)
 
                 eps = 0.02
-                x_grad = torch.sign(
-                    img_variable_temp.grad.data)  # calculate the sign of gradient of the loss func (with respect to input X) (adv)
+                x_grad = torch.sign(img_variable_temp.grad.data)  # calculate the sign of gradient of the loss func (with respect to input X) (adv)
                 x_adversarial = img_variable_temp.data + eps * x_grad  # find adv example using formula shown above
                 output_adv = net.forward(Variable(x_adversarial))  # perform a forward pass on adv example
                 advers_predicted_class = int(torch.max(output_adv.data, 1)[1][0])  # classify the adv example
                 op_adv_probs = f.softmax(output_adv, dim=1)  # get probability distribution over classes
-                advers_bestclass_pred_prob = round(float((torch.max(op_adv_probs.data, 1)[0][0]) * 100),
-                                                   4)  # find probability (confidence) of a predicted class
+                advers_bestclass_pred_prob = round(float((torch.max(op_adv_probs.data, 1)[0][0]) * 100),4)  # find probability (confidence) of a predicted class
 
             print("Adversarial: ", advers_predicted_class, advers_bestclass_pred_prob, op_adv_probs)
 
         return image_tensor, x_adversarial, x_grad, eps, advers_predicted_class, advers_bestclass_pred_prob
 
-        # adv_temp = img_variable.data - x_grad
-        # total_grad = adv_temp - image_tensor
-        # total_grad = torch.clamp(total_grad, -epsilon, epsilon)
-        # x_adv = image_tensor + total_grad
-        # img_variable.data = x_adv
+            # adv_temp = img_variable.data - x_grad
+            # total_grad = adv_temp - image_tensor
+            # total_grad = torch.clamp(total_grad, -epsilon, epsilon)
+            # x_adv = image_tensor + total_grad
+            # img_variable.data = x_adv
 
         # output_adv = inceptionv3.forward(img_variable)
         # x_adv_pred = labels[torch.max(output_adv.data, 1)[1][0]]
@@ -290,30 +290,29 @@ def run_experiment(early_stopping, nodesNum1, nodesNum2, nodesFc1, nodesFc2):
         images = images.to(device)
         predicted_output = net.forward(images)  # images.view(-1,28*28)
 
-        x_pred_prob = torch.nn.functional.softmax(predicted_output)
-        bestclass_pred_prob = round(float((torch.max(x_pred_prob, 1)[0][0]) * 100), 4)
+        x_pred_prob=torch.nn.functional.softmax(predicted_output)
+        bestclass_pred_prob= round(float((torch.max(x_pred_prob, 1)[0][0]) * 100),4)
 
         x_pred = np.argmax(predicted_output.cpu().detach().numpy(), axis=1)
-        x_least_likely = np.argmin(predicted_output.cpu().detach().numpy(), axis=1)
+        x_least_likely=np.argmin(predicted_output.cpu().detach().numpy(), axis=1)
         print("\nGT\n", classes)
         print("\nNormal\n", x_pred, torch.max(x_pred_prob, 1), x_pred_prob)
 
         if adversarial_attack_when_evaluating_image:
-            image_tensor, x_adversarial, x_grad, eps, x_adv_pred, adv_bestclass_pred_prob = adversarial(images,
-                                                                                                        x_least_likely)
+            image_tensor, x_adversarial, x_grad, eps, x_adv_pred, adv_bestclass_pred_prob=adversarial(images, x_least_likely)
 
-        # visualize(image_tensor[0][0], x_adversarial[0][0], x_grad, eps, x_pred, x_adv_pred, bestclass_pred_prob, adv_bestclass_pred_prob)
+        #visualize(image_tensor[0][0], x_adversarial[0][0], x_grad, eps, x_pred, x_adv_pred, bestclass_pred_prob, adv_bestclass_pred_prob)
 
-        path_save = "data/FashionMNIST_adversarial/fashionmnist_" + str(ind)
+        path_save="data/FashionMNIST_adversarial/fashionmnist_"+str(ind)
         np.save(path_save, x_adversarial[0][0].detach().numpy(), 'a')
-        # plt.imsave(path_save, x_adversarial[0][0].detach().numpy())
+        #plt.imsave(path_save, x_adversarial[0][0].detach().numpy())
 
-        # total += labels.size(0)
-        # correct += (predicted == labels.numpy()).sum().item()
+        #total += labels.size(0)
+        #correct += (predicted == labels.numpy()).sum().item()
         # print(str(correct) +" "+ str(total))
         # pdb.set_trace()
-        # accuracy = 100 * float(correct) / total
-        # print("test accuracy: %.2f %%" % (accuracy))
+        #accuracy = 100 * float(correct) / total
+        #print("test accuracy: %.2f %%" % (accuracy))
         return -1
 
     def evaluate():
@@ -340,11 +339,12 @@ def run_experiment(early_stopping, nodesNum1, nodesNum2, nodesFc1, nodesFc2):
     if resume:
         load_model()
 
+
         if evaluate_image_bool:
-            # evaluate images
-            labels = []
+            #evaluate images
+            labels=[]
             for j, (images, classes) in enumerate(test_loader):
-                # if j<10:
+                #if j<10:
                 if 1:
                     evaluate_image(images, classes, j)
                     labels.append(np.array(classes.numpy()))
@@ -353,7 +353,11 @@ def run_experiment(early_stopping, nodesNum1, nodesNum2, nodesFc1, nodesFc2):
         else:
             evaluate()
 
-    #        np.save("data/FashionMNIST_adversarial/labels.npy", 'a')
+#        np.save("data/FashionMNIST_adversarial/labels.npy", 'a')
+
+
+
+
 
     def train():
 
@@ -393,7 +397,7 @@ def run_experiment(early_stopping, nodesNum1, nodesNum2, nodesFc1, nodesFc2):
                 best_optim = optimizer.state_dict()
                 torch.save({'model_state_dict': best_model, 'optimizer_state_dict': best_optim},
                            "models/%s_conv:%d_conv:%d_fc:%d_fc:%d_rel_bn_drop_trainval_modelopt%.1f_epo:%d_acc:%.2f" % (
-                               dataset, conv1, conv2, fc1, fc2, trainval_perc, epoch, best_accuracy))
+                           dataset, conv1, conv2, fc1, fc2, trainval_perc, epoch, best_accuracy))
 
             print("\n")
             # write
@@ -402,6 +406,9 @@ def run_experiment(early_stopping, nodesNum1, nodesNum2, nodesFc1, nodesFc2):
             with open(filename, "a+") as file:
                 file.write(",".join(map(str, entry)) + "\n")
         return best_accuracy, epoch, best_model
+
+
+
 
     if training:
         best_accuracy, epoch, best_model = train()
@@ -421,9 +428,9 @@ conv2 = 20;
 fc1 = 100;
 fc2 = 25
 filename = "%s_test_conv_relu_bn_drop_trainval%.1f_conv:%d_conv:%d_fc:%d_fc:%d.txt" % (
-    dataset, trainval_perc, conv1, conv2, fc1, fc2)
+dataset, trainval_perc, conv1, conv2, fc1, fc2)
 filename = "%s_test_conv_relu_bn_drop_trainval%.1f_conv:%d_conv:%d_fc:%d_fc:%d.txt" % (
-    dataset, trainval_perc, conv1, conv2, fc1, fc2)
+dataset, trainval_perc, conv1, conv2, fc1, fc2)
 
 ######################################################
 # single run  avergaed pver n iterations

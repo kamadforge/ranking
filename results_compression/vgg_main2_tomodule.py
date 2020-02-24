@@ -2,7 +2,7 @@
 # 2. if resume is on, it loads the pretrained model,
 #     if prune_ bool , it prunes the network
 #     if retrain_ bool is on , retrains it
-    #e.g. it can retrain, but not prune
+# e.g. it can retrain, but not prune
 # 3. it can be used for visualizing, if uncomment the comments #VISU
 
 # other features:
@@ -75,9 +75,11 @@ import os
 import argparse
 
 import sys
-print (sys.path)
+
+print(sys.path)
 print("newh2")
-sys.path.append("/home/kamil/Dropbox/Current_research/python_tests/results_networktest/external_codes/pytorch-cifar-master/models")
+sys.path.append(
+    "/home/kamil/Dropbox/Current_research/python_tests/results_networktest/external_codes/pytorch-cifar-master/models")
 sys.path.append("/home/kamil/Dropbox/Current_research/python_tests/results_compression")
 import numpy as np
 from torch.nn.parameter import Parameter
@@ -88,59 +90,37 @@ import magnitude_rank
 import argparse
 from vgg_computeComb import compute_combinations
 from vgg_computeComb import test_val
-<<<<<<< HEAD
 import argparse
 from itertools import product
 
+# file_dir = os.path.dirname("utlis.p")
+# sys.path.append(file_dir)
 
-=======
->>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
+# from models import *
 
-
-#file_dir = os.path.dirname("utlis.p")
-#sys.path.append(file_dir)
-
-#from models import *
-
-#from utils import progress_bar
+# from utils import progress_bar
 
 '''VGG11/13/16/19 in Pytorch.'''
 import torch
 import torch.nn as nn
 
-<<<<<<< HEAD
-parser=argparse.ArgumentParser()
-parser.add_argument("-arch", default=[25,25,65,80,201,158,159,460,450,490,470,465,465,450])
-#ar.add_argument("-arch", default=[21,20,65,80,201,147,148,458,436,477,454,448,445,467,441])
+parser = argparse.ArgumentParser()
+parser.add_argument("-arch", default=[25, 25, 65, 80, 201, 158, 159, 460, 450, 490, 470, 465, 465, 450])
+# ar.add_argument("-arch", default=[21,20,65,80,201,147,148,458,436,477,454,448,445,467,441])
 parser.add_argument('--layer',
-    help="layer to prune", default="c1")
+                    help="layer to prune", default="c1")
 
 args = parser.parse_args()
 print(args.layer)
 print("aaa", args.arch)
-=======
-ar=argparse.ArgumentParser()
-ar.add_argument("-arch", default=[25,25,65,80,201,158,159,460,450,490,470,465,465,450])
-#ar.add_argument("-arch", default=[21,20,65,80,201,147,148,458,436,477,454,448,445,467,441])
->>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
 
+# [39, 40, 63, 47, 53, 96, 94, 54, 64, 26, 40, 49, 46, 45, 64]/[25, 24, 65, 81, 203, 160, 162, 458, 448, 486, 472, 463, 466, 467, 448] - err 8.8%
 
-
-#[39, 40, 63, 47, 53, 96, 94, 54, 64, 26, 40, 49, 46, 45, 64]/[25, 24, 65, 81, 203, 160, 162, 458, 448, 486, 472, 463, 466, 467, 448] - err 8.8%
-
-<<<<<<< HEAD
-#stri=args["arch"][1:-1]
-#str_array=stri.split(',')
-#str_array_int=[int(i) for i in str_array]
+# stri=args["arch"][1:-1]
+# str_array=stri.split(',')
+# str_array_int=[int(i) for i in str_array]
 
 #######################################################################################################################################3
-=======
-args = vars(ar.parse_args())
-print("aaa", args["arch"])
-#stri=args["arch"][1:-1]
-#str_array=stri.split(',')
-#str_array_int=[int(i) for i in str_array]
->>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
 ############################################################
 # NETWORK
 
@@ -153,27 +133,19 @@ cfg = {
     'VGG19': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 256, 'M', 512, 512, 512, 512, 'M', 512, 512, 512, 512, 'M'],
 }
 
-<<<<<<< HEAD
+
 class Identity(nn.Module):
     def __init__(self):
         super(Identity, self).__init__()
 
     def forward(self, x):
         return x
-=======
->>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
 
 
 class VGG(nn.Module):
     def __init__(self, vgg_name):
         super(VGG, self).__init__()
 
-<<<<<<< HEAD
-=======
-        #self.features = self._make_layers(cfg[vgg_name])
-        #self.classifier = nn.Linear(512, 10)
-
->>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
         self.c1 = nn.Conv2d(3, 64, 3, padding=1)
         self.bn1 = nn.BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
         self.c2 = nn.Conv2d(64, 64, 3, padding=1)
@@ -210,31 +182,15 @@ class VGG(nn.Module):
         self.bn13 = nn.BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
         self.mp5 = nn.MaxPool2d(2)
 
-<<<<<<< HEAD
         self.l1 = nn.Linear(512, 512)
-=======
-        # self.c14 = nn.Conv2d(512, 512, 3, padding=1)
-        # self.bn14 = nn.BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-        # self.c15 = nn.Conv2d(512, 512, 3, padding=1)
-        # self.bn15 = nn.BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-        # self.mp5 = nn.MaxPool2d(2, stride=2, dilation=1, ceil_mode=False)
-        # self.ap = nn.AvgPool2d(1, stride=1)
-
-        self.l1 = nn.Linear(512, 512)
-        # self.l2 = nn.Linear(512, 512)
->>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
         self.l3 = nn.Linear(512, 10)
         self.d1 = nn.Dropout()
         self.d2 = nn.Dropout()
 
         self.parameter = Parameter(-1 * torch.ones(64), requires_grad=True)  # this parameter lies #S
 
-<<<<<<< HEAD
-
-
-
         # Fisher method is called on backward passes
-        self.running_fisher=[]
+        self.running_fisher = []
         for i in range(3):
             self.running_fisher.append(torch.Tensor(64).to(device))
         for i in range(2):
@@ -244,13 +200,13 @@ class VGG(nn.Module):
         for i in range(7):
             self.running_fisher.append(torch.Tensor(512).to(device))
 
-        self.act = [0]*15
+        self.act = [0] * 15
 
         self.activation1 = Identity()
         self.activation2 = Identity()
         self.activation3 = Identity()
         self.activation4 = Identity()
-        self.activation5=  Identity()
+        self.activation5 = Identity()
         self.activation6 = Identity()
         self.activation7 = Identity()
         self.activation8 = Identity()
@@ -276,33 +232,27 @@ class VGG(nn.Module):
         self.activation13.register_backward_hook(self._fisher13)
         self.activation14.register_backward_hook(self._fisher14)
 
-
-    #def forward(self, x, i):  # VISU
+    # def forward(self, x, i):  # VISU
     def forward(self, x, i=-1):
-=======
-    #def forward(self, x, i):  # VISU
-    def forward(self, x):
->>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
         phi = f.softplus(self.parameter)
         S = phi / torch.sum(phi)
         # Smax = torch.max(S)
         # Sprime = S/Smax
         Sprime = S
 
-<<<<<<< HEAD
         if vis:
             for filter_num in range(3):
                 mm = x.cpu().detach().numpy()
                 # Split
-                img = mm[1,filter_num,:, :]
-                if filter_num==0:
-                    cmap_col='Reds'
-                elif filter_num==1:
-                    cmap_col='Greens'
-                elif filter_num==2:
-                    cmap_col='Blues'
+                img = mm[1, filter_num, :, :]
+                if filter_num == 0:
+                    cmap_col = 'Reds'
+                elif filter_num == 1:
+                    cmap_col = 'Greens'
+                elif filter_num == 2:
+                    cmap_col = 'Blues'
 
-                #plt.imshow(matrix)  # showing 2nd channel (example of a channel)
+                # plt.imshow(matrix)  # showing 2nd channel (example of a channel)
 
                 plt.gca().set_axis_off()
                 plt.subplots_adjust(top=1, bottom=0, right=1, left=0,
@@ -314,36 +264,36 @@ class VGG(nn.Module):
                 plt.show()
                 plt.savefig(
                     "/home/kamil/Dropbox/Current_research/python_tests/results_networktest/vis/feature_maps/cifar/94.34/input_batch%d_filternum%d" % (
-                    i, filter_num), bbox_inches='tight', pad_inches=0)
+                        i, filter_num), bbox_inches='tight', pad_inches=0)
 
         output = f.relu(self.bn1(self.c1(x)))
 
         if vis:
             for filter_num in range(64):
-                mm=output.cpu().detach().numpy()
+                mm = output.cpu().detach().numpy()
 
-                matrix=mm[1,filter_num,:,:]
+                matrix = mm[1, filter_num, :, :]
                 print(filter_num)
-                #print(matrix[0:20, 0])
-                #ave=0
-                ave=np.average(matrix[0:20, 0])
-                matrix=matrix-ave
+                # print(matrix[0:20, 0])
+                # ave=0
+                ave = np.average(matrix[0:20, 0])
+                matrix = matrix - ave
 
-                plt.imshow(matrix, cmap="coolwarm", vmin=-1, vmax=1) #showing 2nd channel (example of a channel)
+                plt.imshow(matrix, cmap="coolwarm", vmin=-1, vmax=1)  # showing 2nd channel (example of a channel)
 
                 plt.gca().set_axis_off()
                 plt.subplots_adjust(top=1, bottom=0, right=1, left=0,
-                                hspace=0, wspace=0)
+                                    hspace=0, wspace=0)
                 plt.margins(0, 0)
                 plt.gca().xaxis.set_major_locator(plt.NullLocator())
                 plt.gca().yaxis.set_major_locator(plt.NullLocator())
 
+                plt.savefig(
+                    "/home/kamil/Dropbox/Current_research/python_tests/results_networktest/vis/feature_maps/cifar/94.34/conv1_batch%d_filternum%d" % (
+                    i, filter_num), bbox_inches='tight', pad_inches=0)
 
-                plt.savefig("/home/kamil/Dropbox/Current_research/python_tests/results_networktest/vis/feature_maps/cifar/94.34/conv1_batch%d_filternum%d" % (i, filter_num), bbox_inches='tight', pad_inches=0)
-
-
-        #out = self.activation1(output)
-        self.act[1]=self.activation1(output)
+        # out = self.activation1(output)
+        self.act[1] = self.activation1(output)
         output = f.relu(self.bn2(self.c2(output)))
         self.act[2] = self.activation2(output)
         output = self.mp1(output)
@@ -385,51 +335,59 @@ class VGG(nn.Module):
 
         return output
 
-
-
-
-
     def _fisher1(self, notused1, notused2, grad_output):
         self._fisher(grad_output, 1)
+
     def _fisher2(self, notused1, notused2, grad_output):
         self._fisher(grad_output, 2)
+
     def _fisher3(self, notused1, notused2, grad_output):
         self._fisher(grad_output, 3)
+
     def _fisher4(self, notused1, notused2, grad_output):
         self._fisher(grad_output, 4)
+
     def _fisher5(self, notused1, notused2, grad_output):
         self._fisher(grad_output, 5)
+
     def _fisher6(self, notused1, notused2, grad_output):
         self._fisher(grad_output, 6)
+
     def _fisher7(self, notused1, notused2, grad_output):
         self._fisher(grad_output, 7)
+
     def _fisher8(self, notused1, notused2, grad_output):
         self._fisher(grad_output, 8)
+
     def _fisher9(self, notused1, notused2, grad_output):
         self._fisher(grad_output, 9)
+
     def _fisher10(self, notused1, notused2, grad_output):
         self._fisher(grad_output, 10)
+
     def _fisher11(self, notused1, notused2, grad_output):
         self._fisher(grad_output, 11)
+
     def _fisher12(self, notused1, notused2, grad_output):
         self._fisher(grad_output, 12)
+
     def _fisher13(self, notused1, notused2, grad_output):
         self._fisher(grad_output, 13)
+
     def _fisher14(self, notused1, notused2, grad_output):
         self._fisher_fc(grad_output, 14)
-
 
     def _fisher(self, grad_output, i):
         act = self.act[i].detach()
         grad = grad_output[0].detach()
         #
-        #print("Grad: ",grad_output[0].shape)
-        #print("Act: ", act.shape, '\n')
+        # print("Grad: ",grad_output[0].shape)
+        # print("Act: ", act.shape, '\n')
 
         g_nk = (act * grad).sum(-1).sum(-1)
         del_k = g_nk.pow(2).mean(0).mul(0.5)
-        #print(del_k.shape)
-        #print(i)
+        # print(del_k.shape)
+        # print(i)
         self.running_fisher[i] += del_k
 
     def _fisher_fc(self, grad_output, i):
@@ -445,53 +403,9 @@ class VGG(nn.Module):
         # print(i)
         self.running_fisher[i] += del_k
 
-
     def reset_fisher(self):
         for i in range(len(self.running_fisher)):
-            self.running_fisher[i]=torch.Tensor(len(self.running_fisher[i])).to(device)
-=======
-        output = f.relu(self.bn1(self.c1(x)))
-        output = f.relu(self.bn2(self.c2(output)))
-        output = self.mp1(output)
-
-        output = f.relu(self.bn3(self.c3(output)))
-        output = f.relu(self.bn4(self.c4(output)))
-        output = self.mp2(output)
-
-        output = f.relu(self.bn5(self.c5(output)))
-        output = f.relu(self.bn6(self.c6(output)))
-        output = f.relu(self.bn7(self.c7(output)))
-        output = self.mp3(output)
-
-        output = f.relu(self.bn8(self.c8(output)))
-        output = f.relu(self.bn9(self.c9(output)))
-        output = f.relu(self.bn10(self.c10(output)))
-        output = self.mp4(output)
-
-        output = f.relu(self.bn11(self.c11(output)))
-        output = f.relu(self.bn12(self.c12(output)))
-        output = f.relu(self.bn13(self.c13(output)))
-        output = self.mp5(output)
-
-
-        # output = f.relu(self.bn14(self.c14(output)))
-        # output = f.relu(self.bn15(self.c15(output)))
-        # output = self.mp5(output)
-        #output = self.ap(output)
-
-        output = output.view(-1, 512)
-        output = self.l1(output)
-        output = self.l3(output)
-
-        # output = f.relu(self.l1(output))
-        # output = self.d2(output)
-        # output = f.relu(self.l2(output))
-
-        # out = self.features(x)
-        # out = out.view(out.size(0), -1)
-        # out = self.classifier(out)
-        return output
->>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
+            self.running_fisher[i] = torch.Tensor(len(self.running_fisher[i])).to(device)
 
     # def forward(self, x):
     #     out = self.features(x)
@@ -514,11 +428,6 @@ class VGG(nn.Module):
         return nn.Sequential(*layers)
 
 
-<<<<<<< HEAD
-
-
-=======
->>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
 #####################################
 # DATA
 
@@ -544,47 +453,37 @@ transform_test = transforms.Compose([
     transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
 ])
 
-#trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=False, transform=transform_train)
-#trainloader = torch.utils.data.DataLoader(trainset, batch_size=128, shuffle=True, num_workers=0)
+# trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=False, transform=transform_train)
+# trainloader = torch.utils.data.DataLoader(trainset, batch_size=128, shuffle=True, num_workers=0)
 
 trainval_dataset = torchvision.datasets.CIFAR10(root='./data', train=True, download=False, transform=transform_train)
-#with more workers there may be an error in debug mode: RuntimeError: DataLoader worker (pid 29274) is killed by signal: Terminated.
+# with more workers there may be an error in debug mode: RuntimeError: DataLoader worker (pid 29274) is killed by signal: Terminated.
 
 
-<<<<<<< HEAD
-trainval_perc=0.8
-=======
-trainval_perc=0.85
->>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
+trainval_perc = 0.8
 train_size = int(trainval_perc * len(trainval_dataset))
 val_size = len(trainval_dataset) - train_size
 torch.manual_seed(0)
 train_dataset, val_dataset = torch.utils.data.random_split(trainval_dataset, [train_size, val_size])
-#torch.save(val_dataset, "val_dataset")
-#torch.save(train_dataset, "train_dataset")
+# torch.save(val_dataset, "val_dataset")
+# torch.save(train_dataset, "train_dataset")
 
 
 trainloader = torch.utils.data.DataLoader(train_dataset, batch_size=128, shuffle=False)
 valloader = torch.utils.data.DataLoader(val_dataset, batch_size=128, shuffle=False)
 
-
-#testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=False, transform=transform_test)
-#testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False, num_workers=0)
+# testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=False, transform=transform_test)
+# testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False, num_workers=0)
 
 testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=False, transform=transform_test)
 testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False, num_workers=0)
 
 classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
-
-
 ###################################################
 # MAKE AN INSTANCE OF A NETWORK AND (POSSIBLY) LOAD THE MODEL
 
-<<<<<<< HEAD
 
-=======
->>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
 # Model
 print('==> Building model..')
 net = VGG('VGG16')
@@ -598,7 +497,7 @@ net = VGG('VGG16')
 # net = DPN92()
 # net = ShuffleNetG2()
 # net = SENet18()
-#net = ShuffleNetV2(1)
+# net = ShuffleNetV2(1)
 net = net.to(device)
 
 # for name, param in net.named_parameters():
@@ -613,9 +512,7 @@ if device == 'cuda':
     cudnn.benchmark = True
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
-    #print(device)
-
-<<<<<<< HEAD
+    # print(device)
 
 
 #########################
@@ -629,8 +526,6 @@ if device == 'cuda':
 # for name, layer in net.named_modules():
 #     layer.register_backward_hook(func(name))
 
-=======
->>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
 ########################################################
 # TRAIN
 
@@ -644,7 +539,7 @@ def train(epoch):
     for batch_idx, (inputs, targets) in enumerate(trainloader):
         inputs, targets = inputs.to(device), targets.to(device)
         optimizer.zero_grad()
-        #outputs = net(inputs, batch_idx) #VISU
+        # outputs = net(inputs, batch_idx) #VISU
         outputs = net(inputs)
         loss = criterion(outputs, targets)
         loss.backward()
@@ -654,21 +549,19 @@ def train(epoch):
         _, predicted = outputs.max(1)
         total += targets.size(0)
         correct += predicted.eq(targets).sum().item()
-        #if (batch_idx % 1000 ==0):
-    print('Training Loss: %.3f | Acc: %.3f%% (%d/%d)' % (train_loss / (batch_idx + 1), 100. * correct / total, correct, total))
-        #progress_bar(batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
-        #    % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))
-    return 100.*correct/total, best_acc
+        # if (batch_idx % 1000 ==0):
+    print('Training Loss: %.3f | Acc: %.3f%% (%d/%d)' % (
+    train_loss / (batch_idx + 1), 100. * correct / total, correct, total))
+    # progress_bar(batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
+    #    % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))
+    return 100. * correct / total, best_acc
 
 
-<<<<<<< HEAD
 ###############################################################
 
 def finetune():
-
     # switch to train mode
     net.train()
-
 
     dataiter = iter(trainloader)
 
@@ -679,7 +572,6 @@ def finetune():
         except StopIteration:
             dataiter = iter(trainloader)
             input, target = dataiter.next()
-
 
         input, target = input.to(device), target.to(device)
 
@@ -692,8 +584,6 @@ def finetune():
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-=======
->>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
 
 
 #################################################################
@@ -711,12 +601,8 @@ def test(dataset):
     with torch.no_grad():
         for batch_idx, (inputs, targets) in enumerate(testloader):
             inputs, targets = inputs.to(device), targets.to(device)
-            #outputs = net(inputs, batch_idx) #VISU
-<<<<<<< HEAD
+            # outputs = net(inputs, batch_idx) #VISU
             outputs = net(inputs, batch_idx)
-=======
-            outputs = net(inputs)
->>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
             loss = criterion(outputs, targets)
 
             test_loss += loss.item()
@@ -724,32 +610,27 @@ def test(dataset):
             total += targets.size(0)
             correct += predicted.eq(targets).sum().item()
 
-
-
             # progress_bar(batch_idx, len(testloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
             #    % (test_loss/(batch_idx+1), 100.*correct/total, correct, total))
-    print('Test Lossds: %.3f | Acc: %.3f%% (%d/%d)' % (test_loss / (batch_idx + 1), 100. * correct / total, correct, total))
-    return 100.0*float(correct)/total
+    print('Test Lossds: %.3f | Acc: %.3f%% (%d/%d)' % (
+    test_loss / (batch_idx + 1), 100. * correct / total, correct, total))
+    return 100.0 * float(correct) / total
 
 
-<<<<<<< HEAD
 def testval():
-=======
-def testval(dataset):
->>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
     # for name, param in net.named_parameters():
     #     print (name)
     #     print (param)
     global best_acc
     net.eval()
-    #net.eval()
+    # net.eval()
     test_loss = 0
     correct = 0
     total = 0
     with torch.no_grad():
         for batch_idx, (inputs, targets) in enumerate(valloader):
             inputs, targets = inputs.to(device), targets.to(device)
-            #outputs = net(inputs, batch_idx) #VISU
+            # outputs = net(inputs, batch_idx) #VISU
             outputs = net(inputs)
             loss = criterion(outputs, targets)
 
@@ -769,27 +650,23 @@ def testval(dataset):
 
             # progress_bar(batch_idx, len(testloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
             #    % (test_loss/(batch_idx+1), 100.*correct/total, correct, total))
-    print('Test Lossds: %.3f | Acc: %.3f%% (%d/%d)' % (test_loss / (batch_idx + 1), 100. * correct / total, correct, total))
-    return 100.0*float(correct)/total
-
-
-
-
-
+    print('Test Lossds: %.3f | Acc: %.3f%% (%d/%d)' % (
+    test_loss / (batch_idx + 1), 100. * correct / total, correct, total))
+    return 100.0 * float(correct) / total
 
 
 ########################################
 # just RESUME
 
-#if args.resume:
+# if args.resume:
 def load_model(test_bool=True):
     # Load checkpoint.
-    #print('==> Resuming from checkpoint..')
+    # print('==> Resuming from checkpoint..')
     assert os.path.isdir('checkpoint'), 'Error: no checkpoint directory found!'
     checkpoint = torch.load(model2load)
-    #checkpoint = torch.load('./checkpoint/ckpt_vgg16_prunedto[39, 39, 63, 48, 55, 98, 97, 52, 62, 22, 42, 47, 47, 42, 62]_64.55.t7')
+    # checkpoint = torch.load('./checkpoint/ckpt_vgg16_prunedto[39, 39, 63, 48, 55, 98, 97, 52, 62, 22, 42, 47, 47, 42, 62]_64.55.t7')
     net.load_state_dict(checkpoint['net'], strict=False)
-    #print(net.module.c1.weight)
+    # print(net.module.c1.weight)
     best_acc = checkpoint['acc']
     start_epoch = checkpoint['epoch']
     if test_bool:
@@ -797,22 +674,18 @@ def load_model(test_bool=True):
 
         test(-1)
     print("----")
-    #testval(-1)
-    #test_val(-1, net)
+    # testval(-1)
+    # test_val(-1, net)
     if comp_combinations:
-<<<<<<< HEAD
         compute_combinations(True, net, testval, args.layer)
-=======
-        compute_combinations(True, net)
->>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
+
 
 ######################################################
 # RUN EXPERIMENT
 
 def save_checkpoint(epoch, acc, best_acc, remaining=0):
-
-#Save checkpoint.
-    #acc = test(epoch)
+    # Save checkpoint.
+    # acc = test(epoch)
     if acc > best_acc:
         print('Saving..')
         state = {
@@ -823,8 +696,8 @@ def save_checkpoint(epoch, acc, best_acc, remaining=0):
         print("acc: ", acc)
         if not os.path.isdir('checkpoint'):
             os.mkdir('checkpoint')
-        if acc >85.:
-            if remaining==0: #regular training
+        if acc > 85.:
+            if remaining == 0:  # regular training
                 torch.save(state, './checkpoint/ckpt_vgg16_{}.t7'.format(acc))
             else:
                 torch.save(state, './checkpoint/ckpt_vgg16_prunedto{}_{}.t7'.format(remaining, acc))
@@ -833,40 +706,27 @@ def save_checkpoint(epoch, acc, best_acc, remaining=0):
     return best_acc
 
 
-
-
 ##############################################
 # PRUNEand RETRAIN
 
 def prune_and_retrain(thresh):
-
     load_model(False)
 
-    #PRINT
+    # PRINT
     # for name, param in net.named_parameters():
     #    print (name)
     #    print(param.shape)
 
-<<<<<<< HEAD
-=======
-    #from worse to best
-#
-#     ]
-
->>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
     if prune_bool:
         ############################3
         # READ THE RANKS
 
-        if method=='filter':
-            ranks_method='shapley'
-            switches_epoch=10
+        if method == 'filter':
+            ranks_method = 'shapley'
+            switches_epoch = 10
 
-
-
-            if ranks_method=='shapley':
-                combinationss=[]
-<<<<<<< HEAD
+            if ranks_method == 'shapley':
+                combinationss = []
                 shapley_file = open(
                     "/home/kamil/Dropbox/Current_research/python_tests/results_shapley/combinations/94.34/zeroing_0.2val/shapley.txt")
                 for line in shapley_file:
@@ -875,21 +735,14 @@ def prune_and_retrain(thresh):
                     nums_int = [int(i) for i in nums]
                     combinationss.append(nums_int)
 
-                #combinationss=torch.load('results/ranks/ranks_93.92_shapley.pt')
+                # combinationss=torch.load('results/ranks/ranks_93.92_shapley.pt')
                 # for i in range(1,14):
                 #     name="../results_shapley/results/vgg_"+str(orig_accuracy)+"/shapley_"+str(orig_accuracy)+"_vgg16_"+str(i)+".npy"
                 #     shapley_rank=np.load(name)
                 #     combinationss.append(shapley_rank)
-=======
-                #combinationss=torch.load('results/ranks/ranks_93.92_shapley.pt')
-                for i in range(1,14):
-                    name="../results_shapley/results/vgg_"+str(orig_accuracy)+"/shapley_"+str(orig_accuracy)+"_vgg16_"+str(i)+".npy"
-                    shapley_rank=np.load(name)
-                    combinationss.append(shapley_rank)
->>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
-                #name = "../results_shapley/results/vgg_" + str(orig_accuracy) + "/shapley_" + str(orig_accuracy) + "_vgg16_l1.npy"
-                #shapley_rank = np.load(name)
-                #combinationss.append(shapley_rank)
+                # name = "../results_shapley/results/vgg_" + str(orig_accuracy) + "/shapley_" + str(orig_accuracy) + "_vgg16_l1.npy"
+                # shapley_rank = np.load(name)
+                # combinationss.append(shapley_rank)
             # elif ranks_method=='switches':
             #     #combinationss=torch.load('results/ranks/ranks_93.92_switches.pt')
             #     combinationss=[0]*15
@@ -900,39 +753,36 @@ def prune_and_retrain(thresh):
 
             elif ranks_method == 'switches':
                 # combinationss=torch.load('results/ranks/ranks_93.92_switches.pt')
-                combinationss = [0] * len(cfg['VGGBC']) #15
+                combinationss = [0] * len(cfg['VGGBC'])  # 15
                 ranks_path = '../Dir_switch/results/cifar/vgg_93.92/switch_init_-1, alpha_2/'
                 for i in range(len(combinationss)):
                     ranks_filepath = ranks_path + "93.92_conv" + str(i + 1) + "_ep49.pt"
 
                     switch_values = torch.load(ranks_filepath)
-                    #print(switch_values)
-                    #combinationss[i]=torch.argsort(switch_values)
-                    #combinationss[i]=torch.LongTensor(np.argsort(switch_values.cpu().detach().numpy()).copy())#argsort is increasing order, we want decreasing hence [::-1]
+                    # print(switch_values)
+                    # combinationss[i]=torch.argsort(switch_values)
+                    # combinationss[i]=torch.LongTensor(np.argsort(switch_values.cpu().detach().numpy()).copy())#argsort is increasing order, we want decreasing hence [::-1]
 
-                    combinationss[i]=torch.LongTensor(np.argsort(switch_values.cpu().detach().numpy())[::-1].copy())#argsort is increasing order, we want decreasing hence [::-1]
-                    #print(combinationss[i])
-                    #print("new")
+                    combinationss[i] = torch.LongTensor(np.argsort(switch_values.cpu().detach().numpy())[
+                                                        ::-1].copy())  # argsort is increasing order, we want decreasing hence [::-1]
+                    # print(combinationss[i])
+                    # print("new")
 
-<<<<<<< HEAD
                 file = open("switches.txt", "a")
                 for comb in combinationss:
                     comb_det = comb.detach().cpu().numpy()
                     comb_str = ",".join([str(a) for a in comb_det])
                     file.write(comb_str)
                     file.write("\n")
-=======
->>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
 
-            #these numbers from the beginning will be cut off, meaning the worse will be cut off
+            # these numbers from the beginning will be cut off, meaning the worse will be cut off
             for i in range(len(combinationss)):
                 combinationss[i] = torch.LongTensor(combinationss[i][:thresh[i]])
             print(combinationss[1])
 
 
-        elif method=='l1' or method=='l2':
+        elif method == 'l1' or method == 'l2':
             magnitude_rank.setup()
-<<<<<<< HEAD
             combinationss = magnitude_rank.get_ranks(method, net)
             # for i in range(4):
             #     combinationss.append(torch.LongTensor(combinat[i]))
@@ -944,31 +794,23 @@ def prune_and_retrain(thresh):
             #     file.write(comb_str)
             #     file.write("\n")
 
-=======
-            combinationss = magnitude_rank.get_ranks(method)
-            # for i in range(4):
-            #     combinationss.append(torch.LongTensor(combinat[i]))
-
->>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
             # these numbers from the beginning will be cut off, meaning the worse will be cut off
             for i in range(len(combinationss)):
                 combinationss[i] = torch.LongTensor(combinationss[i][:thresh[i]].copy())
             print(combinationss[1])
 
 
-<<<<<<< HEAD
         elif method == 'fisher':
-            #in the process of finetuning we accumulate the gradient information that w eadd for each batch. We use this gradient info for constructing a ranking.
+            # in the process of finetuning we accumulate the gradient information that w eadd for each batch. We use this gradient info for constructing a ranking.
             net.module.reset_fisher()
             finetune()
-
 
             combinationss = []
             for i in range(15):
                 fisher_rank = torch.argsort(net.module.running_fisher[i], descending=True)
                 combinationss.append(fisher_rank.detach().cpu())
 
-            #print(combinationss)
+            # print(combinationss)
             # file=open("fisher.txt", "a")
             # for comb in combinationss:
             #     comb_det=comb.detach().cpu().numpy()
@@ -980,30 +822,26 @@ def prune_and_retrain(thresh):
             for i in range(len(combinationss)):
                 combinationss[i] = torch.LongTensor(combinationss[i][:thresh[i]])
             print(combinationss[1])
-=======
-
->>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
 
         # PRINT THE PRUNED ARCHITECTURE
-        remaining=[]
+        remaining = []
         for i in range(len(combinationss)):
             print(cfg['VGGBC'][i], len(combinationss[i]))
-            remaining.append(int(cfg['VGGBC'][i])-len(combinationss[i]))
+            remaining.append(int(cfg['VGGBC'][i]) - len(combinationss[i]))
         print(remaining)
-
 
         # PRUNE
 
-        it=0
+        it = 0
         for name, param in net.named_parameters():
-            #print(name, param.shape)
+            # print(name, param.shape)
             if "module.c" in name and "weight" in name:
-                it+=1
-                param.data[combinationss[it-1]]=0
-                #print(param.data)
+                it += 1
+                param.data[combinationss[it - 1]] = 0
+                # print(param.data)
             if "module.c" in name and "bias" in name:
                 param.data[combinationss[it - 1]] = 0
-                #print(param.data)
+                # print(param.data)
             if ("bn" in name) and ("weight" in name):
                 param.data[combinationss[it - 1]] = 0
             if ("bn" in name) and ("bias" in name):
@@ -1015,7 +853,7 @@ def prune_and_retrain(thresh):
         #         print(name)
         #         print(param)
 
-            #
+        #
         #     combinationss[i]
         #
         # net.c1.weight.data[combination]=0; net.c1.bias.data[combination] = 0
@@ -1023,82 +861,52 @@ def prune_and_retrain(thresh):
         # net.c5.weight.data[combination3] = 0;net.c5.bias.data[combination3] = 0
         # net.f6.weight.data[combination4] = 0;net.f6.bias.data[combination4] = 0
 
-
         print("After pruning")
 
-
         test(-1)
-
 
         ######## RETRAINING
 
         def gradi1(module):
             module[combinationss[0]] = 0
             # print(module[21])
-<<<<<<< HEAD
+
         net.module.c1.weight.register_hook(gradi1)
         net.module.c1.bias.register_hook(gradi1)
         net.module.bn1.weight.register_hook(gradi1)
         net.module.bn1.bias.register_hook(gradi1)
-=======
-        h1 = net.module.c1.weight.register_hook(gradi1)
-        h1 = net.module.c1.bias.register_hook(gradi1)
-        h12 = net.module.bn1.weight.register_hook(gradi1)
-        h13 = net.module.bn1.bias.register_hook(gradi1)
->>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
-
 
         def gradi2(module):
             module[combinationss[1]] = 0
             # print(module[21])
-<<<<<<< HEAD
+
         net.module.c2.weight.register_hook(gradi2)
         net.module.c2.bias.register_hook(gradi2)
         net.module.bn2.weight.register_hook(gradi2)
         net.module.bn2.bias.register_hook(gradi2)
-=======
-        h1 = net.module.c2.weight.register_hook(gradi2)
-        h1 = net.module.c2.bias.register_hook(gradi2)
-        h12 = net.module.bn2.weight.register_hook(gradi2)
-        h13 = net.module.bn2.bias.register_hook(gradi2)
->>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
-
 
         def gradi3(module):
             module[combinationss[2]] = 0
             # print(module[21])
-<<<<<<< HEAD
+
         net.module.c3.weight.register_hook(gradi3)
         net.module.c3.bias.register_hook(gradi3)
         net.module.bn3.weight.register_hook(gradi3)
         net.module.bn3.bias.register_hook(gradi3)
-=======
-        h1 = net.module.c3.weight.register_hook(gradi3)
-        h1 = net.module.c3.bias.register_hook(gradi3)
-        h12 = net.module.bn3.weight.register_hook(gradi3)
-        h13 = net.module.bn3.bias.register_hook(gradi3)
->>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
-
 
         def gradi4(module):
             module[combinationss[3]] = 0
             # print(module[21])
-<<<<<<< HEAD
+
         net.module.c4.weight.register_hook(gradi4)
         net.module.c4.bias.register_hook(gradi4)
         net.module.bn4.weight.register_hook(gradi4)
         net.module.bn4.bias.register_hook(gradi4)
-=======
-        h1 = net.module.c4.weight.register_hook(gradi4)
-        h1 = net.module.c4.bias.register_hook(gradi4)
-        h12 = net.module.bn4.weight.register_hook(gradi4)
-        h13 = net.module.bn4.bias.register_hook(gradi4)
->>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
-
 
         def gradi5(module):
             module[combinationss[4]] = 0
             # print(module[21])
+
         h1 = net.module.c5.weight.register_hook(gradi5)
         h1 = net.module.c5.bias.register_hook(gradi5)
         h12 = net.module.bn5.weight.register_hook(gradi5)
@@ -1107,6 +915,7 @@ def prune_and_retrain(thresh):
         def gradi6(module):
             module[combinationss[5]] = 0
             # print(module[21])
+
         h1 = net.module.c6.weight.register_hook(gradi6)
         h1 = net.module.c6.bias.register_hook(gradi6)
         h12 = net.module.bn6.weight.register_hook(gradi6)
@@ -1115,15 +924,16 @@ def prune_and_retrain(thresh):
         def gradi7(module):
             module[combinationss[6]] = 0
             # print(module[21])
+
         h1 = net.module.c7.weight.register_hook(gradi7)
         h1 = net.module.c7.bias.register_hook(gradi7)
         h12 = net.module.bn7.weight.register_hook(gradi7)
         h13 = net.module.bn7.bias.register_hook(gradi7)
 
-
         def gradi8(module):
             module[combinationss[7]] = 0
             # print(module[21])
+
         h1 = net.module.c8.weight.register_hook(gradi8)
         h1 = net.module.c8.bias.register_hook(gradi8)
         h12 = net.module.bn8.weight.register_hook(gradi8)
@@ -1132,15 +942,16 @@ def prune_and_retrain(thresh):
         def gradi9(module):
             module[combinationss[8]] = 0
             # print(module[21])
+
         h1 = net.module.c9.weight.register_hook(gradi9)
         h1 = net.module.c9.bias.register_hook(gradi9)
         h12 = net.module.bn9.weight.register_hook(gradi9)
         h13 = net.module.bn9.bias.register_hook(gradi9)
 
-
         def gradi10(module):
             module[combinationss[9]] = 0
             # print(module[21])
+
         h1 = net.module.c10.weight.register_hook(gradi10)
         h1 = net.module.c10.bias.register_hook(gradi10)
         h12 = net.module.bn10.weight.register_hook(gradi10)
@@ -1149,6 +960,7 @@ def prune_and_retrain(thresh):
         def gradi11(module):
             module[combinationss[10]] = 0
             # print(module[21])
+
         h1 = net.module.c11.weight.register_hook(gradi11)
         h1 = net.module.c11.bias.register_hook(gradi11)
         h12 = net.module.bn11.weight.register_hook(gradi11)
@@ -1157,6 +969,7 @@ def prune_and_retrain(thresh):
         def gradi12(module):
             module[combinationss[11]] = 0
             # print(module[21])
+
         h1 = net.module.c12.weight.register_hook(gradi12)
         h1 = net.module.c12.bias.register_hook(gradi12)
         h12 = net.module.bn12.weight.register_hook(gradi12)
@@ -1165,6 +978,7 @@ def prune_and_retrain(thresh):
         def gradi13(module):
             module[combinationss[12]] = 0
             # print(module[21])
+
         h1 = net.module.c13.weight.register_hook(gradi13)
         h1 = net.module.c13.bias.register_hook(gradi13)
         h12 = net.module.bn13.weight.register_hook(gradi13)
@@ -1172,10 +986,7 @@ def prune_and_retrain(thresh):
 
         def gradi14(module):
             module[combinationss[13]] = 0
-<<<<<<< HEAD
-=======
-            # print(module[21])
->>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
+
         h1 = net.module.l1.weight.register_hook(gradi14)
         h1 = net.module.l1.bias.register_hook(gradi14)
         h12 = net.module.l1.weight.register_hook(gradi14)
@@ -1188,8 +999,6 @@ def prune_and_retrain(thresh):
         # h1 = net.module.c15.bias.register_hook(gradi15)
         # h12 = net.module.bn15.weight.register_hook(gradi15)
         # h13 = net.module.bn15.bias.register_hook(gradi15)
-
-
 
     # it = -1
     # for name, param in net.named_parameters():
@@ -1211,24 +1020,27 @@ def prune_and_retrain(thresh):
     #
     #         h1 = param.register_hook(gradi)
 
-
     #######################################################
-
 
     if retrain_bool:
         print("Retraining")
 
         filename = "retrained_paramsearch1_vgg.txt"
         # with open(filename, "a+") as file:
-            # file.write("---NEW EXPERIMENT-----")
-            # if prune_bool:
-            #     file.write("\n\nprunedto:%s\n\n" % (" ".join(str(e) for e in remaining)))
+        # file.write("---NEW EXPERIMENT-----")
+        # if prune_bool:
+        #     file.write("\n\nprunedto:%s\n\n" % (" ".join(str(e) for e in remaining)))
 
-        path="./checkpoint/"
+        path = "./checkpoint/"
 
-        #here retraining works
+        # here retraining works
         net.train()
-        stop = 0; epoch = 0; best_accuracy = 0; entry = np.zeros(3); best_model = -1; early_stopping=400
+        stop = 0;
+        epoch = 0;
+        best_accuracy = 0;
+        entry = np.zeros(3);
+        best_model = -1;
+        early_stopping = 400
         optimizer = optim.SGD(net.parameters(), lr=0.0001, momentum=0.9, weight_decay=5e-4)
         while (stop < early_stopping):
             epoch = epoch + 1
@@ -1240,20 +1052,20 @@ def prune_and_retrain(thresh):
                 outputs = net(inputs)
                 loss = criterion(outputs, labels)
                 loss.backward()
-                net.module.c2.weight.grad #the hook is automatically applied, here we just check the gradient
+                net.module.c2.weight.grad  # the hook is automatically applied, here we just check the gradient
                 optimizer.step()
-                #net.c1.weight.data[1] = 0  # instead of hook
-                #net.c1.bias.data[1] = 0  # instead of hook
+                # net.c1.weight.data[1] = 0  # instead of hook
+                # net.c1.bias.data[1] = 0  # instead of hook
                 # if i % 100==0:
                 #    print (i)
                 #   print (loss.item())
 
             print(loss.item())
             accuracy = test(-1)
-            #print(net.module.c2.weight.data)
+            # print(net.module.c2.weight.data)
             print("Epoch " + str(epoch) + " ended.")
 
-            #check if pruned weights are pruned
+            # check if pruned weights are pruned
             # for name, param in net.named_parameters():
             #     if "1.weight" in name:
             #         print(name)
@@ -1264,7 +1076,8 @@ def prune_and_retrain(thresh):
                 entry[2] = 0
             else:
                 if accuracy > 90.5:
-                    best_accuracy=save_checkpoint(epoch, accuracy, best_accuracy, remaining) #compares accuracy and best_accuracy by itself again
+                    best_accuracy = save_checkpoint(epoch, accuracy, best_accuracy,
+                                                    remaining)  # compares accuracy and best_accuracy by itself again
                     # if prune_bool:
                     #     torch.save(best_model, "{}_retrained_epo-{}_prunedto-{}_acc-{:.2f}".format(path, epoch, remaining, best_accuracy))
                     # else:
@@ -1273,9 +1086,6 @@ def prune_and_retrain(thresh):
                 stop = 0
                 entry[2] = 1
                 best_model = net.state_dict()
-
-
-
 
                 entry[0] = accuracy;
                 entry[1] = loss
@@ -1290,56 +1100,46 @@ def prune_and_retrain(thresh):
         print(loss.item())
         accuracy = test(-1)
 
+
 #################################################################
 
-<<<<<<< HEAD
-model2load='./checkpoint/ckpt_vgg16_94.34.t7'
-orig_accuracy=94.34
-=======
-model2load='./checkpoint/ckpt_vgg16_93.25.t7'
-orig_accuracy=93.25
->>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
-#if all False just train thenetwork
+model2load = './checkpoint/ckpt_vgg16_94.34.t7'
+orig_accuracy = 94.34
+# if all False just train thenetwork
 resume = True
 prune_bool = True
 retrain_bool = False  # whether we retrain the model or just evaluate
 
-<<<<<<< HEAD
-comp_combinations = False #must be with resume #with retrain if we want to retrain combinations
-vis=False
-=======
-comp_combinations = False
-
->>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
-#file_write=True
-#compute_combinations(file_write)
+comp_combinations = False  # must be with resume #with retrain if we want to retrain combinations
+vis = False
+# file_write=True
+# compute_combinations(file_write)
 
 if resume:
     load_model()
 
-#loading a pretrained model
+# loading a pretrained model
 if prune_bool:
-    #thresh=[15,15,10,10,10,110,210,490,490,497,505,505,504,503,495]
-    #thresh=[15,15,10,10,10,110,21,49,490,497,505,505,504,503,495]
-    #thresh=[30,30,70,80,201,170,175,420,430,440,440,445,445,450,450]
-    #thresh=[30,30,60,60,181,150,155,420,410,420,420,445,445,450,450]
-    #thresh=[20,20,30,90,181,150,155,320,310,320,320,445,445,450,50]
-    #thresh=[15,15,24,10,141,150,195,220,210,220,220,345,345,350,350]
-    #thresh=args['arch']
+    # thresh=[15,15,10,10,10,110,210,490,490,497,505,505,504,503,495]
+    # thresh=[15,15,10,10,10,110,21,49,490,497,505,505,504,503,495]
+    # thresh=[30,30,70,80,201,170,175,420,430,440,440,445,445,450,450]
+    # thresh=[30,30,60,60,181,150,155,420,410,420,420,445,445,450,450]
+    # thresh=[20,20,30,90,181,150,155,320,310,320,320,445,445,450,50]
+    # thresh=[15,15,24,10,141,150,195,220,210,220,220,345,345,350,350]
+    # thresh=args['arch']
 
-    #thresh=[20, 20, 40, 40, 80, 80, 80, 160, 160, 160, 160, 160, 160, 160, 80]
-    #thresh = [20, 20, 40, 40, 80, 80, 80, 160, 160, 160, 160, 80, 80, 80, 80]
-    #thresh = [5, 5, 40, 40, 20, 40, 120, 230, 250, 300, 300, 160, 250, 250, 160]  # 10 #0.3
-    #thresh=[5, 5, 40, 40, 20, 40, 80, 130, 190, 260, 260, 160, 250, 250, 160] #11 #0.4
-<<<<<<< HEAD
-    #thresh=[5, 5, 40, 40, 20, 40, 80, 80, 160, 40, 40, 160, 80, 160, 160] #12 #0.5 %17.81
-    #thresh=[5, 5, 10, 10, 40, 20, 20, 40, 40, 160, 160, 40, 160, 80, 80] # 13
-    #thresh=[5, 5, 20, 10, 20, 80, 40, 40, 40, 80, 160, 80, 80, 40, 80] #14 #0.6 #10.74 (94.34)
-    #thresh = [5, 5, 10, 10, 20, 20, 20, 40, 40, 40, 40, 40, 80, 160, 80] #15
-    thresh=[5, 5, 10, 10, 20, 20, 20, 40, 40, 40, 40, 40, 40, 40, 160] #16 55.86. 69.81, 58.49, 57.11 (fish, filt, l1, l2) (94.34
-    #thresh=[5, 5, 10, 10, 20, 10, 20, 20, 40, 20, 20, 40, 40, 20, 80] #17 # 87.86. 71.44, 58.49, 57.21 (94.34)
-    #thresh=[5, 5, 10, 10, 10, 10, 10, 20, 20, 20, 10, 10, 10, 10, 10] #~18 #0.95
-
+    # thresh=[20, 20, 40, 40, 80, 80, 80, 160, 160, 160, 160, 160, 160, 160, 80]
+    # thresh = [20, 20, 40, 40, 80, 80, 80, 160, 160, 160, 160, 80, 80, 80, 80]
+    # thresh = [5, 5, 40, 40, 20, 40, 120, 230, 250, 300, 300, 160, 250, 250, 160]  # 10 #0.3
+    # thresh=[5, 5, 40, 40, 20, 40, 80, 130, 190, 260, 260, 160, 250, 250, 160] #11 #0.4
+    # thresh=[5, 5, 40, 40, 20, 40, 80, 80, 160, 40, 40, 160, 80, 160, 160] #12 #0.5 %17.81
+    # thresh=[5, 5, 10, 10, 40, 20, 20, 40, 40, 160, 160, 40, 160, 80, 80] # 13
+    # thresh=[5, 5, 20, 10, 20, 80, 40, 40, 40, 80, 160, 80, 80, 40, 80] #14 #0.6 #10.74 (94.34)
+    # thresh = [5, 5, 10, 10, 20, 20, 20, 40, 40, 40, 40, 40, 80, 160, 80] #15
+    thresh = [5, 5, 10, 10, 20, 20, 20, 40, 40, 40, 40, 40, 40, 40,
+              160]  # 16 55.86. 69.81, 58.49, 57.11 (fish, filt, l1, l2) (94.34
+    # thresh=[5, 5, 10, 10, 20, 10, 20, 20, 40, 20, 20, 40, 40, 20, 80] #17 # 87.86. 71.44, 58.49, 57.21 (94.34)
+    # thresh=[5, 5, 10, 10, 10, 10, 10, 20, 20, 20, 10, 10, 10, 10, 10] #~18 #0.95
 
     # for i1,i2,i3,i4,i5,i6,i7,i8,i9,i10,i11,i12,i13,i14,i15 in product([5,10,15], [5,10,15], [10,20,40], [10,20,40], [20,40,80], [20,40,80], [20,40,80], [40,80,160], [40,80,160], [40,80,160], [40,80,160], [40,80,160], [40,80,160], [40,80,160], [40,80,160]):
     for i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15 in product([5, 10], [5, 10],
@@ -1353,50 +1153,25 @@ if prune_bool:
 
         print('\n****************\n')
         for method in ['l1', 'l2', 'filter']:
-        #for method in ['fisher']:
-            print('\n\n'+method+"\n")
-            thresh=[i1,i2,i3,i4,i5,i6,i7,i8,i9,i10,i11,i12,i13,i14,i15]
+            # for method in ['fisher']:
+            print('\n\n' + method + "\n")
+            thresh = [i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15]
             print(thresh)
             prune_and_retrain(thresh)
 
-
-
-    #prune_and_retrain(thresh) #first argument is whether to trune, False only retraining
+    # prune_and_retrain(thresh) #first argument is whether to trune, False only retraining
 
 # training from scratchhttps://www.onet.pl/
-=======
-    #thresh=[5, 5, 40, 40, 20, 40, 80, 80, 160, 40, 40, 160, 80, 160, 160] #12 #0.5
-    #thresh=[5, 5, 10, 10, 40, 20, 20, 40, 40, 160, 160, 40, 160, 80, 80] # 13
-    #thresh=[5, 5, 20, 10, 20, 80, 40, 40, 40, 80, 160, 80, 80, 40, 80] #14 #0.6
-    #thresh = [5, 5, 10, 10, 20, 20, 20, 40, 40, 40, 40, 40, 80, 160, 80] #15
-    #thresh=[5, 5, 10, 10, 20, 20, 20, 40, 40, 40, 40, 40, 40, 40, 160] #16
-    thresh=[5, 5, 10, 10, 20, 10, 20, 20, 40, 20, 20, 40, 40, 20, 80] #17 #
-    #thresh=[5, 5, 10, 10, 10, 10, 10, 20, 20, 20, 10, 10, 10, 10, 10] #~18 #0.95
-
-
-
-
-    print('\n****************\n')
-    for method in ['filter', 'l1', 'l2']:
-        print('\n\n'+method+"\n")
-        #thresh=[i1,i2,i3,i4,i5,i6,i7,i8,i9,i10,i11,i12,i13,i14,i15]
-        print(thresh)
-        prune_and_retrain(thresh)
-
-
-
-    prune_and_retrain(thresh) #first argument is whether to trune, False only retraining
-
-# training from scratch
->>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
-if resume==False:
-    best_accuracy=0
-    session1end=start_epoch+10; session2end=start_epoch+250; session3end=start_epoch+3250; #was til 550
+if resume == False:
+    best_accuracy = 0
+    session1end = start_epoch + 10;
+    session2end = start_epoch + 250;
+    session3end = start_epoch + 3250;  # was til 550
     for epoch in range(start_epoch, session1end):
-        train_acc=train(epoch)
-        test_acc=test(epoch)
+        train_acc = train(epoch)
+        test_acc = test(epoch)
         print(test_acc)
-        best_accuracy=save_checkpoint(epoch, test_acc, best_accuracy)
+        best_accuracy = save_checkpoint(epoch, test_acc, best_accuracy)
 
     optimizer = optim.SGD(net.parameters(), lr=0.01, momentum=0.9, weight_decay=5e-4)
 
@@ -1404,11 +1179,10 @@ if resume==False:
         train_acc = train(epoch)
         test_acc = test(epoch)
         print(test_acc)
-        best_accuracy=save_checkpoint(epoch, test_acc, best_accuracy)
+        best_accuracy = save_checkpoint(epoch, test_acc, best_accuracy)
     optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9, weight_decay=5e-4)
 
     for epoch in range(session2end, session3end):
         train_acc = train(epoch)
         test_acc = test(epoch)
-        best_accuracy=save_checkpoint(epoch, test_acc, best_accuracy)
-
+        best_accuracy = save_checkpoint(epoch, test_acc, best_accuracy)

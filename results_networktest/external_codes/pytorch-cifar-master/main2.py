@@ -1,9 +1,6 @@
-<<<<<<< HEAD
 #for some reason it can't import, so I just copied VGG here to test
 
 
-=======
->>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
 '''Train CIFAR10 with PyTorch.'''
 from __future__ import print_function
 
@@ -25,16 +22,12 @@ print("newh2")
 #sys.path.append("/home/kamil/Dropbox/Current_research/python_tests/results_networktest/external_codes/pytorch-cifar-master")
 sys.path.append("/home/kamil/Dropbox/Current_research/python_tests/results_networktest/external_codes/pytorch-cifar-master/models")
 #sys.path.append("/home/kamil/Dropbox/Current_research/python_tests/results_networktest/external_codes/pytorch-cifar-master/utils.py")
-<<<<<<< HEAD
 import numpy as np
-=======
->>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
 
 
 #file_dir = os.path.dirname("utlis.p")
 #sys.path.append(file_dir)
 
-<<<<<<< HEAD
 #from models import *
 
 #from utils import progress_bar
@@ -100,13 +93,6 @@ class VGG(nn.Module):
 #####################################
 # DATA
 
-=======
-from models import *
-
-from utils import progress_bar
-
-
->>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
 parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
 parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
 parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')
@@ -138,7 +124,6 @@ testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False,
 
 classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
-<<<<<<< HEAD
 
 ###################################################
 # MAKE AN INSTANCE OD NETWORK AND (POSSIBLY) LOAD THE MODEL
@@ -146,11 +131,6 @@ classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship'
 # Model
 print('==> Building model..')
 net = VGG('VGG16')
-=======
-# Model
-print('==> Building model..')
-net = VGG('VGG19')
->>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
 # net = ResNet18()
 # net = PreActResNet18()
 # net = GoogLeNet()
@@ -163,33 +143,22 @@ net = VGG('VGG19')
 # net = SENet18()
 #net = ShuffleNetV2(1)
 net = net.to(device)
-<<<<<<< HEAD
 
 for name, param in net.named_parameters():
     print (name, param.shape)
 
 
-=======
->>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
 if device == 'cuda':
     net = torch.nn.DataParallel(net)
     cudnn.benchmark = True
     print(device)
 
-<<<<<<< HEAD
 #if args.resume:
 if (resume):
     # Load checkpoint.
     print('==> Resuming from checkpoint..')
     assert os.path.isdir('checkpoint'), 'Error: no checkpoint directory found!'
     checkpoint = torch.load('./checkpoint/ckpt_93.72.t7')
-=======
-if args.resume:
-    # Load checkpoint.
-    print('==> Resuming from checkpoint..')
-    assert os.path.isdir('checkpoint'), 'Error: no checkpoint directory found!'
-    checkpoint = torch.load('./checkpoint/ckpt.t7')
->>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
     net.load_state_dict(checkpoint['net'])
     best_acc = checkpoint['acc']
     start_epoch = checkpoint['epoch']
@@ -197,14 +166,10 @@ if args.resume:
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=0.9, weight_decay=5e-4)
 
-<<<<<<< HEAD
 ########################################################
 # Training
 
 
-=======
-# Training
->>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
 def train(epoch):
     print('\nEpoch: %d' % epoch)
     net.train()
@@ -230,12 +195,9 @@ def train(epoch):
     print('Loss: %.3f | Acc: %.3f%% (%d/%d)' % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))
 
 
-<<<<<<< HEAD
 #################################################################
 # TEST
 
-=======
->>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
 def test(epoch):
     global best_acc
     net.eval()
@@ -255,10 +217,7 @@ def test(epoch):
             #progress_bar(batch_idx, len(testloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
             #    % (test_loss/(batch_idx+1), 100.*correct/total, correct, total))
     print('Loss: %.3f | Acc: %.3f%% (%d/%d)' % (test_loss/(batch_idx+1), 100.*correct/total, correct, total))
-<<<<<<< HEAD
     return 100.*correct/total
-=======
->>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
 
 
     # Save checkpoint.
@@ -275,7 +234,6 @@ def test(epoch):
         torch.save(state, './checkpoint/ckpt_%.2f.t7' % acc)
         best_acc = acc
 
-<<<<<<< HEAD
 ###########################################################
 #copied from network pruning
 
@@ -355,9 +313,3 @@ if train:
         train(epoch)
         test(epoch)
 
-=======
-
-for epoch in range(start_epoch, start_epoch+200):
-    train(epoch)
-    test(epoch)
->>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78

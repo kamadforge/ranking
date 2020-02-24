@@ -1,77 +1,74 @@
 from __future__ import print_function
-#%load_ext autoreload
-#%autoreload 2
+# %load_ext autoreload
+# %autoreload 2
 import os, pickle
 from collections import defaultdict, OrderedDict
-<<<<<<< HEAD
 import torch
-=======
-
->>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
 
 import numpy as np
-#import keras.backend as K
+# import keras.backend as K
 
 import kde_torch
 import simplebinmi
 import pdb
 
 import utils
+
 trn, tst = utils.get_mnist()
 
 # Which measure to plot
 infoplane_measure = 'upper'
-#infoplane_measure = 'bin'
+# infoplane_measure = 'bin'
 
-DO_SAVE        = True    # Whether to save plots or just show them
-DO_LOWER       = True    # (infoplane_measure == 'lower')   # Whether to compute lower bounds also
-DO_BINNED      = True    #(infoplane_measure == 'bin')     # Whether to compute MI estimates based on binning
+DO_SAVE = True  # Whether to save plots or just show them
+DO_LOWER = True  # (infoplane_measure == 'lower')   # Whether to compute lower bounds also
+DO_BINNED = True  # (infoplane_measure == 'bin')     # Whether to compute MI estimates based on binning
 
-MAX_EPOCHS = 20      # Max number of epoch for which to compute mutual information measure
+MAX_EPOCHS = 20  # Max number of epoch for which to compute mutual information measure
 # MAX_EPOCHS = 1000
 COLORBAR_MAX_EPOCHS = 10000
 
 # Directories from which to load saved layer activity
 ARCH = '1024-20-20-20'
-#ARCH = '20-20-20-20-20-20'
-#ARCH = '32-28-24-20-16-12'
-#ARCH = '32-28-24-20-16-12-8-8'
-DIR_TEMPLATE = '%%s_%s'%ARCH
+# ARCH = '20-20-20-20-20-20'
+# ARCH = '32-28-24-20-16-12'
+# ARCH = '32-28-24-20-16-12-8-8'
+DIR_TEMPLATE = '%%s_%s' % ARCH
 
 # Functions to return upper and lower bounds on entropy of layer activity
-#K what is entropy of a layer, computes
-noise_variance = 1e-1                    # Added Gaussian noise variance
+# K what is entropy of a layer, computes
+noise_variance = 1e-1  # Added Gaussian noise variance
 
 
+# kde.entropy_estimator_kl(activity, noise_variance)
 
-#kde.entropy_estimator_kl(activity, noise_variance)
-
-#Klayer_activity = K.placeholder(ndim=2)  # Keras placeholder
+# Klayer_activity = K.placeholder(ndim=2)  # Keras placeholder
 
 def entropy_func_upper(activity):
     return kde_torch.entropy_estimator_kl(activity, noise_variance)
 
+
 def entropy_func_lower(activity):
     return kde_torch.entropy_estimator_bd(activity, noise_variance)
 
-#entropy_func_upper = K.function([Klayer_activity,], [kde.entropy_estimator_kl(Klayer_activity, noise_variance),])
-#entropy_func_lower = K.function([Klayer_activity,], [kde.entropy_estimator_bd(Klayer_activity, noise_variance),])
+
+# entropy_func_upper = K.function([Klayer_activity,], [kde.entropy_estimator_kl(Klayer_activity, noise_variance),])
+# entropy_func_lower = K.function([Klayer_activity,], [kde.entropy_estimator_bd(Klayer_activity, noise_variance),])
 
 # nats to bits conversion factor
-nats2bits = 1.0/np.log(2)
-
+nats2bits = 1.0 / np.log(2)
 
 # Save indexes of tests data for each of the output classes
 saved_labelixs = {}
 for i in range(10):
-    #tst.y: array([7, 2, 1, ..., 4, 5, 6] # labels for each example
+    # tst.y: array([7, 2, 1, ..., 4, 5, 6] # labels for each example
     saved_labelixs[i] = tst.y == i
-    #saved labels[0] contains the index numbers (chosen from 1 to 10000) where the label is 0 (True if it is, False if it son), similarly saved_labels[1], etc.
+    # saved labels[0] contains the index numbers (chosen from 1 to 10000) where the label is 0 (True if it is, False if it son), similarly saved_labels[1], etc.
 
-#share of ecah label among all the labels
+# share of ecah label among all the labels
 labelprobs = np.mean(tst.Y, axis=0)
 
-PLOT_LAYERS    = None     # Which layers to plot.  If None, all saved layers are plotted
+PLOT_LAYERS = None  # Which layers to plot.  If None, all saved layers are plotted
 
 # Data structure used to store results
 measures = OrderedDict()
@@ -82,10 +79,7 @@ measures['tanh'] = {}
 
 for activation in measures.keys():
     cur_dir = 'rawdata/' + DIR_TEMPLATE % activation
-<<<<<<< HEAD
-    cur_dir= '/home/kamil/Dropbox/Current_research/python_tests/results_networktest/activations/mnist.3L/'
-=======
->>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
+    cur_dir = '/home/kamil/Dropbox/Current_research/python_tests/results_networktest/activations/mnist.3L/'
     if not os.path.exists(cur_dir):
         print("Directory %s not found" % cur_dir)
         continue
@@ -94,57 +88,33 @@ for activation in measures.keys():
     # for each epoch of the training get the test activations
 
     print('*** Doing %s ***' % cur_dir)
-<<<<<<< HEAD
-    epoch=0
-    #for epochfile in sorted(os.listdir(cur_dir)):
-    for i in range(5,101,5):
-        epoch+=5
-        epochfile='activations_epoch-'+str(epoch)
+    epoch = 0
+    # for epochfile in sorted(os.listdir(cur_dir)):
+    for i in range(5, 101, 5):
+        epoch += 5
+        epochfile = 'activations_epoch-' + str(epoch)
         # if not epochfile.startswith('activations_epoch'):
         #     continue
 
-        #print(epochfile)
+        # print(epochfile)
         fname = cur_dir + "/" + epochfile
 
-        d=torch.load(fname)
-        #with open(fname, 'rb') as f:
+        d = torch.load(fname)
+        # with open(fname, 'rb') as f:
         #    d = pickle.load(f) #K file with the activations
-=======
-    for epochfile in sorted(os.listdir(cur_dir)):
-        if not epochfile.startswith('epoch'):
-            continue
+        # K d has many keys
+        # but we are looking only at d['data']['activity_tst'][lndx] where lndx is the layer index, it has 5 layers here
 
-        fname = cur_dir + "/" + epochfile
-        with open(fname, 'rb') as f:
-            d = pickle.load(f) #K file with the activations
->>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
-            #K d has many keys
-            # but we are looking only at d['data']['activity_tst'][lndx] where lndx is the layer index, it has 5 layers here
-
-
-<<<<<<< HEAD
-        #epoch = d['epoch']
-        #if epoch in measures[activation]:  # Skip this epoch if its already been processed
+        # epoch = d['epoch']
+        # if epoch in measures[activation]:  # Skip this epoch if its already been processed
         #    continue  # this is a trick to allow us to rerun this cell multiple times)
 
-        #if epoch > MAX_EPOCHS:
+        # if epoch > MAX_EPOCHS:
         #    continue
 
         print("Doing", fname)
 
         num_layers = len(d)
-=======
-        epoch = d['epoch']
-        if epoch in measures[activation]:  # Skip this epoch if its already been processed
-            continue  # this is a trick to allow us to rerun this cell multiple times)
-
-        if epoch > MAX_EPOCHS:
-            continue
-
-        print("Doing", fname)
-
-        num_layers = len(d['data']['activity_tst'])
->>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
 
         if PLOT_LAYERS is None:
             PLOT_LAYERS = []
@@ -155,13 +125,8 @@ for activation in measures.keys():
         cepochdata = defaultdict(list)
 
         # here we compute entropies or mutual informations for each layer
-<<<<<<< HEAD
         for lndx in ['l1', 'l2']:
             activity = d[lndx].detach().numpy()  # K activity for each layer, they're of size 1024x10000, 20x10000, etc.
-=======
-        for lndx in range(num_layers):
-            activity = d['data']['activity_tst'][lndx]  # K activity for each layer, they're of size 1024x10000, 20x10000, etc.
->>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
             # pdb.set_trace()
 
             # Compute marginal entropies
@@ -210,33 +175,29 @@ for activation in measures.keys():
             cepochdata['H_M_upper'].append(nats2bits * h_upper)
 
             pstr = 'upper: MI(X;M)=%0.3f, MI(Y;M)=%0.3f' % (
-            cepochdata['MI_XM_upper'][-1], cepochdata['MI_YM_upper'][-1])
+                cepochdata['MI_XM_upper'][-1], cepochdata['MI_YM_upper'][-1])
             if DO_LOWER:  # Compute lower bounds
                 cepochdata['MI_XM_lower'].append(nats2bits * (h_lower - hM_given_X))
                 cepochdata['MI_YM_lower'].append(nats2bits * (h_lower - hM_given_Y_lower))
                 cepochdata['H_M_lower'].append(nats2bits * h_lower)
                 pstr += ' | lower: MI(X;M)=%0.3f, MI(Y;M)=%0.3f' % (
-                cepochdata['MI_XM_lower'][-1], cepochdata['MI_YM_lower'][-1])
+                    cepochdata['MI_XM_lower'][-1], cepochdata['MI_YM_lower'][-1])
 
             if DO_BINNED:  # Compute binner estimates
                 binxm, binym = simplebinmi.bin_calc_information2(saved_labelixs, activity, 0.5)
                 cepochdata['MI_XM_bin'].append(nats2bits * binxm)
                 cepochdata['MI_YM_bin'].append(nats2bits * binym)
                 pstr += ' | bin: MI(X;M)=%0.3f, MI(Y;M)=%0.3f' % (
-                cepochdata['MI_XM_bin'][-1], cepochdata['MI_YM_bin'][-1])
+                    cepochdata['MI_XM_bin'][-1], cepochdata['MI_YM_bin'][-1])
 
-<<<<<<< HEAD
             print('- Layer %s %s' % (lndx, pstr))
-=======
-            print('- Layer %d %s' % (lndx, pstr))
->>>>>>> 40694c14a26d808b1e780e581505094fa4c9ca78
 
         measures[activation][epoch] = cepochdata
 
 ############################################
 
-#% matplotlib
-#inline
+# % matplotlib
+# inline
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import seaborn as sns
@@ -304,7 +265,6 @@ plt.tight_layout()
 if DO_SAVE:
     plt.savefig('plots/summaries', bbox_inches='tight')
 
-
 ########
 
 print("info")
@@ -336,7 +296,6 @@ for actndx, (activation, vals) in enumerate(measures.items()):
 cbaxes = fig.add_axes([1.0, 0.125, 0.03, 0.8])
 plt.colorbar(sm, label='Epoch', cax=cbaxes)
 plt.tight_layout()
-
 
 if DO_SAVE:
     plt.savefig('plots/' + DIR_TEMPLATE % ('infoplane_' + ARCH), bbox_inches='tight')
