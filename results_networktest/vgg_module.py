@@ -229,6 +229,7 @@ while (stop < early_stopping):
         inputs, labels = inputs.to(device), labels.to(device)
         #inputs, labels = inputs, labels
 
+
         # m = np.rollaxis(inputs[0].cpu().detach().numpy(), 0, 3)
         # m=m/255.0
         # plt.imshow(m)
