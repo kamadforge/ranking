@@ -197,7 +197,7 @@ class Lenet(nn.Module):
         return output, Sprime
 
 
-####################
+############################################################################################################
 
 nodesNum1, nodesNum2, nodesFc1, nodesFc2=10,20,100,25
 net=Lenet(nodesNum1,nodesNum2,nodesFc1,nodesFc2).to(device)
@@ -208,21 +208,22 @@ optimizer=optim.Adam(net.parameters(), lr=0.001)
 ###############################################################################
 # LOAD MODEL (optionally)
 
-path="models/fashionmnist_conv:20_conv:50_fc:800_fc:500_rel_bn_trainval1.0_epo:11_acc:90.01"
-path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_trainval_modelopt1.0_epo:309_acc:99.19"
-#path="/home/kamil/Dropbox/Current_research/python_tests/results_networktest/models/fashionmnist_90.04"
-if dataset=="mnist":
-    path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:540_acc:99.27"
-elif dataset=="fashionmnist":
-    path="models/fashionmnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:62_acc:90.04"
-#path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:540_acc:99.27"
-#path="models/conv:10_conv:50_fc:800_fc:500_rel_bn_epo:103_acc:99.37""
-#path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:11_switch_acc:99.15"
-#path="/home/kamil/Dropbox/Current_research/python_tests/Dir_switch/models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:2_acc:98.75"
+def load_model(dataset):
+    path="models/fashionmnist_conv:20_conv:50_fc:800_fc:500_rel_bn_trainval1.0_epo:11_acc:90.01"
+    path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_trainval_modelopt1.0_epo:309_acc:99.19"
+    #path="/home/kamil/Dropbox/Current_research/python_tests/results_networktest/models/fashionmnist_90.04"
+    if dataset=="mnist":
+        path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:540_acc:99.27"
+    elif dataset=="fashionmnist":
+        path="models/fashionmnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:62_acc:90.04"
+    #path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:540_acc:99.27"
+    #path="models/conv:10_conv:50_fc:800_fc:500_rel_bn_epo:103_acc:99.37""
+    #path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:11_switch_acc:99.15"
+    #path="/home/kamil/Dropbox/Current_research/python_tests/Dir_switch/models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:2_acc:98.75"
 
-net.load_state_dict(torch.load(path)['model_state_dict'], strict=False)
-#path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_trainval_modelopt1.0_epo:309_acc:99.19"
-#path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:540_acc:99.27"
+    net.load_state_dict(torch.load(path)['model_state_dict'], strict=False)
+    #path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_trainval_modelopt1.0_epo:309_acc:99.19"
+    #path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:540_acc:99.27"
 
 
 ########################################################
@@ -402,7 +403,7 @@ def run_experiment(early_stopping, nodesNum1, nodesNum2, nodesFc1, nodesFc2):
         #     file.write(",".join(map(str, entry))+"\n")
     return best_accuracy, epoch, best_model, S
 
-print("\n\n NEW EXPERIMENT:\n")
+#print("\n\n NEW EXPERIMENT:\n")
 
 
 
