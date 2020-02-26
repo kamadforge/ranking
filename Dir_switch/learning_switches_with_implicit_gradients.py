@@ -79,16 +79,26 @@ class Model(nn.Module):
         x_out = torch.einsum("bjk, j -> bk", (x_samps, torch.squeeze(self.W2))) + self.b2
         labelstack = torch.sigmoid(x_out)
 
-        avg_label = torch.mean(labelstack,1)
-        avg_S = torch.mean(Sstack,1)
+        # avg_label = torch.mean(labelstack,1)
+        # avg_S = torch.mean(Sstack,1)
 
-        return avg_label, avg_S, labelstack, Sstack
+        # return avg_label, avg_S, labelstack, Sstack
+        return labelstack
 
 
-def loss_function(prediction, true_y, S, alpha_0, hidden_dim, how_many_samps, annealing_rate):
-    BCE = F.binary_cross_entropy(prediction, true_y, reduction='sum')
+# def loss_function(prediction, true_y, S, alpha_0, hidden_dim, how_many_samps, annealing_rate):
+def loss_function(prediction, true_y):
+    BCE = F.binary_cross_entropy(prediction, true_y, reduction='mean')
+    BCE_mat_avg = BCE*true_y.shape[0] # this is sum of log likeliehood of test data averaged over the posterior samples
 
-    return BCE
+    # # change this for-loop to something else.
+    # BCE_mat = torch.zeros(prediction.shape[1])
+    # for ind in torch.arange(0,prediction.shape[1]):
+    #     BCE_mat[ind] = F.binary_cross_entropy(prediction[:,ind], true_y[:,ind], reduction='sum')
+    #
+    # BCE_mat_avg = torch.mean(BCE_mat) # posterior sample average (but sum across test datapoints)
+
+    return BCE_mat_avg
 
     # # KLD term
     # alpha_0 = torch.Tensor([alpha_0])
@@ -145,14 +155,14 @@ def main():
 
 
     # this is for hidden_dim = 200
-    # input_dim = 500
-    # hidden_dim = 200
-    # how_many_samps = 2000
+    input_dim = 500
+    hidden_dim = 200
+    how_many_samps = 2000
 
     # this is for hidden_dim = 500
-    input_dim = 1000
-    hidden_dim = 500
-    how_many_samps = 4000
+    # input_dim = 1000
+    # hidden_dim = 500
+    # how_many_samps = 4000
 
     file_name = 'x_0' + '_hidden_dim=' + np.str(hidden_dim)
     x_0 = np.load(file_name+'.npy')
@@ -184,7 +194,7 @@ def main():
     tic()
 
     # preparing variational inference
-    alpha_0 = 0.05 # below 1 so that we encourage sparsity.
+    alpha_0 = 0.2 # below 1 so that we encourage sparsity.
     # num_samps_for_switch = 1000
     num_samps_for_switch = 1000
     model = Model(input_dim=input_dim, hidden_dim=hidden_dim, W1=torch.Tensor(W1), b_1=torch.Tensor(b_1), W2=torch.Tensor(W2), b_2=torch.Tensor(b_2), num_samps_for_switch=num_samps_for_switch)
@@ -193,7 +203,7 @@ def main():
     # optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9)
     optimizer = optim.Adam(model.parameters(), lr=1e-1)
     mini_batch_size = 100
-    how_many_epochs = 1
+    how_many_epochs = 50
     how_many_iter = np.int(how_many_samps/mini_batch_size)
 
     training_loss_per_epoch = np.zeros(how_many_epochs)
@@ -224,13 +234,16 @@ def main():
             optimizer.zero_grad()
 
             # forward + backward + optimize
-            outputs,S_tmp, labelstack, Sstack = model(torch.Tensor(inputs))
+            # outputs,S_tmp, labelstack, Sstack = model(torch.Tensor(inputs))
+            outputs = model(torch.Tensor(inputs))
             labels = torch.squeeze(torch.Tensor(labels))
             # loss = F.binary_cross_entropy(outputs, labels)
             # loss = loss_function(outputs, labels)
             # num_samps = 100
             # loss = loss_function(labelstack, labels.view(-1,1).repeat(1,num_samps_for_switch), S_tmp, alpha_0, hidden_dim, how_many_samps, annealing_rate)
-            loss = loss_function(outputs, labels, S_tmp, alpha_0, hidden_dim, how_many_samps, annealing_rate)
+            # loss = loss_function(outputs, labels)
+            loss = loss_function(outputs, labels.view(-1, 1).repeat(1, num_samps_for_switch))
+            # loss = loss_function(outputs, labels, S_tmp, alpha_0, hidden_dim, how_many_samps, annealing_rate)
             loss.backward()
             optimizer.step()
 
@@ -281,7 +294,7 @@ def main():
     # fig_title =
     # f.savefig("posterior_mean_switch_without_sampling_hidden_dim_500_epoch_400.pdf")
     # f.savefig("posterior_mean_switch_with_sampling_hidden_dim_500_epoch_400.pdf")
-    f.savefig("posterior_mean_switch_with_sampling_hidden_dim_20_epoch_400.pdf")
+    # f.savefig("posterior_mean_switch_with_sampling_hidden_dim_20_epoch_400.pdf")
 
 
 if __name__ == '__main__':
