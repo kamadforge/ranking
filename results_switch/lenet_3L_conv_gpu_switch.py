@@ -291,7 +291,9 @@ def loss_functionPost():
 ###################################################
 # RUN TRAINING
 
-def run_experiment(early_stopping, nodesNum1, nodesNum2, nodesFc1, nodesFc2):
+#def run_experiment(early_stopping, nodesNum1, nodesNum2, nodesFc1, nodesFc2):
+def run_experiment(early_stopping):
+
     print("\nRunning experiment\n")
 
 
@@ -419,7 +421,8 @@ if __name__ == "__main__":
         # with open(filename, "a+") as file:
         #     file.write("\nInteration: "+ str(i)+"\n")
         print("\nIteration: "+str(i))
-        best_accuracy, num_epochs, best_model=run_experiment(early_stopping, conv1, conv2, fc1, fc2)
+        #best_accuracy, num_epochs, best_model=run_experiment(early_stopping, conv1, conv2, fc1, fc2)
+        best_accuracy, num_epochs, best_model = run_experiment(early_stopping)
         sum_average+=best_accuracy
         average_accuracy=sum_average/(i+1)
 
