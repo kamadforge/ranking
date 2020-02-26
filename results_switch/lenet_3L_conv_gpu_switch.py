@@ -41,14 +41,14 @@ print("Drop")
 early_stopping=350
 sum_average=0; conv1=10; conv2=20; fc1=100; fc2=25
 
-dataset="fashionmnist" #to load the proper fashionmnist model
+dataset="mnist" #to load the proper fashionmnist model
 
 how_many_epochs=200
 annealing_steps = float(8000. * how_many_epochs)
 beta_func = lambda s: min(s, annealing_steps) / annealing_steps
 alpha_0 = 2  # below 1 so that we encourage sparsity
 switch_init=-1
-layer='c1'
+layer='c3'
 hidden_dims={'c1': conv1, 'c3': conv2, 'f5': fc1, 'f6' : fc2}
 hidden_dim = hidden_dims[layer] #it's a number of parameters we want to estimate, e.g. # conv1 filters
 
@@ -187,7 +187,7 @@ class Lenet(nn.Module):
         if layer=='f6':
             output, Sprime = self.switch_func(output)
 
-        #output = self.f7(output)
+        output = self.f7(output)
 
 
 
@@ -197,7 +197,7 @@ class Lenet(nn.Module):
         return output, Sprime
 
 
-####################
+############################################################################################################
 
 nodesNum1, nodesNum2, nodesFc1, nodesFc2=10,20,100,25
 net=Lenet(nodesNum1,nodesNum2,nodesFc1,nodesFc2).to(device)
@@ -208,21 +208,22 @@ optimizer=optim.Adam(net.parameters(), lr=0.001)
 ###############################################################################
 # LOAD MODEL (optionally)
 
-path="models/fashionmnist_conv:20_conv:50_fc:800_fc:500_rel_bn_trainval1.0_epo:11_acc:90.01"
-path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_trainval_modelopt1.0_epo:309_acc:99.19"
-#path="/home/kamil/Dropbox/Current_research/python_tests/results_networktest/models/fashionmnist_90.04"
-if dataset=="mnist":
-    path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:540_acc:99.27"
-elif dataset=="fashionmnist":
-    path="models/fashionmnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:62_acc:90.04"
-#path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:540_acc:99.27"
-#path="models/conv:10_conv:50_fc:800_fc:500_rel_bn_epo:103_acc:99.37""
-#path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:11_switch_acc:99.15"
-#path="/home/kamil/Dropbox/Current_research/python_tests/Dir_switch/models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:2_acc:98.75"
+def load_model(dataset):
+    path="models/fashionmnist_conv:20_conv:50_fc:800_fc:500_rel_bn_trainval1.0_epo:11_acc:90.01"
+    path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_trainval_modelopt1.0_epo:309_acc:99.19"
+    #path="/home/kamil/Dropbox/Current_research/python_tests/results_networktest/models/fashionmnist_90.04"
+    if dataset=="mnist":
+        path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:540_acc:99.27"
+    elif dataset=="fashionmnist":
+        path="models/fashionmnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:62_acc:90.04"
+    #path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:540_acc:99.27"
+    #path="models/conv:10_conv:50_fc:800_fc:500_rel_bn_epo:103_acc:99.37""
+    #path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:11_switch_acc:99.15"
+    #path="/home/kamil/Dropbox/Current_research/python_tests/Dir_switch/models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:2_acc:98.75"
 
-net.load_state_dict(torch.load(path)['model_state_dict'], strict=False)
-#path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_trainval_modelopt1.0_epo:309_acc:99.19"
-#path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:540_acc:99.27"
+    net.load_state_dict(torch.load(path)['model_state_dict'], strict=False)
+    #path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_trainval_modelopt1.0_epo:309_acc:99.19"
+    #path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:540_acc:99.27"
 
 
 ########################################################
@@ -249,6 +250,7 @@ def evaluate():
     return accuracy
 
 print("Loaded model:")
+
 evaluate()
 
 
@@ -281,14 +283,17 @@ def loss_functionKL(prediction, true_y, S, alpha_0, hidden_dim, how_many_samps, 
 
     return BCE + annealing_rate * KLD / how_many_samps, BCE, KLD, annealing_rate * KLD / how_many_samps
 
-
+def loss_functionPost():
+    print("ma")
 
 
 
 ###################################################
 # RUN TRAINING
 
-def run_experiment(early_stopping, nodesNum1, nodesNum2, nodesFc1, nodesFc2):
+#def run_experiment(early_stopping, nodesNum1, nodesNum2, nodesFc1, nodesFc2):
+def run_experiment(early_stopping):
+
     print("\nRunning experiment\n")
 
 
@@ -381,26 +386,26 @@ def run_experiment(early_stopping, nodesNum1, nodesNum2, nodesFc1, nodesFc2):
             torch.save(S, 'results/%s/switch_init_-1,alpha_2_proper/layer-%s_epoch-%s_accuracy-%.2f.pt' % (dataset, layer, epoch, accuracy))
         #print(torch.argsort(S), descending=True)
 
-        if (accuracy<=best_accuracy):
-            stop=stop+1
-            entry[2]=0
-        else:
-            best_accuracy=accuracy
-            print("Best updated")
-            stop=0
-            entry[2]=1
-            best_model=net.state_dict()
-            best_optim=optimizer.state_dict()
-            torch.save({'model_state_dict' : best_model, 'optimizer_state_dict': best_optim}, "models/%s_conv:%d_conv:%d_fc:%d_fc:%d_rel_bn_drop_trainval_modelopt%.1f_epo:%d_acc:%.2f" % (dataset, conv1, conv2, fc1, fc2, trainval_perc, epoch, best_accuracy))
+        # if (accuracy<=best_accuracy):
+        #     stop=stop+1
+        #     entry[2]=0
+        # else:
+        #     best_accuracy=accuracy
+        #     print("Best updated")
+        #     stop=0
+        #     entry[2]=1
+        #     best_model=net.state_dict()
+        #     best_optim=optimizer.state_dict()
+        #     torch.save({'model_state_dict' : best_model, 'optimizer_state_dict': best_optim}, "models/%s_conv:%d_conv:%d_fc:%d_fc:%d_rel_bn_drop_trainval_modelopt%.1f_epo:%d_acc:%.2f" % (dataset, conv1, conv2, fc1, fc2, trainval_perc, epoch, best_accuracy))
 
         print("\n")
         #write
         entry[0]=accuracy; entry[1]=loss
         # with open(filename, "a+") as file:
         #     file.write(",".join(map(str, entry))+"\n")
-    return best_accuracy, epoch, best_model
+    return best_accuracy, epoch, best_model, S
 
-print("\n\n NEW EXPERIMENT:\n")
+#print("\n\n NEW EXPERIMENT:\n")
 
 
 
@@ -411,18 +416,20 @@ print("\n\n NEW EXPERIMENT:\n")
 ######################################################
 #single run  avergaed pver n iterations  
 
-for i in range(3):
-    # with open(filename, "a+") as file:
-    #     file.write("\nInteration: "+ str(i)+"\n")
-    print("\nIteration: "+str(i))
-    best_accuracy, num_epochs, best_model=run_experiment(early_stopping, conv1, conv2, fc1, fc2)
-    sum_average+=best_accuracy
-    average_accuracy=sum_average/(i+1)
+if __name__ == "__main__":
+    for i in range(3):
+        # with open(filename, "a+") as file:
+        #     file.write("\nInteration: "+ str(i)+"\n")
+        print("\nIteration: "+str(i))
+        #best_accuracy, num_epochs, best_model=run_experiment(early_stopping, conv1, conv2, fc1, fc2)
+        best_accuracy, num_epochs, best_model = run_experiment(early_stopping)
+        sum_average+=best_accuracy
+        average_accuracy=sum_average/(i+1)
 
-    # with open(filename, "a+") as file:
-    #     file.write("\nAv accuracy: %.2f, best accuracy: %.2f\n" % (average_accuracy, best_accuracy))
-    print("\nAv accuracy: %.2f, best accuracy: %.2f\n" % (average_accuracy, best_accuracy))
-    #torch.save(best_model, filename_model)
+        # with open(filename, "a+") as file:
+        #     file.write("\nAv accuracy: %.2f, best accuracy: %.2f\n" % (average_accuracy, best_accuracy))
+        print("\nAv accuracy: %.2f, best accuracy: %.2f\n" % (average_accuracy, best_accuracy))
+        #torch.save(best_model, filename_model)
 
 #multiple runs
 
