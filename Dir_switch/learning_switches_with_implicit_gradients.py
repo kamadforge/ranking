@@ -83,13 +83,14 @@ class Model(nn.Module):
         # avg_S = torch.mean(Sstack,1)
 
         # return avg_label, avg_S, labelstack, Sstack
-        return labelstack
-
+        return labelstack, phi
 
 # def loss_function(prediction, true_y, S, alpha_0, hidden_dim, how_many_samps, annealing_rate):
-def loss_function(prediction, true_y):
+def loss_function(prediction, true_y, phi_cand, alpha_0, hidden_dim, how_many_samps, annealing_rate):
+
     BCE = F.binary_cross_entropy(prediction, true_y, reduction='mean')
-    BCE_mat_avg = BCE*true_y.shape[0] # this is sum of log likeliehood of test data averaged over the posterior samples
+
+    # BCE_mat_avg = BCE*true_y.shape[0] # this is sum of log likeliehood of test data averaged over the posterior samples
 
     # # change this for-loop to something else.
     # BCE_mat = torch.zeros(prediction.shape[1])
@@ -98,18 +99,21 @@ def loss_function(prediction, true_y):
     #
     # BCE_mat_avg = torch.mean(BCE_mat) # posterior sample average (but sum across test datapoints)
 
-    return BCE_mat_avg
+    # return BCE_mat_avg
 
-    # # KLD term
-    # alpha_0 = torch.Tensor([alpha_0])
-    # hidden_dim = torch.Tensor([hidden_dim])
-    # trm1 = torch.lgamma(torch.sum(S)) - torch.lgamma(hidden_dim*alpha_0)
-    # trm2 = - torch.sum(torch.lgamma(S)) + hidden_dim*torch.lgamma(alpha_0)
-    # trm3 = torch.sum((S-alpha_0)*(torch.digamma(S)-torch.digamma(torch.sum(S))))
-    # KLD = trm1 + trm2 + trm3
-    # # annealing kl-divergence term is better
-    #
-    # return BCE + annealing_rate*KLD/how_many_samps
+    # KLD term
+    alpha_0 = torch.Tensor([alpha_0])
+    hidden_dim = torch.Tensor([hidden_dim])
+
+    trm1 = torch.lgamma(torch.sum(phi_cand)) - torch.lgamma(hidden_dim*alpha_0)
+    trm2 = - torch.sum(torch.lgamma(phi_cand)) + hidden_dim*torch.lgamma(alpha_0)
+    trm3 = torch.sum((phi_cand-alpha_0)*(torch.digamma(phi_cand)-torch.digamma(torch.sum(phi_cand))))
+
+    KLD = trm1 + trm2 + trm3
+    # annealing kl-divergence term is better
+
+    return BCE + annealing_rate*KLD/how_many_samps
+
 
 def data_test_generate(x_0, x_1, y_0, y_1, how_many_samps):
 
@@ -194,16 +198,16 @@ def main():
     tic()
 
     # preparing variational inference
-    alpha_0 = 0.2 # below 1 so that we encourage sparsity.
+    alpha_0 = 0.01 # below 1 so that we encourage sparsity.
     # num_samps_for_switch = 1000
-    num_samps_for_switch = 1000
+    num_samps_for_switch = 200
     model = Model(input_dim=input_dim, hidden_dim=hidden_dim, W1=torch.Tensor(W1), b_1=torch.Tensor(b_1), W2=torch.Tensor(W2), b_2=torch.Tensor(b_2), num_samps_for_switch=num_samps_for_switch)
 
 
     # optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9)
     optimizer = optim.Adam(model.parameters(), lr=1e-1)
     mini_batch_size = 100
-    how_many_epochs = 50
+    how_many_epochs = 150
     how_many_iter = np.int(how_many_samps/mini_batch_size)
 
     training_loss_per_epoch = np.zeros(how_many_epochs)
@@ -235,14 +239,14 @@ def main():
 
             # forward + backward + optimize
             # outputs,S_tmp, labelstack, Sstack = model(torch.Tensor(inputs))
-            outputs = model(torch.Tensor(inputs))
+            outputs, phi_cand = model(torch.Tensor(inputs))
             labels = torch.squeeze(torch.Tensor(labels))
             # loss = F.binary_cross_entropy(outputs, labels)
             # loss = loss_function(outputs, labels)
             # num_samps = 100
             # loss = loss_function(labelstack, labels.view(-1,1).repeat(1,num_samps_for_switch), S_tmp, alpha_0, hidden_dim, how_many_samps, annealing_rate)
             # loss = loss_function(outputs, labels)
-            loss = loss_function(outputs, labels.view(-1, 1).repeat(1, num_samps_for_switch))
+            loss = loss_function(outputs, labels.view(-1, 1).repeat(1, num_samps_for_switch), phi_cand, alpha_0, hidden_dim, how_many_samps, annealing_rate)
             # loss = loss_function(outputs, labels, S_tmp, alpha_0, hidden_dim, how_many_samps, annealing_rate)
             loss.backward()
             optimizer.step()
@@ -250,7 +254,8 @@ def main():
             # print statistics
             running_loss += loss.item()
 
-        training_loss_per_epoch[epoch] = running_loss/how_many_samps
+        # training_loss_per_epoch[epoch] = running_loss/how_many_samps
+        training_loss_per_epoch[epoch] = running_loss
 
     print('Finished Training')
 
