@@ -42,13 +42,12 @@ early_stopping=350
 sum_average=0; conv1=10; conv2=20; fc1=100; fc2=25
 
 dataset="mnist" #to load the proper fashionmnist model
-
+layer="c1"
 how_many_epochs=200
 annealing_steps = float(8000. * how_many_epochs)
 beta_func = lambda s: min(s, annealing_steps) / annealing_steps
 alpha_0 = 2  # below 1 so that we encourage sparsity
 switch_init=-1
-layer='c3'
 hidden_dims={'c1': conv1, 'c3': conv2, 'f5': fc1, 'f6' : fc2}
 hidden_dim = hidden_dims[layer] #it's a number of parameters we want to estimate, e.g. # conv1 filters
 
@@ -60,49 +59,74 @@ BATCH_SIZE = 100
 filename="%s_test_conv_relu_bn_drop_trainval%.1f_conv:%d_conv:%d_fc:%d_fc:%d.txt" % (dataset, trainval_perc, conv1, conv2, fc1, fc2)
 
 
+print("dataset: ", dataset, ", layer: ", layer)
 ###################################################
 # DATA
-
-
-
+dataset="mnist"
+trainval_perc=1
+BATCH_SIZE = 100
 # Download or load downloaded MNIST dataset
 # shuffle data at every epoch
 
-if dataset=="fashionmnist":
+trainval_dataset=datasets.MNIST('data', train=True, download=True,
+                    #transform=transforms.Compose([transforms.ToTensor(),
+                    #transforms.Normalize((0.1307,), (0.3081,))]),
+                    transform=transforms.ToTensor())
 
-    trainval_dataset=datasets.FashionMNIST('data', train=True, download=True,
-                        #transform=transforms.Compose([transforms.ToTensor(),
-                        #transforms.Normalize((0.1307,), (0.3081,))]),
-                        transform=transforms.ToTensor())
-
-    train_size = int(trainval_perc * len(trainval_dataset))
-    val_size = len(trainval_dataset) - train_size
-    train_dataset, val_dataset = torch.utils.data.random_split(trainval_dataset, [train_size, val_size])
-
-    test_dataset=datasets.FashionMNIST('data', train=False, transform=transforms.ToTensor())
-
-elif dataset=="mnist":
-
-    trainval_dataset = datasets.MNIST('data', train=True, download=True,
-                                             # transform=transforms.Compose([transforms.ToTensor(),
-                                             # transforms.Normalize((0.1307,), (0.3081,))]),
-                                             transform=transforms.ToTensor())
-
-    train_size = int(trainval_perc * len(trainval_dataset))
-    val_size = len(trainval_dataset) - train_size
-    train_dataset, val_dataset = torch.utils.data.random_split(trainval_dataset, [train_size, val_size])
-
-    test_dataset = datasets.MNIST('data', train=False, transform=transforms.ToTensor())
-
-
-# Load datasets
+train_size = int(trainval_perc * len(trainval_dataset))
+val_size = len(trainval_dataset) - train_size
+train_dataset, val_dataset = torch.utils.data.random_split(trainval_dataset, [train_size, val_size])
 
 train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
 #val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=True)
+
+# Same for test data
 test_loader = torch.utils.data.DataLoader(
     #datasets.MNIST('data', train=False, transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))])),
-    test_dataset,
+    datasets.MNIST('data', train=False, transform=transforms.ToTensor()),
     batch_size=BATCH_SIZE, shuffle=False)
+
+dataset="mnist"
+#
+#
+# # Download or load downloaded MNIST dataset
+# # shuffle data at every epoch
+#
+# if dataset=="fashionmnist":
+#
+#     trainval_dataset=datasets.FashionMNIST('data', train=True, download=True,
+#                         #transform=transforms.Compose([transforms.ToTensor(),
+#                         #transforms.Normalize((0.1307,), (0.3081,))]),
+#                         transform=transforms.ToTensor())
+#
+#     train_size = int(trainval_perc * len(trainval_dataset))
+#     val_size = len(trainval_dataset) - train_size
+#     train_dataset, val_dataset = torch.utils.data.random_split(trainval_dataset, [train_size, val_size])
+#
+#     test_dataset=datasets.FashionMNIST('data', train=False, transform=transforms.ToTensor())
+#
+# elif dataset=="mnist":
+#
+#     trainval_dataset = datasets.MNIST('data', train=True, download=True,
+#                                              # transform=transforms.Compose([transforms.ToTensor(),
+#                                              # transforms.Normalize((0.1307,), (0.3081,))]),
+#                                              transform=transforms.ToTensor())
+#
+#     train_size = int(trainval_perc * len(trainval_dataset))
+#     val_size = len(trainval_dataset) - train_size
+#     train_dataset, val_dataset = torch.utils.data.random_split(trainval_dataset, [train_size, val_size])
+#
+#     test_dataset = datasets.MNIST('data', train=False, transform=transforms.ToTensor())
+#
+#
+# # Load datasets
+#
+# train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+# #val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=True)
+# test_loader = torch.utils.data.DataLoader(
+#     #datasets.MNIST('data', train=False, transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))])),
+#     test_dataset,
+#     batch_size=BATCH_SIZE, shuffle=False)
 
 
 ##############################################################################
@@ -122,31 +146,25 @@ class Lenet(nn.Module):
         self.bn2=nn.BatchNorm2d(nodesNum2)
         self.c5=nn.Linear(nodesNum2*4*4, nodesFc1)
         self.f6=nn.Linear(nodesFc1,nodesFc2)
-        self.f7=nn.Linear(nodesFc2,10)
+        self.output=nn.Linear(nodesFc2,10)
 
         self.drop_layer = nn.Dropout(p=0.5)
 
-        self.parameter = Parameter(switch_init*torch.ones(hidden_dim),requires_grad=True) # this parameter lies #S
+        self.parameter = Parameter(-1*torch.ones(nodesNum1),requires_grad=True) # this parameter lies #S
+        #-2e10, 1, 5, -2
 
-    def switch_func(self, output):
+    def switch_func(self, output, Sprime):
         #############S
-        phi = f.softplus(self.parameter)
-        # """directly use mean of Dir RV."""
-        S = phi / torch.sum(phi)
-
-        # Smax = torch.max(S)
-        # Sprime = S/Smax
-        Sprime = S
-
         for i in range(len(Sprime)):
             output[:, i] *= Sprime[i].expand_as(output[:, i])
 
         ##################
         return output, Sprime
 
+
+
     def forward(self, x):
 
-        # FEED FORWARD NETWORK
         # x=x.view(-1,784)
         # output=f.relu(self.fc1(x))
         # output=self.bn1(output)
@@ -157,8 +175,99 @@ class Lenet(nn.Module):
 
         #x=x.view(-1,784)
         output=self.c1(x)
+        #############S
+        phi = f.softplus(self.parameter)
+        #"""directly use mean of Dir RV."""
+        S = phi / torch.sum(phi)
+        #Smax = torch.max(S)
+        #Sprime = S/Smax
+        Sprime = S
+        # for i in range(len(S)):
+        #     output[:, i] = output[:, i] * S[i]
         if layer=='c1':
-            output, Sprime = self.switch_func(output)
+            output, Sprime = self.switch_func(output, Sprime)
+
+        # for i in range(len(Sprime)):
+        #     output[:, i] *= Sprime[i].expand_as(output[:, i])
+        #output = output[1] * S
+        ##############
+
+        output=f.relu(self.s2(output))
+        output=self.bn1(output)
+        output=self.drop_layer(output)
+        output=self.c3(output)
+
+        # for i in range(len(Sprime)):
+        #     output[:, i] *= Sprime[i].expand_as(output[:, i])
+
+        output=f.relu(self.s4(output))
+        output=self.bn2(output)
+        output=self.drop_layer(output)
+        output=output.view(-1, self.nodesNum2*4*4)
+
+
+
+        output=self.c5(output)
+        output=self.f6(output)
+        return output, Sprime
+
+
+class Lenet(nn.Module):
+    def __init__(self, nodesNum1, nodesNum2, nodesFc1, nodesFc2, hidden_dim):
+        super(Lenet, self).__init__()
+
+        self.nodesNum2=nodesNum2
+
+        self.c1=nn.Conv2d(1, nodesNum1, 5)
+        self.s2=nn.MaxPool2d(2)
+        self.bn1=nn.BatchNorm2d(nodesNum1)
+        self.c3=nn.Conv2d(nodesNum1,nodesNum2,5)
+        self.s4=nn.MaxPool2d(2)
+        self.bn2=nn.BatchNorm2d(nodesNum2)
+        self.c5=nn.Linear(nodesNum2*4*4, nodesFc1)
+        self.f6=nn.Linear(nodesFc1,nodesFc2)
+        self.f7=nn.Linear(nodesFc2,10)
+
+        self.drop_layer = nn.Dropout(p=0.5)
+
+        self.parameter = Parameter(switch_init*torch.ones(hidden_dim),requires_grad=True) # this parameter lies #S
+
+    def switch_func(self, output, Sprime):
+        #############S
+
+
+        for i in range(len(Sprime)):
+            output[:, i] *= Sprime[i].expand_as(output[:, i])
+
+        ##################
+        return output, Sprime
+
+    def forward(self, x, layer='dummy'):
+
+        # FEED FORWARD NETWORK
+        # x=x.view(-1,784)
+        # output=f.relu(self.fc1(x))
+        # output=self.bn1(output)
+        # output=f.relu(self.fc2(output))
+        # output=self.bn2(output)
+        # output=self.fc3(output)
+        # return output
+
+        Sprime=-1
+
+        #x=x.view(-1,784)
+        output=self.c1(x)
+
+        phi = f.softplus(self.parameter)
+        # """directly use mean of Dir RV."""
+        S = phi / torch.sum(phi)
+
+        # Smax = torch.max(S)
+        # Sprime = S/Smax
+        Sprime = S
+
+        if layer=='c1':
+            output, Sprime = self.switch_func(output, Sprime)
 
         #for i in range(len(S)):
         #output[:, i] = output[:, i] * S[i]
@@ -172,7 +281,7 @@ class Lenet(nn.Module):
         output=self.drop_layer(output)
         output=self.c3(output)
         if layer=='c3':
-            output, Sprime = self.switch_func(output)
+            output, Sprime = self.switch_func(output, Sprime)
 
         output=f.relu(self.s4(output))
         output=self.bn2(output)
@@ -181,13 +290,13 @@ class Lenet(nn.Module):
 
         output=self.c5(output)
         if layer=='f5':
-            output, Sprime = self.switch_func(output)
+            output, Sprime = self.switch_func(output, Sprime)
 
         output=self.f6(output)
         if layer=='f6':
-            output, Sprime = self.switch_func(output)
+            output, Sprime = self.switch_func(output, Sprime)
 
-        output = self.f7(output)
+        #output = self.f7(output)
 
 
 
@@ -198,13 +307,11 @@ class Lenet(nn.Module):
 
 
 ############################################################################################################
-
-nodesNum1, nodesNum2, nodesFc1, nodesFc2=10,20,100,25
-net=Lenet(nodesNum1,nodesNum2,nodesFc1,nodesFc2).to(device)
+nodesNum1, nodesNum2, nodesFc1, nodesFc2 = 10, 20, 100, 25
+net = Lenet(nodesNum1, nodesNum2, nodesFc1, nodesFc2, hidden_dim).to(device)
 criterion = nn.CrossEntropyLoss()
 
-optimizer=optim.Adam(net.parameters(), lr=0.001)
-
+optimizer = optim.Adam(net.parameters(), lr=0.001)
 ###############################################################################
 # LOAD MODEL (optionally)
 
@@ -292,9 +399,16 @@ def loss_functionPost():
 # RUN TRAINING
 
 #def run_experiment(early_stopping, nodesNum1, nodesNum2, nodesFc1, nodesFc2):
-def run_experiment(early_stopping):
+def run_experiment(epochs_num, layer_exp):
 
     print("\nRunning experiment\n")
+
+    nodesNum1, nodesNum2, nodesFc1, nodesFc2 = 10, 20, 100, 25
+    hidden_dim = hidden_dims[layer_exp]  # it's a number of parameters we want to estimate, e.g. # conv1 filters
+    net = Lenet(nodesNum1, nodesNum2, nodesFc1, nodesFc2, hidden_dim).to(device)
+    criterion = nn.CrossEntropyLoss()
+
+    optimizer = optim.Adam(net.parameters(), lr=0.001)
 
 
     #net=Lenet(nodesNum1, nodesNum2, nodesFc1, nodesFc2).to(device)
@@ -306,9 +420,9 @@ def run_experiment(early_stopping):
     #net.load_state_dict(torch.load(path), strict=False)
     print("Evaluate:\n")
     evaluate()
-    for name, param in net.named_parameters():
-        print(name)
-        print(param[1])
+    # for name, param in net.named_parameters():
+    #     print(name)
+    #     print(param[1])
     # for name, param in net.named_parameters():
     #     print(name)
     #     #print (name, param.shape)
@@ -345,8 +459,9 @@ def run_experiment(early_stopping):
     print("Retraining\n")
     net.train()
     stop=0; epoch=0; best_accuracy=0; entry=np.zeros(3); best_model=-1
-    while (stop<early_stopping):
-        epoch=epoch+1
+    #while (stop<early_stopping):
+    for epoch in range(epochs_num):
+        #epoch=epoch+1
         annealing_rate = beta_func(epoch)
         net.train()
         evaluate()
@@ -354,7 +469,7 @@ def run_experiment(early_stopping):
             inputs, labels=data
             inputs, labels=inputs.to(device), labels.to(device)
             optimizer.zero_grad()
-            outputs, S=net(inputs) #when switc hes
+            outputs, S=net(inputs, layer_exp) #when switc hes
             #outputs=net(inputs)
             #loss=criterion(outputs, labels)
             loss, BCE, KLD, KLD_discounted = loss_functionKL(outputs, labels, S, alpha_0, hidden_dim, BATCH_SIZE, annealing_rate)
@@ -382,8 +497,8 @@ def run_experiment(early_stopping):
         print("max: %.4f, min: %.4f" % (torch.max(S), torch.min(S)))
         ranks_sorted = np.argsort(S.cpu().detach().numpy())[::-1]
         print(",".join(map(str, ranks_sorted)))
-        if (epoch==3):
-            torch.save(S, 'results/%s/switch_init_-1,alpha_2_proper/layer-%s_epoch-%s_accuracy-%.2f.pt' % (dataset, layer, epoch, accuracy))
+        #if (epoch==3):
+        #    torch.save(S, 'results/%s/switch_init_-1,alpha_2_proper/layer-%s_epoch-%s_accuracy-%.2f.pt' % (dataset, layer, epoch, accuracy))
         #print(torch.argsort(S), descending=True)
 
         # if (accuracy<=best_accuracy):
@@ -400,16 +515,12 @@ def run_experiment(early_stopping):
 
         print("\n")
         #write
-        entry[0]=accuracy; entry[1]=loss
+        #entry[0]=accuracy; entry[1]=loss
         # with open(filename, "a+") as file:
         #     file.write(",".join(map(str, entry))+"\n")
     return best_accuracy, epoch, best_model, S
 
 #print("\n\n NEW EXPERIMENT:\n")
-
-
-
-
 
 
 
@@ -422,7 +533,7 @@ if __name__ == "__main__":
         #     file.write("\nInteration: "+ str(i)+"\n")
         print("\nIteration: "+str(i))
         #best_accuracy, num_epochs, best_model=run_experiment(early_stopping, conv1, conv2, fc1, fc2)
-        best_accuracy, num_epochs, best_model = run_experiment(early_stopping)
+        best_accuracy, num_epochs, best_model = run_experiment(early_stopping, layer)
         sum_average+=best_accuracy
         average_accuracy=sum_average/(i+1)
 

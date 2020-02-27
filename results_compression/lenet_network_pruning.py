@@ -9,7 +9,7 @@
 import torch
 from torch import nn, optim
 import sys
-#sys.path.append("/home/kamil/Dropbox/Current_research/python_tests/results_compression")
+sys.path.append("/home/kamil/Desktop/Dropbox/Current_research/ranking/results_switch")
 
 
 import torch
@@ -30,7 +30,7 @@ from lenet_network_pruning_withcombinations import compute_combinations_lenet
 #from lenet_network_pruning_withcombinations import get_data
 
 
-
+from lenet5_conv_gpu_switch_working_Feb20 import run_experiment
 
 #######################
 # takes the network parameters from the conv layer and clusters them (with the purpose of removing some of them)
@@ -590,6 +590,33 @@ def get_ranks(method):
         # min, argmin = torch.min(tot_loss, 0)
         # self.prune(model, argmin.item())
         # self.prune_history.append(argmin.item())
+    elif method=="switches":
+        file_path='../results_switch/results/combinationss_switch.npy'
+        getranks_method='train'
+        combinationss = []
+        layer="c3"
+        if getranks_method=='train':
+
+            epochs_num=10
+            for layer in ["c1", "c3", "f5", "f6"]:
+                best_accuracy, epoch, best_model, S= run_experiment(epochs_num, layer, 10, 20, 100, 25)
+                print("Rank for switches from most important/largest to smallest after %i " %  epochs_num)
+                print(S)
+                print("max: %.4f, min: %.4f" % (torch.max(S), torch.min(S)))
+                ranks_sorted = np.argsort(S.cpu().detach().numpy())[::-1]
+                print(",".join(map(str, ranks_sorted)))
+                combinationss.append(ranks_sorted)
+
+
+
+            print('*'*30)
+            print(combinationss)
+            np.save(file_path, combinationss)
+        elif method=='load':
+            combinationss=list(np.load(file_path))
+
+        #else:
+
 
 
     else:
@@ -765,7 +792,7 @@ if resume:
         compute_combinations_lenet(True, net, evaluate, dataset, "zeroing")
 
 
-    methods=['l1', 'l2', 'fisher','filter_ranking']
+    methods=['switches', 'l1', 'l2', 'fisher','filter_ranking']
     #methods=['filter_ranking']
 
     #
