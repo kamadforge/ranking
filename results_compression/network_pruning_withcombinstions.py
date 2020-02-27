@@ -22,7 +22,7 @@ import csv
 import pdb
 
 from torch.nn.parameter import Parameter
-import magnitude_pruning
+import magnitude_rank
 
 
 
@@ -245,7 +245,7 @@ def prune(retrain, thresh1, thresh2, thresh3, thresh4, write, save):
 
     else:
         combinationss=[]
-        combinationss=magnitude_pruning.get_ranks(method)
+        combinationss=magnitude_rank.get_ranks(method)
         # for i in range(4):
         #     combinationss.append(torch.LongTensor(combinat[i]))
 
