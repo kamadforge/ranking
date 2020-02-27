@@ -72,18 +72,18 @@ class Model(nn.Module):
         if any(torch.sum(gamma_samps,0)==0):
             print("sum of gamma samps are zero!")
         else:
-            Sstack = gamma_samps / torch.sum(gamma_samps, 0)
+            Sstack = gamma_samps / torch.sum(gamma_samps, 0) #1dim - number of neurons (200), 2dim - samples (150)
 
         x_samps = torch.einsum("ij,jk -> ijk",(shifted_pre_activation, Sstack))
         x_samps = F.relu(x_samps)
         x_out = torch.einsum("bjk, j -> bk", (x_samps, torch.squeeze(self.W2))) + self.b2
-        labelstack = torch.sigmoid(x_out)
+        labelstack = torch.sigmoid(x_out) #100,200 100- sa
 
         # avg_label = torch.mean(labelstack,1)
         # avg_S = torch.mean(Sstack,1)
 
         # return avg_label, avg_S, labelstack, Sstack
-        return labelstack, phi
+        return labelstack, phi #(100, 150) #output 1-dim for neural network (100,10,150) #phi - number of parameters
 
 # def loss_function(prediction, true_y, S, alpha_0, hidden_dim, how_many_samps, annealing_rate):
 def loss_function(prediction, true_y, phi_cand, alpha_0, hidden_dim, how_many_samps, annealing_rate):
@@ -200,7 +200,7 @@ def main():
     # preparing variational inference
     alpha_0 = 0.01 # below 1 so that we encourage sparsity.
     # num_samps_for_switch = 1000
-    num_samps_for_switch = 200
+    num_samps_for_switch = 150
     model = Model(input_dim=input_dim, hidden_dim=hidden_dim, W1=torch.Tensor(W1), b_1=torch.Tensor(b_1), W2=torch.Tensor(W2), b_2=torch.Tensor(b_2), num_samps_for_switch=num_samps_for_switch)
 
 
@@ -239,7 +239,7 @@ def main():
 
             # forward + backward + optimize
             # outputs,S_tmp, labelstack, Sstack = model(torch.Tensor(inputs))
-            outputs, phi_cand = model(torch.Tensor(inputs))
+            outputs, phi_cand = model(torch.Tensor(inputs)) #100,10,150
             labels = torch.squeeze(torch.Tensor(labels))
             # loss = F.binary_cross_entropy(outputs, labels)
             # loss = loss_function(outputs, labels)
