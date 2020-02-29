@@ -31,16 +31,6 @@ from sklearn.model_selection import ParameterGrid
 import argparse
 
 
-
-from torch.nn.parameter import Parameter
-import magnitude_rank
-from lenet_network_pruning_withcombinations import compute_combinations_lenet
-#from lenet_network_pruning_withcombinations import get_data
-
-
-from lenet5_conv_gpu_switch_working_Feb20_integral import run_experiment as run_experiment_integral
-from lenet5_conv_gpu_switch_working_Feb20_pointest import run_experiment as run_experiment_pointest
-
 #############
 # params
 
@@ -74,6 +64,17 @@ print(sys.path)
 
 
 ######################
+
+
+from torch.nn.parameter import Parameter
+import magnitude_rank
+from lenet_network_pruning_withcombinations import compute_combinations_lenet
+#from lenet_network_pruning_withcombinations import get_data
+
+
+from lenet5_conv_gpu_switch_working_Feb20_integral import run_experiment as run_experiment_integral
+from lenet5_conv_gpu_switch_working_Feb20_pointest import run_experiment as run_experiment_pointest
+
 
 # takes the network parameters from the conv layer and clusters them (with the purpose of removing some of them)
 
@@ -166,7 +167,8 @@ test_loader = torch.utils.data.DataLoader(
 # # Same for test data
 # test_loader = torch.utils.data.DataLoader(datasets.MNIST('data', train=False, transform=transforms.ToTensor()), batch_size=BATCH_SIZE, shuffle=False)
 
-##########################################################
+##############################################################################################3####33
+# ###############################################################################3##########
 # NETWORK (conv-conv-fc-fc)
 
 class Identity(nn.Module):
@@ -190,7 +192,7 @@ class Lenet(nn.Module):
         self.bn2 = nn.BatchNorm2d(nodesNum2)
         self.c5 = nn.Linear(nodesNum2 * 4 * 4, nodesFc1)
         self.f6 = nn.Linear(nodesFc1, nodesFc2)
-        self.output = nn.Linear(nodesFc2, 10)
+        self.out7 = nn.Linear(nodesFc2, 10)
 
         self.parameter = Parameter(-1e-10*torch.ones(nodesNum1),requires_grad=True) # this parameter lies #S
 
@@ -248,6 +250,8 @@ class Lenet(nn.Module):
         output = self.f6(output)
         out = self.activation4(output)
         self.act4 = out
+        output = self.out7(output) #remove for 99.27 and 90.04 models
+
         return output
 
     def _fisher1(self, notused1, notused2, grad_output):
@@ -340,7 +344,9 @@ def load_model():
     #path="models/fashionmnist_conv:20_conv:50_fc:800_fc:500_rel_bn_trainval1.0_epo:11_acc:90.01"
     #path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_trainval_modelopt1.0_epo:309_acc:99.19"
     if dataset=="mnist":
-        path=path_compression+"/models/mnist_conv10_conv20_fc100_fc25_rel_bn_drop_trainval_modelopt1.0_epo540_acc99.27"
+        #path=path_compression+"/models/mnist_conv10_conv20_fc100_fc25_rel_bn_drop_trainval_modelopt1.0_epo540_acc99.27"
+        path=path_compression+"/models/MNIST_conv_10_conv_20_fc_100_fc_25_rel_bn_drop_trainval_modelopt1.0_epo_231_acc_99.19"
+
         #path="models/mnist_trainval0.9_epo461_acc99.06"
     elif dataset=="fashionmnist":
         path=path_compression+"/models/fashionmnist_conv10_conv20_fc100_fc25_rel_bn_drop_trainval_modelopt1.0_epo62_acc90.04"
@@ -496,7 +502,7 @@ def finetune():
 
 
 
-####################################3
+####################################################3
 # get ranks
 
 def get_ranks(method):
@@ -635,17 +641,17 @@ def get_ranks(method):
     elif method=="switches":
 
 
-        vi_training="full"
+        vi_training="integral"
         getranks_method = 'load'
         combinationss = []
 
-        if vi_training=="full":
+        if vi_training=="integral":
             print("integral evaluation")
-            file_path=os.path.join(path_main, 'results_switch/results/combinationss_switch_integral.npy')
+            file_path=os.path.join(path_main, 'results_switch/results/combinationss_switch_9919_integral.npy')
 
             if getranks_method=='train':
 
-                epochs_num=10
+                epochs_num=7
                 for layer in ["c1", "c3", "f5", "f6"]:
                     best_accuracy, epoch, best_model, S= run_experiment_integral(epochs_num, layer, 10, 20, 100, 25)
                     print("Rank for switches from most important/largest to smallest after %i " %  epochs_num)
@@ -663,14 +669,14 @@ def get_ranks(method):
             elif getranks_method=='load':
                 combinationss=list(np.load(file_path))
 
-        elif vi_training=="pointest":
+        elif vi_training=="point":
             print("mean")
 
-            file_path = os.path.join(path_main, 'results_switch/results/combinationss_switch_pointest.npy')
+            file_path = os.path.join(path_main, 'results_switch/results/combinationss_switch_9919_pointest.npy')
 
             if getranks_method == 'train':
 
-                epochs_num = 10
+                epochs_num = 7
                 for layer in ["c1", "c3", "f5", "f6"]:
                     best_accuracy, epoch, best_model, S = run_experiment_pointest(epochs_num, layer, 10, 20, 100, 25)
                     print("Rank for switches from most important/largest to smallest after %i " % epochs_num)
@@ -710,7 +716,7 @@ def get_ranks(method):
     return  combinationss
 
 
-########################################################
+##################################################################################
 # RETRAIN
 
 def threshold_prune_and_retrain(combinationss, thresh):
@@ -723,18 +729,16 @@ def threshold_prune_and_retrain(combinationss, thresh):
     #    print(param.shape)
 
     ##### THRESHOLD
+    # the ranks are sorted from best to worst
     # thresh is what we keep, combinationss is what we discard
 
 
     for i in range(len(combinationss)):
         combinationss[i] = torch.LongTensor(combinationss[i][thresh[i]:].copy())
-        #combinationss[i] = torch.LongTensor(combinationss[i][thresh[i]:].copy())
 
 
 
 
-    #remaining1, remaining2, remaining3, remaining4=nodesNum1-len(combinationss[0]), nodesNum2-len(combinationss[1]), nodesFc1-len(combinationss[2]), nodesFc2-len(combinationss[3])
-    #remaining1, remaining2, remaining3, remaining4 = combinationss[0], combinationss[1],
     #filename = "%s_retrained_paramsearch1.txt" % path
     #
     # if write:
@@ -752,7 +756,7 @@ def threshold_prune_and_retrain(combinationss, thresh):
 
         it = 0
         for name, param in net.named_parameters():
-            #print(name)
+            print(name)
             if (("c" in name) or ("f" in name)) and ("weight" in name):
                 it += 1
                 param.data[combinationss[it - 1]] = 0
@@ -772,14 +776,11 @@ def threshold_prune_and_retrain(combinationss, thresh):
         # net.c5.weight.data[combination3] = 0;net.c5.bias.data[combination3] = 0
         # net.f6.weight.data[combination4] = 0;net.f6.bias.data[combination4] = 0
 
-
-
         print("After pruning")
         acc=evaluate()
 
     ##################################################################### RETRAIN
 
-    ######################
 
     if retrain:
         def gradi(module):
@@ -859,9 +860,7 @@ if resume:
     load_model()
     evaluate()
     if comp_combinations:
-        #get_data(dataset)
-        #compute_combinations_lenet(True, net, evaluate, dataset, "additive_noise")
-        compute_combinations_lenet(True, net, evaluate, dataset, "zeroing")
+        compute_combinations_lenet(True, net, evaluate, dataset, "zeroing") #can be "additive noise instead of zeroing
 
 
     #methods=['switches', 'l1', 'l2', 'fisher','filter_ranking']
@@ -889,13 +888,11 @@ if resume:
         pruned_arch['c1']=pruned_arch_layer[0]; pruned_arch['c3']=pruned_arch_layer[1]; pruned_arch['f5']=pruned_arch_layer[2];pruned_arch['f6']=pruned_arch_layer[3];
 
         if 1:
-
-
             #load_model()
             accs={}
             for method in methods:
                 print("\n\n %s \n" % method)
-                combinationss = get_ranks(method)
+                combinationss = get_ranks(method); print(combinationss)
                 acc=threshold_prune_and_retrain(combinationss, [pruned_arch['c1'], pruned_arch['c3'], pruned_arch['f5'], pruned_arch['f6']])
                 accs[method]=acc
                 #prune(False, i1, i2, i3, i4, write, save)
