@@ -23,6 +23,10 @@ from torchvision import datasets, transforms
 import numpy as np
 import csv
 import pdb
+import os
+cwd = os.getcwd()
+print(cwd)
+
 
 from torch.nn.parameter import Parameter
 import magnitude_rank
