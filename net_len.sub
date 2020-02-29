@@ -1,11 +1,11 @@
 #executable = /home/kadamczewski/miniconda3/envs/BayesianNeuralNetwork/bin/python
 executable = /usr/bin/unbuffer
 
-arguments = /home/kadamczewski/miniconda3/bin/python /home/kadamczewski/Dropbox_from/Current_research/ranking/results_compression/lenet_network_pruning.py
+arguments = /home/kadamczewski/miniconda3/bin/python /home/kadamczewski/Dropbox_from/Current_research/ranking/results_compression/lenet_network_pruning.py $(arg)
 
 
 
-var=lenet_switch_full_$(dataset)
+var=lenet_switch_point2_$(dataset)
 error = clust/clust_err/$(var).$(Process).err
 output = clust/clust_out/$(var).$(Process).out
 log = clust/clust_log/$(var).$(Process).log
@@ -17,7 +17,7 @@ request_cpus = 1
 request_gpus = 1
 
 dataset=mnist
-queue 5
+queue arg from parameters.txt
 
 #
 # dataset=adult

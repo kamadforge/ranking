@@ -26,6 +26,10 @@ import pdb
 import os
 import socket
 
+from sklearn.model_selection import ParameterGrid
+
+import argparse
+
 #######
 # path stuff
 cwd = os.getcwd()
@@ -52,6 +56,14 @@ from lenet_network_pruning_withcombinations import compute_combinations_lenet
 from lenet5_conv_gpu_switch_working_Feb20_integral import run_experiment as run_experiment_integral
 from lenet5_conv_gpu_switch_working_Feb20_pointest import run_experiment as run_experiment_pointest
 
+#############
+# params
+
+arguments=argparse.ArgumentParser()
+
+arguments.add_argument("--arch", default="5,8,30,10")
+
+args=arguments.parse_args()
 
 #######################
 # takes the network parameters from the conv layer and clusters them (with the purpose of removing some of them)
@@ -615,7 +627,7 @@ def get_ranks(method):
 
 
         vi_training="full"
-        getranks_method = 'train'
+        getranks_method = 'load'
         combinationss = []
 
         if vi_training=="full":
@@ -843,8 +855,8 @@ if resume:
         compute_combinations_lenet(True, net, evaluate, dataset, "zeroing")
 
 
-    methods=['switches', 'l1', 'l2', 'fisher','filter_ranking']
-    #methods=['filter_ranking']
+    #methods=['switches', 'l1', 'l2', 'fisher','filter_ranking']
+    methods=['switches']
 
     #
     # for method in methods:
@@ -859,23 +871,29 @@ if resume:
 
     if prune_bool:
 
-        for i1 in [3, 4, 5, 6, 7, 10]:
-            for i2 in [4, 6, 8, 10, 12, 20]:
-                for i3 in [20, 30, 40, 50, 60, 100]:
-                    for i4 in [5, 10, 15, 20, 25]:
+        # pruned_architectures=ParameterGrid({'c1':[3, 4, 5, 6, 7, 10], 'c3': [4, 6, 8, 10, 12, 20], 'f5': [20, 30, 40, 50, 60, 100], 'f6': [5, 10, 15, 20, 25]})
+        #
+        # for pruned_arch in pruned_architectures:
 
-                        #load_model()
-                        accs={}
-                        for method in methods:
-                            print("\n\n %s \n" % method)
-                            combinationss = get_ranks(method)
-                            acc=threshold_prune_and_retrain(combinationss, [i1, i2, i3, i4])
-                            accs[method]=acc
-                            #prune(False, i1, i2, i3, i4, write, save)
+        pruned_arch_layer=[int(n) for n in args.arch.split(",")]
+        pruned_arch={}
+        pruned_arch['c1']=pruned_arch_layer[0]; pruned_arch['c3']=pruned_arch_layer[1]; pruned_arch['f5']=pruned_arch_layer[2];pruned_arch['f6']=pruned_arch_layer[3];
 
-                        if accs['filter_ranking']>accs['fisher'] and accs['filter_ranking']>accs['l1']:
-                            print("Yay!")
-                        print("\n*********************************\n\n")
+        if 1:
+
+
+            #load_model()
+            accs={}
+            for method in methods:
+                print("\n\n %s \n" % method)
+                combinationss = get_ranks(method)
+                acc=threshold_prune_and_retrain(combinationss, [pruned_arch['c1'], pruned_arch['c3'], pruned_arch['f5'], pruned_arch['f6']])
+                accs[method]=acc
+                #prune(False, i1, i2, i3, i4, write, save)
+
+            if accs['filter_ranking']>accs['fisher'] and accs['filter_ranking']>accs['l1']:
+                print("Yay!")
+            print("\n*********************************\n\n")
         #prune_and_retrain([10,10,50,10])
 
 if resume==False and prune_bool==False and retrain==False:
