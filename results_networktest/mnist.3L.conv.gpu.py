@@ -137,8 +137,8 @@ def run_experiment(early_stopping, nodesNum1, nodesNum2, nodesFc1, nodesFc2):
     net=Lenet(nodesNum1, nodesNum2, nodesFc1, nodesFc2).to(device)
     criterion = nn.CrossEntropyLoss()
     #optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
-    optimizer=optim.Adam(net.parameters(), lr=0.001)
-    #optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9, weight_decay=5e-4)
+    #optimizer=optim.Adam(net.parameters(), lr=0.001)
+    optimizer = optim.SGD(net.parameters(), lr=0.0003, momentum=0.9, weight_decay=5e-4)
 
     ######################################
     # LOADING MODEL/RESUME
