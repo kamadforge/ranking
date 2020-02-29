@@ -137,8 +137,8 @@ def run_experiment(early_stopping, nodesNum1, nodesNum2, nodesFc1, nodesFc2):
     net=Lenet(nodesNum1, nodesNum2, nodesFc1, nodesFc2).to(device)
     criterion = nn.CrossEntropyLoss()
     #optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
-    #optimizer=optim.Adam(net.parameters(), lr=0.001)
-    optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9, weight_decay=5e-4)
+    optimizer=optim.Adam(net.parameters(), lr=0.001)
+    #optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9, weight_decay=5e-4)
 
     ######################################
     # LOADING MODEL/RESUME
@@ -266,7 +266,7 @@ print("\n\n NEW EXPERIMENT:\n")
 
 ########################################################
 # PARAMS
-early_stopping=350
+early_stopping=600
 sum_average=0; conv1=10; conv2=20; fc1=100; fc2=25
 filename="%s_test_conv_relu_bn_drop_trainval%.1f_conv:%d_conv:%d_fc:%d_fc:%d.txt" % (dataset, trainval_perc, conv1, conv2, fc1, fc2)
 filename="%s_test_conv_relu_bn_drop_trainval%.1f_conv:%d_conv:%d_fc:%d_fc:%d.txt" % (dataset, trainval_perc, conv1, conv2, fc1, fc2)
