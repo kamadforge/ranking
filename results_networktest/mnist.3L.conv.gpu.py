@@ -22,7 +22,7 @@ device=torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print(device)
 
 write_to_file=False
-desired_save_accuracy=89.5
+desired_save_accuracy=89.7
 
 
 ###################################################
@@ -240,7 +240,7 @@ def run_experiment(early_stopping, nodesNum1, nodesNum2, nodesFc1, nodesFc2):
                 best_model=net.state_dict()
                 best_optim=optimizer.state_dict()
                 if best_accuracy>desired_save_accuracy:
-                    torch.save({'model_state_dict' : best_model, 'optimizer_state_dict': best_optim}, "models/%s_conv:%d_conv:%d_fc:%d_fc:%d_rel_bn_drop_trainval_modelopt%.1f_epo:%d_acc:%.2f" % (dataset, conv1, conv2, fc1, fc2, trainval_perc, epoch, best_accuracy))
+                    torch.save({'model_state_dict' : best_model, 'optimizer_state_dict': best_optim}, "models/%s_conv_%d_conv_%d_fc_%d_fc_%d_rel_bn_drop_trainval_modelopt%.1f_epo_%d_acc_%.2f" % (dataset, conv1, conv2, fc1, fc2, trainval_perc, epoch, best_accuracy))
 
             print("\n")
             #write
