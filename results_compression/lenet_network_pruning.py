@@ -24,9 +24,15 @@ import numpy as np
 import csv
 import pdb
 import os
+
+#######
+# path stuff
 cwd = os.getcwd()
 print(cwd)
-sys.path.append(os.path.join(cwd, "results_switch"))
+parent_path=os.path.abspath('..')
+sys.path.append(os.path.join(parent_path, "results_switch"))
+path_compression=cwd
+print(sys.path)
 
 
 from torch.nn.parameter import Parameter
@@ -58,7 +64,7 @@ adversarial_dataset=False
 
 if dataset=="fashionmnist":
 
-    trainval_dataset=datasets.FashionMNIST('data/FashionMNIST', train=True, download=True,
+    trainval_dataset=datasets.FashionMNIST(path_compression+'data/FashionMNIST', train=True, download=True,
                         #transform=transforms.Compose([transforms.ToTensor(),
                         #transforms.Normalize((0.1307,), (0.3081,))]),
                         transform=transforms.ToTensor())
@@ -305,10 +311,10 @@ def load_model():
     #path="models/fashionmnist_conv:20_conv:50_fc:800_fc:500_rel_bn_trainval1.0_epo:11_acc:90.01"
     #path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_trainval_modelopt1.0_epo:309_acc:99.19"
     if dataset=="mnist":
-        path="models/mnist_conv10_conv20_fc100_fc25_rel_bn_drop_trainval_modelopt1.0_epo540_acc99.27"
+        path=path_compression+"/models/mnist_conv10_conv20_fc100_fc25_rel_bn_drop_trainval_modelopt1.0_epo540_acc99.27"
         #path="models/mnist_trainval0.9_epo461_acc99.06"
     elif dataset=="fashionmnist":
-        path="models/fashionmnist_conv10_conv20_fc100_fc25_rel_bn_drop_trainval_modelopt1.0_epo62_acc90.04"
+        path=path_compression+"/models/fashionmnist_conv10_conv20_fc100_fc25_rel_bn_drop_trainval_modelopt1.0_epo62_acc90.04"
     #path="models/conv:10_conv:50_fc:800_fc:500_rel_bn_epo:103_acc:99.37""
     #path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:11_switch_acc:99.15"
     #path="/home/kamil/Dropbox/Current_research/python_tests/Dir_switch/models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:2_acc:98.75"
