@@ -375,9 +375,9 @@ def train(thresh=[-1,-1,-1,-1]):
     best_accuracy = 0;
     entry = np.zeros(3);
     best_model = -1;
-    early_stopping = 20
-    #while (stop < early_stopping):
-    for i in range(5):
+    early_stopping = 100
+    while (stop < early_stopping):
+    #for i in range(5):
         epoch = epoch + 1
         # for epoch in range(30):
         for i, data in enumerate(train_loader):
@@ -620,7 +620,7 @@ def get_ranks(method):
 
         if vi_training=="full":
             print("integral evaluation")
-            file_path=os.path.join(path_main, '/results_switch/results/combinationss_switch_integral.npy')
+            file_path=os.path.join(path_main, 'results_switch/results/combinationss_switch_integral.npy')
 
             if getranks_method=='train':
 
@@ -645,11 +645,11 @@ def get_ranks(method):
         elif vi_training=="pointest":
             print("mean")
 
-            file_path = os.path.join(path_main, '/results_switch/results/combinationss_switch_pointest.npy')
+            file_path = os.path.join(path_main, 'results_switch/results/combinationss_switch_pointest.npy')
 
             if getranks_method == 'train':
 
-                epochs_num = 10
+                epochs_num = 2
                 for layer in ["c1", "c3", "f5", "f6"]:
                     best_accuracy, epoch, best_model, S = run_experiment_pointest(epochs_num, layer, 10, 20, 100, 25)
                     print("Rank for switches from most important/largest to smallest after %i " % epochs_num)
@@ -821,7 +821,7 @@ write_training=False
 
 resume=True
 prune_bool=True
-retrain=False
+retrain=True
 
 
 ##############################
