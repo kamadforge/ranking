@@ -22,7 +22,7 @@ device=torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print(device)
 
 write_to_file=False
-desired_save_accuracy=89.7
+desired_save_accuracy=99.1
 
 
 ###################################################
@@ -30,7 +30,7 @@ desired_save_accuracy=89.7
 
 #MNIST, FashionMNIST,housenum
 
-dataset="FashionMNIST"
+dataset="MNIST"
 trainval_perc=1
 BATCH_SIZE = 100
 # Download or load downloaded MNIST dataset
