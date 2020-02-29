@@ -619,6 +619,7 @@ def get_ranks(method):
         combinationss = []
 
         if vi_training=="full":
+            print("integral evaluation")
             file_path=os.path.join(path_main, '/results_switch/results/combinationss_switch_integral.npy')
 
             if getranks_method=='train':
@@ -642,6 +643,7 @@ def get_ranks(method):
                 combinationss=list(np.load(file_path))
 
         elif vi_training=="pointest":
+            print("mean")
 
             file_path = os.path.join(path_main, '/results_switch/results/combinationss_switch_pointest.npy')
 
@@ -649,7 +651,7 @@ def get_ranks(method):
 
                 epochs_num = 10
                 for layer in ["c1", "c3", "f5", "f6"]:
-                    best_accuracy, epoch, best_model, S = run_experiment_integral(epochs_num, layer, 10, 20, 100, 25)
+                    best_accuracy, epoch, best_model, S = run_experiment_pointest(epochs_num, layer, 10, 20, 100, 25)
                     print("Rank for switches from most important/largest to smallest after %i " % epochs_num)
                     print(S)
                     print("max: %.4f, min: %.4f" % (torch.max(S), torch.min(S)))
