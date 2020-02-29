@@ -9,7 +9,7 @@
 import torch
 from torch import nn, optim
 import sys
-sys.path.append("/home/kamil/Desktop/Dropbox/Current_research/ranking/results_switch")
+
 
 
 import torch
@@ -26,6 +26,7 @@ import pdb
 import os
 cwd = os.getcwd()
 print(cwd)
+sys.path.append(os.path.join(cwd, "results_switch"))
 
 
 from torch.nn.parameter import Parameter
