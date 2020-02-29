@@ -106,6 +106,8 @@ class Lenet(nn.Module):
         self.c1=nn.Conv2d(1, nodesNum1, 5)
         self.s2=nn.MaxPool2d(2)
         self.bn1=nn.BatchNorm2d(nodesNum1)
+
+
         self.c3=nn.Conv2d(nodesNum1,nodesNum2,5)
         self.s4=nn.MaxPool2d(2)
         self.bn2=nn.BatchNorm2d(nodesNum2)
@@ -120,13 +122,34 @@ class Lenet(nn.Module):
 
         #-2e10, 1, 5, -2
 
-    def switch_func(self, output, Sprime):
+    def switch_func(self, output, SstackT):
         #############S
-        for i in range(len(Sprime)):
-            output[:, i] *= Sprime[i].expand_as(output[:, i])
+
+
+        rep = SstackT.unsqueeze(2).unsqueeze(2).repeat(1, 1, output.shape[2], output.shape[3])  # (150,10,24,24)
+        # output is (100,10,24,24), we want to have 100,150,10,24,24, I guess
+
+        output = torch.einsum('ijkl, mjkl -> imjkl', (rep, output))
+
+        output = output.view(output.shape[0] * output.shape[1], output.shape[2], output.shape[3], output.shape[4])
 
         ##################
-        return output, Sprime
+        return output, SstackT
+
+    def switch_func_fc(self, output, SstackT):
+        #############S
+
+        #rep = SstackT.unsqueeze(2).unsqueeze(2).repeat(1, 1,)  # (150,10,24,24)
+        # output is (100,10,24,24), we want to have 100,150,10,24,24, I guess
+
+        output=torch.einsum('ij, mj -> imj', (SstackT, output))
+        #output = torch.einsum('ijkl, mjkl -> imjkl', (rep, output))
+
+
+        output = output.reshape(output.shape[0] * output.shape[1], output.shape[2])
+
+        ##################
+        return output, SstackT
 
     def forward(self, x, layer):
 
@@ -167,15 +190,12 @@ class Lenet(nn.Module):
 
         SstackT=Sstack.t()
 
-        rep = SstackT.unsqueeze(2).unsqueeze(2).repeat(1, 1, 24, 24) #(150,10,24,24)
-        #output is (100,10,24,24), we want to have 100,150,10,24,24, I guess
-
 
 
         #x_samps = torch.einsum("ij,jk -> ijk", (output, Sstack))
         #x_samps = F.relu(x_samps)
         #x_out = torch.einsum("bjk, j -> bk", (x_samps, torch.squeeze(self.W2))) + self.b2
-        labelstack = torch.sigmoid(x_out)  # 100,200 100- sa
+        #output=labelstack = torch.sigmoid(x_out)  # 100,200 100- sa
 
 
 
@@ -184,13 +204,13 @@ class Lenet(nn.Module):
 
         #Smax = torch.max(S)
         #Sprime = S/Smax
-        Sprime = Sstack
+        #Sprime = Sstack
 
         # for i in range(len(Sprime)):
         #     output[:, i] *= Sprime[i].expand_as(output[:, i]) #13.28 deteministic, acc increases
 
         if layer == 'c1':
-            output, Sprime = self.switch_func(output, Sprime) #13.28 deteministic, acc increases
+             output, Sprime = self.switch_func(output, SstackT) #13.28 deteministic, acc increases
 
 
         #for i in range(len(S)):
@@ -206,7 +226,7 @@ class Lenet(nn.Module):
         output=self.c3(output)
 
         if layer == 'c3':
-            output, Sprime = self.switch_func(output, Sprime)  # 13.28 deteministic, acc increases
+            output, SstackT = self.switch_func(output, SstackT)  # 13.28 deteministic, acc increases
 
         # for i in range(len(Sprime)):
         #     output[:, i] *= Sprime[i].expand_as(output[:, i])
@@ -220,15 +240,20 @@ class Lenet(nn.Module):
 
         output=self.c5(output)
 
-        if layer == 'c5':
-            output, Sprime = self.switch_func(output, Sprime)  # 13.28 deteministic, acc increases
+        if layer == 'f5':
+            output, SstackT = self.switch_func_fc(output, SstackT)  # 13.28 deteministic, acc increases
 
         output=self.f6(output)
 
         if layer == 'f6':
-            output, Sprime = self.switch_func(output, Sprime)  # 13.28 deteministic, acc increases
+            output, SstackT = self.switch_func_fc(output, SstackT)  # 13.28 deteministic, acc increases
 
-        return output, Sprime
+        output = output.reshape(BATCH_SIZE, self.num_samps_for_switch, -1)
+        output = torch.mean(output, 1)
+
+
+        return output, phi
+
 
 
 # class Lenet(nn.Module):
@@ -361,6 +386,8 @@ def loss_functionKL(prediction, true_y, S, alpha_0, hidden_dim, how_many_samps, 
     # annealing kl-divergence term is better
 
     return BCE + annealing_rate * KLD / how_many_samps
+
+
 
 
 #################################
