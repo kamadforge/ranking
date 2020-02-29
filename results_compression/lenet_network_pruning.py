@@ -649,7 +649,7 @@ def get_ranks(method):
 
             if getranks_method == 'train':
 
-                epochs_num = 2
+                epochs_num = 10
                 for layer in ["c1", "c3", "f5", "f6"]:
                     best_accuracy, epoch, best_model, S = run_experiment_pointest(epochs_num, layer, 10, 20, 100, 25)
                     print("Rank for switches from most important/largest to smallest after %i " % epochs_num)
