@@ -49,9 +49,6 @@ if "g0" in socket.gethostname():
     sys.path.append(os.path.join(cwd, "results_switch"))
     path_compression = os.path.join(cwd, "results_compression")
     path_main= cwd
-    clustout_folder=os.path.join(cwd,"clust/clust_out", args.folder)
-    if os.path.exists(clustout_folder):
-        os.mkdir(clustout_folder)
 else:
     #the cwd is results_compression
     parent_path = os.path.abspath('..')
