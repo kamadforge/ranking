@@ -30,7 +30,9 @@ from lenet_network_pruning_withcombinations import compute_combinations_lenet
 #from lenet_network_pruning_withcombinations import get_data
 
 
-from lenet5_conv_gpu_switch_working_Feb20 import run_experiment
+from lenet5_conv_gpu_switch_working_Feb20_integral import run_experiment as run_experiment_integral
+from lenet5_conv_gpu_switch_working_Feb20_pointest import run_experiment as run_experiment_pointest
+
 
 #######################
 # takes the network parameters from the conv layer and clusters them (with the purpose of removing some of them)
@@ -591,29 +593,55 @@ def get_ranks(method):
         # self.prune(model, argmin.item())
         # self.prune_history.append(argmin.item())
     elif method=="switches":
-        file_path='../results_switch/results/combinationss_switch.npy'
-        getranks_method='train'
+        vi_training="full"
+        getranks_method = 'train'
         combinationss = []
-        layer="c3"
-        if getranks_method=='train':
 
-            epochs_num=10
-            for layer in ["c1", "c3", "f5", "f6"]:
-                best_accuracy, epoch, best_model, S= run_experiment(epochs_num, layer, 10, 20, 100, 25)
-                print("Rank for switches from most important/largest to smallest after %i " %  epochs_num)
-                print(S)
-                print("max: %.4f, min: %.4f" % (torch.max(S), torch.min(S)))
-                ranks_sorted = np.argsort(S.cpu().detach().numpy())[::-1]
-                print(",".join(map(str, ranks_sorted)))
-                combinationss.append(ranks_sorted)
+        if vi_training=="full":
+            file_path='../results_switch/results/combinationss_switch_integral.npy'
+
+            if getranks_method=='train':
+
+                epochs_num=10
+                for layer in ["c1", "c3", "f5", "f6"]:
+                    best_accuracy, epoch, best_model, S= run_experiment_integral(epochs_num, layer, 10, 20, 100, 25)
+                    print("Rank for switches from most important/largest to smallest after %i " %  epochs_num)
+                    print(S)
+                    print("max: %.4f, min: %.4f" % (torch.max(S), torch.min(S)))
+                    ranks_sorted = np.argsort(S.cpu().detach().numpy())[::-1]
+                    print(",".join(map(str, ranks_sorted)))
+                    combinationss.append(ranks_sorted)
 
 
 
-            print('*'*30)
-            print(combinationss)
-            np.save(file_path, combinationss)
-        elif method=='load':
-            combinationss=list(np.load(file_path))
+                print('*'*30)
+                print(combinationss)
+                np.save(file_path, combinationss)
+            elif getranks_method=='load':
+                combinationss=list(np.load(file_path))
+
+        elif vi_training=="pointest":
+
+            file_path = '../results_switch/results/combinationss_switch_pointest.npy'
+
+            if getranks_method == 'train':
+
+                epochs_num = 10
+                for layer in ["c1", "c3", "f5", "f6"]:
+                    best_accuracy, epoch, best_model, S = run_experiment_integral(epochs_num, layer, 10, 20, 100, 25)
+                    print("Rank for switches from most important/largest to smallest after %i " % epochs_num)
+                    print(S)
+                    print("max: %.4f, min: %.4f" % (torch.max(S), torch.min(S)))
+                    ranks_sorted = np.argsort(S.cpu().detach().numpy())[::-1]
+                    print(",".join(map(str, ranks_sorted)))
+                    combinationss.append(ranks_sorted)
+
+                print('*' * 30)
+                print(combinationss)
+                np.save(file_path, combinationss)
+            elif getranks_method == 'load':
+                combinationss = list(np.load(file_path))
+
 
         #else:
 
@@ -804,7 +832,7 @@ if resume:
         #     print("\n\n******method: %s, percentage: %d******" % (method, i*10))
         #     prune(True, 1*i, 2*i, 10*i, 2*i, write, save)
 
-    combinationss=get_ranks("fisher")
+    #l1, l2, switches, fisher
 
     if prune_bool:
 
@@ -812,10 +840,6 @@ if resume:
             for i2 in [4, 6, 8, 10, 12, 20]:
                 for i3 in [20, 30, 40, 50, 60, 100]:
                     for i4 in [5, 10, 15, 20, 25]:
-        # for i1 in [3, 4,5, 6, 7]:
-        #     for i2 in [4, 6, 8, 10, 12]:
-        #         for i3 in [100]:
-        #             for i4 in [25]:
 
                         #load_model()
                         accs={}
