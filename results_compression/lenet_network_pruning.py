@@ -32,10 +32,12 @@ cwd = os.getcwd()
 if "g0" in socket.gethostname():
     sys.path.append(os.path.join(cwd, "results_switch"))
     path_compression = os.path.join(cwd, "results_compression")
+    path_main= cwd
 else:
     parent_path = os.path.abspath('..')
     sys.path.append(os.path.join(parent_path, "results_switch"))
     path_compression = cwd
+    path_main= parent_path
 
 print(cwd)
 print(sys.path)
@@ -610,12 +612,14 @@ def get_ranks(method):
         # self.prune(model, argmin.item())
         # self.prune_history.append(argmin.item())
     elif method=="switches":
-        vi_training="full"
+
+
+        vi_training="pointest"
         getranks_method = 'train'
         combinationss = []
 
         if vi_training=="full":
-            file_path='../results_switch/results/combinationss_switch_integral.npy'
+            file_path=os.path.join(path_main, '/results_switch/results/combinationss_switch_integral.npy')
 
             if getranks_method=='train':
 
@@ -639,7 +643,7 @@ def get_ranks(method):
 
         elif vi_training=="pointest":
 
-            file_path = '../results_switch/results/combinationss_switch_pointest.npy'
+            file_path = os.path.join(path_main, '/results_switch/results/combinationss_switch_pointest.npy')
 
             if getranks_method == 'train':
 
