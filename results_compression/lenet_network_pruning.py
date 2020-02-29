@@ -30,21 +30,6 @@ from sklearn.model_selection import ParameterGrid
 
 import argparse
 
-#######
-# path stuff
-cwd = os.getcwd()
-if "g0" in socket.gethostname():
-    sys.path.append(os.path.join(cwd, "results_switch"))
-    path_compression = os.path.join(cwd, "results_compression")
-    path_main= cwd
-else:
-    parent_path = os.path.abspath('..')
-    sys.path.append(os.path.join(parent_path, "results_switch"))
-    path_compression = cwd
-    path_main= parent_path
-
-print(cwd)
-print(sys.path)
 
 
 from torch.nn.parameter import Parameter
@@ -62,10 +47,34 @@ from lenet5_conv_gpu_switch_working_Feb20_pointest import run_experiment as run_
 arguments=argparse.ArgumentParser()
 
 arguments.add_argument("--arch", default="5,8,30,10")
+arguments.add_argument("--folder")
 
 args=arguments.parse_args()
 
-#######################
+#######
+# path stuff
+cwd = os.getcwd()
+if "g0" in socket.gethostname():
+    #the cwd is where the sub file is so ranking/
+    sys.path.append(os.path.join(cwd, "results_switch"))
+    path_compression = os.path.join(cwd, "results_compression")
+    path_main= cwd
+    clustout_folder=os.path.join(cwd,"clust/clust_out", args.folder)
+    if os.path.exists(clustout_folder):
+        os.mkdir(clustout_folder)
+else:
+    #the cwd is results_compression
+    parent_path = os.path.abspath('..')
+    sys.path.append(os.path.join(parent_path, "results_switch"))
+    path_compression = cwd
+    path_main= parent_path
+
+print(cwd)
+print(sys.path)
+
+
+######################
+
 # takes the network parameters from the conv layer and clusters them (with the purpose of removing some of them)
 
 device=torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
