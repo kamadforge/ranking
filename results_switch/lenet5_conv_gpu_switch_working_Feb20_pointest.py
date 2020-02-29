@@ -99,7 +99,7 @@ class Lenet(nn.Module):
         self.bn2=nn.BatchNorm2d(nodesNum2)
         self.c5=nn.Linear(nodesNum2*4*4, nodesFc1)
         self.f6=nn.Linear(nodesFc1,nodesFc2)
-        self.output=nn.Linear(nodesFc2,10)
+        self.f7=nn.Linear(nodesFc2,10)
 
         self.drop_layer = nn.Dropout(p=0.5)
 
@@ -178,6 +178,8 @@ class Lenet(nn.Module):
 
         if layer == 'f6':
             output, Sprime = self.switch_func(output, Sprime)  # 13.28 deteministic, acc increases
+
+        output = self.f7(output) #remove for 99.27
 
         return output, Sprime
 
@@ -359,8 +361,8 @@ def run_experiment(epochs_num, layer, nodesNum1, nodesNum2, nodesFc1, nodesFc2):
     h = net2.bn1.bias.register_hook(lambda grad: grad * 0)  # double the gradient
     h = net2.bn2.weight.register_hook(lambda grad: grad * 0)  # double the gradient
     h = net2.bn2.bias.register_hook(lambda grad: grad * 0)  # double the gradient
-    h = net2.output.weight.register_hook(lambda grad: grad * 0)  # double the gradient
-    h = net2.output.bias.register_hook(lambda grad: grad * 0)  # double the gradient
+    h = net2.f7.weight.register_hook(lambda grad: grad * 0)  # double the gradient
+    h = net2.f7.bias.register_hook(lambda grad: grad * 0)  # double the gradient #change to output for 99.27
 
     accuracy = evaluate(net2, layer)
 

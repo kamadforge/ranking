@@ -113,7 +113,7 @@ class Lenet(nn.Module):
         self.bn2=nn.BatchNorm2d(nodesNum2)
         self.c5=nn.Linear(nodesNum2*4*4, nodesFc1)
         self.f6=nn.Linear(nodesFc1,nodesFc2)
-        self.output=nn.Linear(nodesFc2,10)
+        self.f7=nn.Linear(nodesFc2,10)
 
         self.drop_layer = nn.Dropout(p=0.5)
 
@@ -248,6 +248,8 @@ class Lenet(nn.Module):
         if layer == 'f6':
             output, SstackT = self.switch_func_fc(output, SstackT)  # 13.28 deteministic, acc increases
 
+        output = self.f7(output)
+
         output = output.reshape(BATCH_SIZE, self.num_samps_for_switch, -1)
         output = torch.mean(output, 1)
 
@@ -314,7 +316,8 @@ font_file = os.path.join(package_directory, 'fonts', 'myfont.ttf')
 
 #path="models/fashionmnist_conv:20_conv:50_fc:800_fc:500_rel_bn_trainval1.0_epo:11_acc:90.01"
 #path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_trainval_modelopt1.0_epo:309_acc:99.19"
-path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:540_acc:99.27"
+#path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:540_acc:99.27"
+path="models/MNIST_conv_10_conv_20_fc_100_fc_25_rel_bn_drop_trainval_modelopt1.0_epo_231_acc_99.19"
 #path="models/conv:10_conv:50_fc:800_fc:500_rel_bn_epo:103_acc:99.37""
 #path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:11_switch_acc:99.15"
 #path="/home/kamil/Dropbox/Current_research/python_tests/Dir_switch/models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:2_acc:98.75"
@@ -435,8 +438,8 @@ def run_experiment(epochs_num, layer, nodesNum1, nodesNum2, nodesFc1, nodesFc2):
     h = net2.bn1.bias.register_hook(lambda grad: grad * 0)  # double the gradient
     h = net2.bn2.weight.register_hook(lambda grad: grad * 0)  # double the gradient
     h = net2.bn2.bias.register_hook(lambda grad: grad * 0)  # double the gradient
-    h = net2.output.weight.register_hook(lambda grad: grad * 0)  # double the gradient
-    h = net2.output.bias.register_hook(lambda grad: grad * 0)  # double the gradient
+    h = net2.f7.weight.register_hook(lambda grad: grad * 0)  # double the gradient
+    h = net2.f7.bias.register_hook(lambda grad: grad * 0)  # double the gradient
 
     accuracy = evaluate(net2, layer)
 
