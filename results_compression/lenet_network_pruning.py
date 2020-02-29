@@ -664,7 +664,7 @@ def get_ranks(method):
                 print(combinationss)
                 np.save(file_path, combinationss)
             elif getranks_method=='load':
-                combinationss=list(np.load(file_path))
+                combinationss=list(np.load(file_path,  allow_pickle=True))
 
         elif vi_training=="point":
             print("mean")
@@ -687,7 +687,7 @@ def get_ranks(method):
                 print(combinationss)
                 np.save(file_path, combinationss)
             elif getranks_method == 'load':
-                combinationss = list(np.load(file_path))
+                combinationss = list(np.load(file_path,  allow_pickle=True))
 
 
         #else:
