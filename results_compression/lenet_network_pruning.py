@@ -24,14 +24,20 @@ import numpy as np
 import csv
 import pdb
 import os
+import socket
 
 #######
 # path stuff
 cwd = os.getcwd()
+if "g0" in socket.gethostname():
+    sys.path.append(os.path.join(cwd, "results_switch"))
+    path_compression = os.path.join(cwd, "results_compression")
+else:
+    parent_path = os.path.abspath('..')
+    sys.path.append(os.path.join(parent_path, "results_switch"))
+    path_compression = cwd
+
 print(cwd)
-parent_path=os.path.abspath('..')
-sys.path.append(os.path.join(parent_path, "results_switch"))
-path_compression=cwd
 print(sys.path)
 
 
