@@ -5,7 +5,7 @@ arguments = /home/kadamczewski/miniconda3/bin/python /home/kadamczewski/Dropbox_
 
 #CHECK
 #folder=lenet_switch
-var=lenet_point150_2 _retraining_$(dataset)_$(arch)_switch
+var=lenet_integral300_3 _retraining_$(dataset)_$(arch)_switch
 #var=lenet_integral_2000
 
 error = clust/clust_err/$(var).$(Process).err
