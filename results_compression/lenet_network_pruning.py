@@ -638,7 +638,7 @@ def get_ranks(method):
     elif method=="switches":
 
 
-        vi_training="integral"; print("vi training is "+ vi_training)
+        vi_training="point"; print("vi training is "+ vi_training)
         getranks_method = 'train'
         combinationss = []
         num_samps_for_switch=150
