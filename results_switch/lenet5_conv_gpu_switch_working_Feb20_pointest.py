@@ -44,13 +44,13 @@ print("Drop")
 # PARAMS
 
 sum_average=0; conv1=10; conv2=20; fc1=100; fc2=25
-layer="c1"
+layer="c5"
 how_many_epochs=200
 annealing_steps = float(8000. * how_many_epochs)
 beta_func = lambda s: min(s, annealing_steps) / annealing_steps
 alpha_0 = 2  # below 1 so that we encourage sparsity
 hidden_dim = 10 #it's a number of parameters we want to estimate, e.g. # conv1 filters
-hidden_dims={'c1': conv1, 'c3': conv2, 'f5': fc1, 'f6' : fc2}
+hidden_dims={'c1': conv1, 'c3': conv2, 'c5': fc1, 'f6' : fc2}
 hidden_dim = hidden_dims[layer] #it's a number of parameters we want to estimate, e.g. # conv1 filters
 
 
@@ -241,8 +241,9 @@ package_directory = os.path.dirname(os.path.abspath(__file__))
 font_file = os.path.join(package_directory, 'fonts', 'myfont.ttf')
 
 #path="models/fashionmnist_conv:20_conv:50_fc:800_fc:500_rel_bn_trainval1.0_epo:11_acc:90.01"
+path="models/MNIST_conv_10_conv_20_fc_100_fc_25_rel_bn_drop_trainval_modelopt1.0_epo_231_acc_99.19"
 #path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_trainval_modelopt1.0_epo:309_acc:99.19"
-path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:540_acc:99.27"
+#path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:540_acc:99.27"
 #path="models/conv:10_conv:50_fc:800_fc:500_rel_bn_epo:103_acc:99.37""
 #path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:11_switch_acc:99.15"
 #path="/home/kamil/Dropbox/Current_research/python_tests/Dir_switch/models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:2_acc:98.75"
@@ -260,7 +261,7 @@ path_full=os.path.join(package_directory, path)
 # EVALUATE
 
 def evaluate(net2, layer):
-    # print('Prediction when network is forced to predict')
+    #print('Evaluating switches with layer:', layer )
     net2.eval()
     correct = 0
     total = 0
