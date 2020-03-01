@@ -5,7 +5,7 @@ arguments = /home/kadamczewski/miniconda3/bin/python /home/kadamczewski/Dropbox_
 
 #CHECK
 #folder=lenet_switch_integral
-#method=switch_integral
+method=switch_integral
 #switch_point_multiple
 #switch_integral
 switch_samps=500
