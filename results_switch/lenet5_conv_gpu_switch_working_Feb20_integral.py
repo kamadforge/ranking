@@ -54,7 +54,7 @@ alpha_0 = 2  # below 1 so that we encourage sparsity
 hidden_dim = 10 #it's a number of parameters we want to estimate, e.g. # conv1 filters
 hidden_dims={'c1': conv1, 'c3': conv2, 'c5': fc1, 'f6' : fc2}
 hidden_dim = hidden_dims[layer] #it's a number of parameters we want to estimate, e.g. # conv1 filters
-num_samps_for_switch = 150
+#num_samps_for_switch = 300
 
 ###################################################
 # DATA
@@ -98,7 +98,7 @@ def tile(a, dim, n_tile):
 # NETWORK (conv-conv-fc-fc)
 
 class Lenet(nn.Module):
-    def __init__(self, nodesNum1, nodesNum2, nodesFc1, nodesFc2, layer):
+    def __init__(self, nodesNum1, nodesNum2, nodesFc1, nodesFc2, layer, num_samps_for_switch):
         super(Lenet, self).__init__()
 
         self.nodesNum2=nodesNum2
@@ -399,11 +399,12 @@ def loss_functionKL(prediction, true_y, S, alpha_0, hidden_dim, how_many_samps, 
 ###################################################
 # RUN TRAINING
 
-def run_experiment(epochs_num, layer, nodesNum1, nodesNum2, nodesFc1, nodesFc2):
+def run_experiment(epochs_num, layer, nodesNum1, nodesNum2, nodesFc1, nodesFc2, num_samps_for_switch):
     print("\nRunning experiment\n")
+    print("Switches samples: ", num_samps_for_switch)
 
     #CHECK WHY THSI CHANGES SO MUCH
-    net2 = Lenet(nodesNum1, nodesNum2, nodesFc1, nodesFc2, layer).to(device)
+    net2 = Lenet(nodesNum1, nodesNum2, nodesFc1, nodesFc2, layer, num_samps_for_switch).to(device)
     criterion = nn.CrossEntropyLoss()
 
     optimizer = optim.Adam(net2.parameters(), lr=0.001)
@@ -524,7 +525,7 @@ if __name__=='__main__':
         with open(filename, "a+") as file:
             file.write("\nInteration: "+ str(i)+"\n")
             print("\nIteration: "+str(i))
-        best_accuracy, num_epochs, best_model=run_experiment(epochs_num, layer, conv1, conv2, fc1, fc2)
+        best_accuracy, num_epochs, best_model=run_experiment(epochs_num, layer, conv1, conv2, fc1, fc2, num_samps_for_switch)
         sum_average+=best_accuracy
         average_accuracy=sum_average/(i+1)
 

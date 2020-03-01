@@ -638,24 +638,26 @@ def get_ranks(method):
     elif method=="switches":
 
 
-        vi_training="point"; print("vi training is "+ vi_training)
+        vi_training="integral"; print("vi training is "+ vi_training)
         getranks_method = 'train'
         combinationss = []
+        num_samps_for_switch=150
 
         if vi_training=="integral":
             print("integral evaluation")
-            file_path=os.path.join(path_main, 'results_switch/results/combinationss_switch_9919_integral.npy')
+            file_path=os.path.join(path_main, 'results_switch/results/combinationss_switch_9919_integral_samps_%i.npy' % num_samps_for_switch)
 
             if getranks_method=='train':
 
                 epochs_num=7
                 for layer in ["c1", "c3", "c5", "f6"]:
-                    best_accuracy, epoch, best_model, S= run_experiment_integral(epochs_num, layer, 10, 20, 100, 25)
+                    best_accuracy, epoch, best_model, S= run_experiment_integral(epochs_num, layer, 10, 20, 100, 25, num_samps_for_switch)
                     print("Rank for switches from most important/largest to smallest after %i " %  epochs_num)
                     print(S)
                     print("max: %.4f, min: %.4f" % (torch.max(S), torch.min(S)))
                     ranks_sorted = np.argsort(S.cpu().detach().numpy())[::-1]
                     print(",".join(map(str, ranks_sorted)))
+                    combinationss.append(ranks_sorted)
                     combinationss.append(ranks_sorted)
 
 
