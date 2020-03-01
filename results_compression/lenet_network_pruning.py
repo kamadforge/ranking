@@ -93,7 +93,7 @@ adversarial_dataset=False
 
 if dataset=="fashionmnist":
 
-    trainval_dataset=datasets.FashionMNIST(path_compression+'data/FashionMNIST', train=True, download=True,
+    trainval_dataset=datasets.FashionMNIST('data/FashionMNIST', train=True, download=True,
                         #transform=transforms.Compose([transforms.ToTensor(),
                         #transforms.Normalize((0.1307,), (0.3081,))]),
                         transform=transforms.ToTensor())
@@ -348,7 +348,8 @@ def load_model():
 
         #path="models/mnist_trainval0.9_epo461_acc99.06"
     elif dataset=="fashionmnist":
-        path=path_compression+"/models/fashionmnist_conv10_conv20_fc100_fc25_rel_bn_drop_trainval_modelopt1.0_epo62_acc90.04"
+        path=path_compression+"/models/FashionMNIST_conv_10_conv_20_fc_100_fc_25_rel_bn_drop_trainval_modelopt1.0_epo_41_acc_90.32"
+        #path=path_compression+"/models/fashionmnist_conv10_conv20_fc100_fc25_rel_bn_drop_trainval_modelopt1.0_epo62_acc90.04"
     #path="models/conv:10_conv:50_fc:800_fc:500_rel_bn_epo:103_acc:99.37""
     #path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:11_switch_acc:99.15"
     #path="/home/kamil/Dropbox/Current_research/python_tests/Dir_swi*tch/models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:2_acc:98.75"
@@ -439,7 +440,7 @@ def train(thresh=[-1,-1,-1,-1]):
             if save:
                 if retrain:
                     if best_accuracy > save_accuracy:
-                        torch.save(best_model, "%s_retrained_epo:%d_prunedto:%d_%d_%d_%d_acc:%.2f" % (
+                        torch.save(best_model, "%s_retrained_epo_%d_prunedto_%d_%d_%d_%d_acc_%.2f" % (
                         path, epoch, thresh[0], thresh[1], thresh[2], thresh[3], best_accuracy))
                         #
                         # torch.save({'model_state_dict': best_model, 'optimizer_state_dict': best_optim},
@@ -646,7 +647,7 @@ def get_ranks(method):
 
 
         print("integral evaluation")
-        file_path=os.path.join(path_main, 'results_switch/results/combinationss_switch_9919_integral_samps_%s.npy' % str(num_samps_for_switch))
+        file_path=os.path.join(path_main, 'results_switch/results/combinationss_%s_switch_9919_integral_samps_%s.npy' % (dataset, str(num_samps_for_switch)))
 
         if getranks_method=='train':
 
@@ -676,7 +677,7 @@ def get_ranks(method):
 
         print("switch mean")
 
-        file_path=os.path.join(path_main, 'results_switch/results/combinationss_switch_9919_pointest.npy')
+        file_path=os.path.join(path_main, 'results_switch/results/combinationss_%s_switch_9919_pointest.npy' % dataset)
 
         if getranks_method == 'train':
 
