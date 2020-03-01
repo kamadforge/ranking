@@ -40,6 +40,7 @@ arguments.add_argument("--arch", default="5,8,30,10")
 arguments.add_argument("--folder")
 arguments.add_argument("--method", default="switch_integral")
 arguments.add_argument("--switch_samps", default=150)
+arguments.add_argument("--dataset", default="mnist")
 
 args=arguments.parse_args()
 
@@ -83,7 +84,7 @@ print(device)
 trainval_perc=0.8
 BATCH_SIZE = 105
 
-dataset="mnist"
+dataset=args.dataset
 evaluation="test"
 adversarial_dataset=False
 
