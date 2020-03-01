@@ -39,7 +39,8 @@ arguments=argparse.ArgumentParser()
 arguments.add_argument("--arch", default="5,8,30,10")
 arguments.add_argument("--folder")
 arguments.add_argument("--method", default="switch_integral")
-arguments.add_argument("--switch_samps", default=150)
+arguments.add_argument("--switch_samps", default=300)
+arguments.add_argument("--switch_comb", default='load')
 arguments.add_argument("--dataset", default="mnist")
 
 args=arguments.parse_args()
@@ -642,7 +643,7 @@ def get_ranks(method):
     elif method=="switch_integral":
 
         #train or load
-        getranks_method = 'train'
+        getranks_method = args.switch_comb
         combinationss = []
         num_samps_for_switch=args.switch_samps
 
@@ -672,7 +673,7 @@ def get_ranks(method):
 
     elif method == "switch_point":
 
-        getranks_method = 'train'
+        getranks_method = args.switch_comb
         combinationss = []
 
 
