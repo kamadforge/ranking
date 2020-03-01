@@ -638,7 +638,7 @@ def get_ranks(method):
     elif method=="switches":
 
 
-        vi_training="point"
+        vi_training="integral"
         getranks_method = 'load'
         combinationss = []
 
