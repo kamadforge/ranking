@@ -44,7 +44,7 @@ args=arguments.parse_args()
 #######
 # path stuff
 cwd = os.getcwd()
-if "g0" in socket.gethostname():
+if 'g0' in socket.gethostname() or 'p0' in socket.gethostname():
     #the cwd is where the sub file is so ranking/
     sys.path.append(os.path.join(cwd, "results_switch"))
     path_compression = os.path.join(cwd, "results_compression")
