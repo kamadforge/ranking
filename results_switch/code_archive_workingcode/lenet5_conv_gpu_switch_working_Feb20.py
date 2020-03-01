@@ -44,13 +44,13 @@ print("Drop")
 # PARAMS
 
 sum_average=0; conv1=10; conv2=20; fc1=100; fc2=25
-layer="c1"
+layer="c5"
 how_many_epochs=200
 annealing_steps = float(8000. * how_many_epochs)
 beta_func = lambda s: min(s, annealing_steps) / annealing_steps
 alpha_0 = 2  # below 1 so that we encourage sparsity
 hidden_dim = 10 #it's a number of parameters we want to estimate, e.g. # conv1 filters
-hidden_dims={'c1': conv1, 'c3': conv2, 'f5': fc1, 'f6' : fc2}
+hidden_dims={'c1': conv1, 'c3': conv2, 'c5': fc1, 'f6' : fc2}
 hidden_dim = hidden_dims[layer] #it's a number of parameters we want to estimate, e.g. # conv1 filters
 
 

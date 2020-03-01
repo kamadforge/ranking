@@ -1,3 +1,9 @@
+# what is working nicely
+
+#switches train nicely for all layers c1, c3 but also the big layer f5
+
+
+#-------
 #it's the same test as for mnist.#L.py but with conv layers (con lenet)
 #it's also a gpu version which add extra gpu support to the previous version of mnist.3L.conv.py (which wa deleted and this version was named after this)
 
