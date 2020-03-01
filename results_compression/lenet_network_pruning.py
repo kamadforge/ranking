@@ -641,7 +641,7 @@ def get_ranks(method):
         vi_training="integral"; print("vi training is "+ vi_training)
         getranks_method = 'train'
         combinationss = []
-        num_samps_for_switch=2000
+        num_samps_for_switch=150
 
         if vi_training=="integral":
             print("integral evaluation")
@@ -671,7 +671,7 @@ def get_ranks(method):
         elif vi_training=="point":
             print("mean")
 
-            file_path = os.path.join(path_main, 'results_switch/results/combinationss_switch_9919_pointest.npy')
+            file_path=os.path.join(path_main, 'results_switch/results/combinationss_switch_9919_pointest_samps_%i.npy' % num_samps_for_switch)
 
             if getranks_method == 'train':
 
