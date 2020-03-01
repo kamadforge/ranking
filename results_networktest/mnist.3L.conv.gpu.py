@@ -30,7 +30,7 @@ desired_save_accuracy=99.1
 
 #MNIST, FashionMNIST,housenum
 
-dataset="MNIST"
+dataset="FashionMNIST"
 trainval_perc=1
 BATCH_SIZE = 100
 # Download or load downloaded MNIST dataset

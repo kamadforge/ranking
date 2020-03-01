@@ -323,7 +323,7 @@ def loss_functionKL(prediction, true_y, S, alpha_0, hidden_dim, how_many_samps, 
 ###################################################
 # RUN TRAINING
 
-def run_experiment(epochs_num, layer, nodesNum1, nodesNum2, nodesFc1, nodesFc2):
+def run_experiment(epochs_num, layer, nodesNum1, nodesNum2, nodesFc1, nodesFc2, path):
     print("\nRunning experiment\n")
 
     #CHECK WHY THSI CHANGES SO MUCH
@@ -332,7 +332,8 @@ def run_experiment(epochs_num, layer, nodesNum1, nodesNum2, nodesFc1, nodesFc2):
 
     optimizer = optim.Adam(net2.parameters(), lr=0.001)
 
-    net2.load_state_dict(torch.load(path_full)['model_state_dict'], strict=False)
+    print(path)
+    net2.load_state_dict(torch.load(path)['model_state_dict'], strict=False)
 
 
     print("Evaluate:\n")
@@ -448,7 +449,7 @@ if __name__=='__main__':
         with open(filename, "a+") as file:
             file.write("\nInteration: "+ str(i)+"\n")
             print("\nIteration: "+str(i))
-        best_accuracy, num_epochs, best_model=run_experiment(epochs_num, layer, conv1, conv2, fc1, fc2)
+        best_accuracy, num_epochs, best_model=run_experiment(epochs_num, layer, conv1, conv2, fc1, fc2, path_full)
         sum_average+=best_accuracy
         average_accuracy=sum_average/(i+1)
 

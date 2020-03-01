@@ -38,7 +38,7 @@ arguments=argparse.ArgumentParser()
 
 arguments.add_argument("--arch", default="5,8,30,10")
 arguments.add_argument("--folder")
-arguments.add_argument("--method", default="switch_point_multiple")
+arguments.add_argument("--method", default="switch_point")
 arguments.add_argument("--switch_samps", default=150)
 
 args=arguments.parse_args()
@@ -83,7 +83,7 @@ print(device)
 trainval_perc=0.8
 BATCH_SIZE = 105
 
-dataset="mnist"
+dataset="fashionmnist"
 evaluation="test"
 adversarial_dataset=False
 
@@ -640,7 +640,7 @@ def get_ranks(method):
     elif method=="switch_integral":
 
         #train or load
-        getranks_method = 'load'
+        getranks_method = 'train'
         combinationss = []
         num_samps_for_switch=args.switch_samps
 
@@ -652,7 +652,7 @@ def get_ranks(method):
 
             epochs_num=7
             for layer in ["c1", "c3", "c5", "f6"]:
-                best_accuracy, epoch, best_model, S= run_experiment_integral(epochs_num, layer, 10, 20, 100, 25, num_samps_for_switch)
+                best_accuracy, epoch, best_model, S= run_experiment_integral(epochs_num, layer, 10, 20, 100, 25, num_samps_for_switch, path)
                 print("Rank for switches from most important/largest to smallest after %s " %  str(epochs_num))
                 print(S)
                 print("max: %.4f, min: %.4f" % (torch.max(S), torch.min(S)))
@@ -682,7 +682,7 @@ def get_ranks(method):
 
             epochs_num = 7
             for layer in ["c1", "c3", "c5", "f6"]:
-                best_accuracy, epoch, best_model, S = run_experiment_pointest(epochs_num, layer, 10, 20, 100, 25)
+                best_accuracy, epoch, best_model, S = run_experiment_pointest(epochs_num, layer, 10, 20, 100, 25, path)
                 print("Rank for switches from most important/largest to smallest after %s " % str(epochs_num))
                 print(S)
                 print("max: %.4f, min: %.4f" % (torch.max(S), torch.min(S)))
