@@ -38,7 +38,7 @@ arguments=argparse.ArgumentParser()
 
 arguments.add_argument("--arch", default="5,8,30,10")
 arguments.add_argument("--folder")
-arguments.add_argument("--method", default="switch_integral")
+arguments.add_argument("--method", default="switch_point_multiple")
 arguments.add_argument("--switch_samps", default=150)
 
 args=arguments.parse_args()
@@ -351,7 +351,7 @@ def load_model():
         path=path_compression+"/models/fashionmnist_conv10_conv20_fc100_fc25_rel_bn_drop_trainval_modelopt1.0_epo62_acc90.04"
     #path="models/conv:10_conv:50_fc:800_fc:500_rel_bn_epo:103_acc:99.37""
     #path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:11_switch_acc:99.15"
-    #path="/home/kamil/Dropbox/Current_research/python_tests/Dir_switch/models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:2_acc:98.75"
+    #path="/home/kamil/Dropbox/Current_research/python_tests/Dir_swi*tch/models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:2_acc:98.75"
 
     net.load_state_dict(torch.load(path, map_location=lambda storage, loc: storage)['model_state_dict'], strict=False)
     #net.load_state_dict(torch.load(path, map_location=lambda storage, loc: storage), strict=False)
@@ -659,7 +659,6 @@ def get_ranks(method):
                 ranks_sorted = np.argsort(S.cpu().detach().numpy())[::-1]
                 print(",".join(map(str, ranks_sorted)))
                 combinationss.append(ranks_sorted)
-                combinationss.append(ranks_sorted)
 
 
 
@@ -697,6 +696,10 @@ def get_ranks(method):
         elif getranks_method == 'load':
             combinationss = list(np.load(file_path,  allow_pickle=True))
 
+    elif method == "switch_point_multiple":
+        file_path=os.path.join(path_main, 'results_switch/results/combinations_multiple_9919.npy')
+
+        combinationss =list(np.load(file_path,  allow_pickle=True))
 
     #else:
 
