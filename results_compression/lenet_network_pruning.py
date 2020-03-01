@@ -399,7 +399,7 @@ def train(thresh=[-1,-1,-1,-1]):
     best_accuracy = 0;
     entry = np.zeros(3);
     best_model = -1;
-    early_stopping = 100
+    early_stopping = 500
     while (stop < early_stopping):
     #for i in range(5):
         epoch = epoch + 1
