@@ -24,7 +24,7 @@ request_gpus = 1
 dataset=mnist
 
 #CHECK
-queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters2.txt
+queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters.txt
 #arch = 5,6,40,17
 #queue 1
 
