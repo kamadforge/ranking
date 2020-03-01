@@ -38,7 +38,7 @@ arguments=argparse.ArgumentParser()
 
 arguments.add_argument("--arch", default="5,8,30,10")
 arguments.add_argument("--folder")
-arguments.add_argument("--method", default="switch_point")
+arguments.add_argument("--method", default="switch_integral")
 arguments.add_argument("--switch_samps", default=150)
 
 args=arguments.parse_args()
@@ -637,7 +637,7 @@ def get_ranks(method):
         # min, argmin = torch.min(tot_loss, 0)
         # self.prune(model, argmin.item())
         # self.prune_history.append(argmin.item())
-    elif method=="switches_integral":
+    elif method=="switch_integral":
 
         #train or load
         getranks_method = 'load'
@@ -669,13 +669,13 @@ def get_ranks(method):
         elif getranks_method=='load':
             combinationss=list(np.load(file_path,  allow_pickle=True))
 
-    elif method == "switches_point":
+    elif method == "switch_point":
 
         getranks_method = 'train'
         combinationss = []
 
 
-        print("switches mean")
+        print("switch mean")
 
         file_path=os.path.join(path_main, 'results_switch/results/combinationss_switch_9919_pointest.npy')
 
