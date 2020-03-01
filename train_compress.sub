@@ -6,7 +6,7 @@ arguments = /home/kadamczewski/miniconda3/bin/python /home/kadamczewski/Dropbox_
 #CHECK
 #folder=lenet_switch
 #var=lenet_integral150_retraining_$(dataset)_$(arch)_switch
-var=lenet_integral1000
+var=lenet_integral500
 
 error = clust/clust_err/$(var).$(Process).err
 output = clust/clust_out/$(folder)/$(var).$(Process).out

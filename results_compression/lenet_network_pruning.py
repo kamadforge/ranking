@@ -641,7 +641,7 @@ def get_ranks(method):
         vi_training="integral"; print("vi training is "+ vi_training)
         getranks_method = 'train'
         combinationss = []
-        num_samps_for_switch=1000
+        num_samps_for_switch=500
 
         if vi_training=="integral":
             print("integral evaluation")
