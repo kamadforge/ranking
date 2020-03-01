@@ -5,7 +5,7 @@ arguments = /home/kadamczewski/miniconda3/bin/python /home/kadamczewski/Dropbox_
 
 #CHECK
 #folder=lenet_switch
-method=switch_point
+method=switch_integral
 switch_samps=150
 var=lenet_$(method)_$(switch_samps)_retraining_$(dataset)_$(arch)_switch
 #var=lenet_integral_2000
