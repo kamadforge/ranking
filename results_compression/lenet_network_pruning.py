@@ -38,6 +38,8 @@ arguments=argparse.ArgumentParser()
 
 arguments.add_argument("--arch", default="5,8,30,10")
 arguments.add_argument("--folder")
+arguments.add_argument("--method", default="switch_point")
+arguments.add_argument("--switch_samps", default=150)
 
 args=arguments.parse_args()
 
@@ -635,64 +637,68 @@ def get_ranks(method):
         # min, argmin = torch.min(tot_loss, 0)
         # self.prune(model, argmin.item())
         # self.prune_history.append(argmin.item())
-    elif method=="switches":
+    elif method=="switches_integral":
+
+        #train or load
+        getranks_method = 'load'
+        combinationss = []
+        num_samps_for_switch=args.switch_samps
 
 
-        vi_training="integral"; print("vi training is "+ vi_training)
+        print("integral evaluation")
+        file_path=os.path.join(path_main, 'results_switch/results/combinationss_switch_9919_integral_samps_%i.npy' % num_samps_for_switch)
+
+        if getranks_method=='train':
+
+            epochs_num=7
+            for layer in ["c1", "c3", "c5", "f6"]:
+                best_accuracy, epoch, best_model, S= run_experiment_integral(epochs_num, layer, 10, 20, 100, 25, num_samps_for_switch)
+                print("Rank for switches from most important/largest to smallest after %i " %  epochs_num)
+                print(S)
+                print("max: %.4f, min: %.4f" % (torch.max(S), torch.min(S)))
+                ranks_sorted = np.argsort(S.cpu().detach().numpy())[::-1]
+                print(",".join(map(str, ranks_sorted)))
+                combinationss.append(ranks_sorted)
+                combinationss.append(ranks_sorted)
+
+
+
+            print('*'*30)
+            print(combinationss)
+            np.save(file_path, combinationss)
+        elif getranks_method=='load':
+            combinationss=list(np.load(file_path,  allow_pickle=True))
+
+    elif method == "switches_point":
+
         getranks_method = 'train'
         combinationss = []
-        num_samps_for_switch=50
-
-        if vi_training=="integral":
-            print("integral evaluation")
-            file_path=os.path.join(path_main, 'results_switch/results/combinationss_switch_9919_integral_samps_%i.npy' % num_samps_for_switch)
-
-            if getranks_method=='train':
-
-                epochs_num=7
-                for layer in ["c1", "c3", "c5", "f6"]:
-                    best_accuracy, epoch, best_model, S= run_experiment_integral(epochs_num, layer, 10, 20, 100, 25, num_samps_for_switch)
-                    print("Rank for switches from most important/largest to smallest after %i " %  epochs_num)
-                    print(S)
-                    print("max: %.4f, min: %.4f" % (torch.max(S), torch.min(S)))
-                    ranks_sorted = np.argsort(S.cpu().detach().numpy())[::-1]
-                    print(",".join(map(str, ranks_sorted)))
-                    combinationss.append(ranks_sorted)
-                    combinationss.append(ranks_sorted)
 
 
+        print("switches mean")
 
-                print('*'*30)
-                print(combinationss)
-                np.save(file_path, combinationss)
-            elif getranks_method=='load':
-                combinationss=list(np.load(file_path,  allow_pickle=True))
+        file_path=os.path.join(path_main, 'results_switch/results/combinationss_switch_9919_pointest.npy')
 
-        elif vi_training=="point":
-            print("mean")
+        if getranks_method == 'train':
 
-            file_path=os.path.join(path_main, 'results_switch/results/combinationss_switch_9919_pointest_samps_%i.npy' % num_samps_for_switch)
+            epochs_num = 7
+            for layer in ["c1", "c3", "c5", "f6"]:
+                best_accuracy, epoch, best_model, S = run_experiment_pointest(epochs_num, layer, 10, 20, 100, 25)
+                print("Rank for switches from most important/largest to smallest after %i " % epochs_num)
+                print(S)
+                print("max: %.4f, min: %.4f" % (torch.max(S), torch.min(S)))
+                ranks_sorted = np.argsort(S.cpu().detach().numpy())[::-1]
+                print(",".join(map(str, ranks_sorted)))
+                combinationss.append(ranks_sorted)
 
-            if getranks_method == 'train':
-
-                epochs_num = 7
-                for layer in ["c1", "c3", "c5", "f6"]:
-                    best_accuracy, epoch, best_model, S = run_experiment_pointest(epochs_num, layer, 10, 20, 100, 25)
-                    print("Rank for switches from most important/largest to smallest after %i " % epochs_num)
-                    print(S)
-                    print("max: %.4f, min: %.4f" % (torch.max(S), torch.min(S)))
-                    ranks_sorted = np.argsort(S.cpu().detach().numpy())[::-1]
-                    print(",".join(map(str, ranks_sorted)))
-                    combinationss.append(ranks_sorted)
-
-                print('*' * 30)
-                print(combinationss)
-                np.save(file_path, combinationss)
-            elif getranks_method == 'load':
-                combinationss = list(np.load(file_path,  allow_pickle=True))
+            print('*' * 30)
+            print(combinationss)
+            np.save(file_path, combinationss)
+        elif getranks_method == 'load':
+            combinationss = list(np.load(file_path,  allow_pickle=True))
 
 
-        #else:
+    #else:
 
 
 
@@ -863,7 +869,8 @@ if resume:
 
 
     #methods=['switches', 'l1', 'l2', 'fisher','filter_ranking']
-    methods=['switches']
+    #methods=['switches']
+    methods=[args.method]
 
     #
     # for method in methods:

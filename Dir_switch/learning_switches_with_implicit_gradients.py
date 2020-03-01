@@ -66,13 +66,16 @@ class Model(nn.Module):
         num_samps = self.num_samps_for_switch
         concentration_param = phi.view(-1,1).repeat(1,num_samps)
         beta_param = torch.ones(concentration_param.size())
+        #Gamma has two parameters, concentration and beta, all of them are copied to 200,150 matrix
         Gamma_obj = Gamma(concentration_param, beta_param)
-        gamma_samps = Gamma_obj.rsample()
+        gamma_samps = Gamma_obj.rsample() #200, 150, hidden_dim x samples_num
 
         if any(torch.sum(gamma_samps,0)==0):
             print("sum of gamma samps are zero!")
         else:
             Sstack = gamma_samps / torch.sum(gamma_samps, 0) #1dim - number of neurons (200), 2dim - samples (150)
+
+        # Sstack -switch, for output of the network (say 200) we used to have switch 200, now we have samples (150 of them), sowe have switch which is (200, 150)        #
 
         x_samps = torch.einsum("ij,jk -> ijk",(shifted_pre_activation, Sstack))
         x_samps = F.relu(x_samps)
@@ -214,6 +217,8 @@ def main():
 
     annealing_steps = float(8000.*how_many_epochs)
     beta_func = lambda s: min(s, annealing_steps) / annealing_steps
+
+    ############################################################################################3
 
     print('Starting Training')
 
