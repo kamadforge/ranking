@@ -25,6 +25,22 @@ from torch.nn.parameter import Parameter
 from torch.distributions import Gamma
 import torch.nn.functional as f
 import argparse
+import socket
+
+#######
+# path stuff
+cwd = os.getcwd()
+if 'g0' in socket.gethostname() or 'p0' in socket.gethostname():
+    #the cwd is where the sub file is so ranking/
+    sys.path.append(os.path.join(cwd, "results_switch"))
+    path_switch = os.path.join(cwd, "results_switch")
+    path_main= cwd
+else:
+    #the cwd is results_compression
+    parent_path = os.path.abspath('..')
+    sys.path.append(os.path.join(parent_path, "results_switch"))
+    path_switch = cwd
+    path_main= parent_path
 
 
 
@@ -89,7 +105,7 @@ epoch_to_save=1
 print(args.layer)
 
 #saving
-save_path="results/cifar/vgg_%s/switch_init_%.2f_alpha_%.2f_annealing_%d" % (model_parameters, alpha, switch_init, annealing_steps)
+save_path=path_switch+"/results/cifar/vgg_%s/switch_init_%.2f_alpha_%.2f_annealing_%d" % (model_parameters, alpha, switch_init, annealing_steps)
 if not os.path.exists(save_path):
     os.mkdir(save_path)
 save_textfile="%s/switch_init_%.2f, alpha_%.2f.txt" % (save_path, alpha, switch_init)
