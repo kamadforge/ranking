@@ -20,7 +20,7 @@ request_gpus = 1
 
 #CHECK
 #folder=lenet_switch_integral
-method=switch_point
+method=switch_integral
 #switch_point_multiple
 dataset=fashionmnist
 switch_samps=300
