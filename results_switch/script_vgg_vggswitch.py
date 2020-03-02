@@ -1,4 +1,11 @@
 import subprocess
+import argparse
+arguments=argparse.ArgumentParser()
+arguments.add_argument("--method", default="switch_point")
+arguments.add_argument("--switch_samps", default=2, type=int)
+arguments.add_argument("--epoch_num", default=3, type=int)
+args=arguments.parse_args()
+
 from main2vgg_switch_integral_work import main as main_integral
 from main2vgg_switch_point import main as main_point #point estimate
 
@@ -29,15 +36,15 @@ print("v4")
 #for alpha in [0.01, 0.05, 0.1, 0.5, -0.5, -1, -2, -5, -10]:
 #    for switch_init in [0.05, 0.1, 0.5, 1, 5]:
 alpha=0.05; switch_init=0.05
-epochs_num=1
+epochs_num=args.epoch_num
 dataset='cifar'
-num_samps_for_switch=100
-method="switch_point"
+num_samps_for_switch=args.switch_samps
+method=args.method
 
 if method=="switch_point":
-    file_path=path_switch+'/results/switch_data_%s_9032_point_epochs_%i.npy' % (dataset, epochs_num)
+    file_path=path_switch+'/results/switch_data_%s_point_epochs_%i.npy' % (dataset, epochs_num)
 elif method=="switch_integral":
-    file_path=path_switch+'/results/switch_data_%s_9032_integral_samps_%s_epochs_%i.npy' % (dataset, str(num_samps_for_switch), epochs_num)
+    file_path=path_switch+'/results/switch_data_%s_integral_samps_%s_epochs_%i.npy' % (dataset, str(num_samps_for_switch), epochs_num)
     #file_path=os.path.join(path_main, 'results_switch/results/switch_data_%s_9032_integral_samps_%s_epochs_%i.npy' % (dataset, str(num_samps_for_switch), epochs_num))
 
 
