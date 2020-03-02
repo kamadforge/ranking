@@ -210,7 +210,7 @@ class VGG(nn.Module):
         return output, SstackT
 
 
-    def forward(self, x):
+    def forward(self, x, switch_layer):
         phi = f.softplus(self.parameter_switch)
 
 
@@ -515,7 +515,7 @@ def train(epoch, net_all, optimizer, hidden_dim, switch_layer):
 #################################################################
 # TEST
 
-def test(epoch, net_all):
+def test(epoch, net_all, switch_layer):
     global best_acc
     net_all.eval()
     test_loss = 0
@@ -524,7 +524,7 @@ def test(epoch, net_all):
     with torch.no_grad():
         for batch_idx, (inputs, targets) in enumerate(testloader):
             inputs, targets = inputs.to(device), targets.to(device)
-            outputs = net_all(inputs)[0] #[0] added because of the tuple output,S
+            outputs = net_all(inputs, switch_layer)[0] #[0] added because of the tuple output,S
             loss = criterion(outputs, targets)
 
             test_loss += loss.item()
