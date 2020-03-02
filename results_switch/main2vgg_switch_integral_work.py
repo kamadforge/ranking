@@ -461,7 +461,7 @@ def loss_functionKL(prediction, true_y, S, alpha, hidden_dim, batch_size, anneal
 # Training
 
 
-def train(epoch, net_all, optimizer):
+def train(epoch, net_all, optimizer, hidden_dim, switch_layer):
     print('\nEpoch: %d' % epoch)
     net_all.train()
     train_loss = 0
@@ -471,7 +471,7 @@ def train(epoch, net_all, optimizer):
     for batch_idx, (inputs, targets) in enumerate(trainloader):
         inputs, targets = inputs.to(device), targets.to(device)
         optimizer.zero_grad()
-        outputs, S = net_all(inputs)
+        outputs, S = net_all(inputs, switch_layer)
         #loss = criterion(outputs, targets)
         #print("alpha: %.1f" % alpha)
         loss, BCE, KLD, KLD_discounted = loss_functionKL(outputs, targets, S, alpha, hidden_dim, BATCH_SIZE, annealing_rate)
@@ -616,13 +616,14 @@ def test(epoch, net_all):
 #file_write=True
 #compute_combinations_random(file_write)
 
-def main(switch_layer, epochs_num, switch_samps):
+def main(switch_layer, epochs_num, switch_samps, hidden_dim):
 
     training=True
+    hidden_dim = model_structure[int(switch_layer[4:])]  # it's a number of parameters we want to estimate, e.g. # conv1 filters
 
     # Model
     print('==> Building model..')
-    net2 = VGG('VGG16', switch_samps)
+    net2 = VGG('VGG16', switch_samps, hidden_dim)
     net2 = net2.to(device)
 
     if device == 'cuda':
@@ -656,11 +657,11 @@ def main(switch_layer, epochs_num, switch_samps):
                     print(switch_layer)
                     print(hidden_dim)
 
-                    ranks, switches = train(epoch, net2, optimizer)
+                    ranks, switches = train(epoch, net2, optimizer, hidden_dim, switch_layer)
                     test(epoch, net2)
 
     return ranks, switches
 
 
 if __name__=="__main__":
-    main("c1", epochs_num, switch_samps)
+    main("c1", epochs_num, switch_samps, hidden_dim)
