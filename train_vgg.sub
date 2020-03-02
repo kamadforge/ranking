@@ -24,13 +24,15 @@ request_gpus = 1
 #switch_point_multiple
 dataset=cifar
 method=switch_integral
-switch_samps=50
+#switch_samps=50
 
 #queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters.txt
 
 #arch = 5,6,40,17
 queue 1
 
+lustre/home/kadamczewski/Dropbox_from/Current_research/ranking/results_switch/results/cifar/vgg_94.34/switch_init_0.50_alpha_0.05_annealing_6000000'
+~                          
 
 
 #example:

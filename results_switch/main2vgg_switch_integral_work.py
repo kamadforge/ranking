@@ -417,7 +417,7 @@ def load_weights(net_all):
         # Load checkpoint.
         print('==> Resuming from checkpoint..')
         #assert os.path.isdir('checkpoint'), 'Error: no checkpoint directory found!'
-        checkpoint = torch.load('./checkpoint/ckpt_vgg16_%s.t7' % model_parameters, map_location=lambda storage, loc: storage)
+        checkpoint = torch.load(path_switch+'/checkpoint/ckpt_vgg16_%s.t7' % model_parameters, map_location=lambda storage, loc: storage)
         net_all.load_state_dict(checkpoint['net'], strict=False)
         best_acc = checkpoint['acc']
         start_epoch = checkpoint['epoch']
