@@ -3,11 +3,6 @@ executable = /usr/bin/unbuffer
 
 arguments = /home/kadamczewski/miniconda3/bin/python /home/kadamczewski/Dropbox_from/Current_research/ranking/results_compression/lenet_network_pruning.py --arch $(arch) --method $(method) --switch_samps $(switch_samps) --dataset $(dataset)
 
-#CHECK
-#folder=lenet_switch_integral
-method=switch_integral
-#switch_point_multiple
-dataset=mnist
 
 var=lenet_$(method)_$(switch_samps)_retraining_$(dataset)_$(arch)_switch
 #var=lenet_multiple_$(dataset)_$(arch)_switch
@@ -24,25 +19,25 @@ request_gpus = 1
 
 
 #CHECK
-#queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters2.txt
-arch = 5,6,40,17
+#folder=lenet_switch_integral
+method=switch_point
+#switch_point_multiple
+dataset=fashionmnist
 switch_samps=300
-queue 1
 
-switch_samps=500
-queue 1
+queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters2.txt
 
-switch_samps=750
-queue 1
+#arch = 5,6,40,17
+#queue 1
 
-switch_samps=150
-queue 1
 
-switch_samps=50
-queue 1
 
-switch_samps=1000
-queue 1
+#example:
+#switch_samps=500
+#queue 1
+
+#switch_samps=750
+#queue 1
 
 #example:
 #dataset=intrusion
