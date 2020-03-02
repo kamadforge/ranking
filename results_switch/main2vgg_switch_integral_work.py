@@ -659,7 +659,7 @@ def main(switch_layer, epochs_num, switch_samps):
                     print(hidden_dim)
 
                     ranks, switches = train(epoch, net2, optimizer, hidden_dim, switch_layer)
-                    test(epoch, net2)
+                    test(epoch, net2, switch_layer)
 
     return ranks, switches
 
