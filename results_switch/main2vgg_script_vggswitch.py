@@ -31,8 +31,8 @@ print("v4")
 alpha=0.05; switch_init=0.05
 epochs_num=7
 dataset='cifar'
-num_samps_for_switch=150
-method="switch_integral"
+num_samps_for_switch=100
+method="switch_point"
 
 if method=="switch_point":
     file_path=path_switch+'/results/switch_data_%s_9032_point_epochs_%i.npy' % (dataset, epochs_num)
