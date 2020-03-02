@@ -5,6 +5,7 @@ arguments.add_argument("--method", default="switch_point")
 arguments.add_argument("--switch_samps", default=2, type=int)
 arguments.add_argument("--epoch_num", default=3, type=int)
 args=arguments.parse_args()
+print(args)
 
 from main2vgg_switch_integral_work import main as main_integral
 from main2vgg_switch_point import main as main_point #point estimate
