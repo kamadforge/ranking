@@ -20,12 +20,30 @@ request_gpus = 1
 
 #CHECK
 #folder=lenet_switch_integral
-method=switch_integral
 #switch_point_multiple
 dataset=fashionmnist
-switch_samps=300
+method=switch_integral
+switch_samps=50
 
 queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters2.txt
+
+# dataset=fashionmnist
+# method=switch_integral
+# switch_samps=150
+#
+# queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters.txt
+#
+# dataset=fashionmnist
+# method=switch_point
+#
+# queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters.txt
+#
+# dataset=mnist
+# method=switch_point
+#
+# queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters.txt
+
+
 
 #arch = 5,6,40,17
 #queue 1
