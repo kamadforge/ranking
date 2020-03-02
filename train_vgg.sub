@@ -7,7 +7,7 @@ arguments = /home/kadamczewski/miniconda3/bin/python /home/kadamczewski/Dropbox_
 #var=lenet_$(method)_$(switch_samps)_retraining_$(dataset)_$(arch)_switch
 #var=lenet_multiple_$(dataset)_$(arch)_switch
 
-var=vgg_$(method)
+var=vgg_$(method)_$(dataset)
 error = clust/clust_err/$(var).$(Process).err
 output = clust/clust_out/$(var).$(Process).out
 log = clust/clust_log/$(var).$(Process).log
@@ -19,10 +19,10 @@ request_cpus = 1
 request_gpus = 1
 
 
-#CHECK
+#CHECK 
 #folder=lenet_switch_integral
 #switch_point_multiple
-dataset=fashionmnist
+dataset=cifar
 method=switch_integral
 switch_samps=50
 
