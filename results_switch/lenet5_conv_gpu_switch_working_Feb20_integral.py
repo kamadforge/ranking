@@ -54,7 +54,7 @@ alpha_0 = 2  # below 1 so that we encourage sparsity
 hidden_dim = 10 #it's a number of parameters we want to estimate, e.g. # conv1 filters
 hidden_dims={'c1': conv1, 'c3': conv2, 'c5': fc1, 'f6' : fc2}
 hidden_dim = hidden_dims[layer] #it's a number of parameters we want to estimate, e.g. # conv1 filters
-num_samps_for_switch = 300
+num_samps_for_switch = 50
 
 ###################################################
 # DATA
@@ -86,14 +86,6 @@ dataset="mnist"
 
 ##################
 
-def tile(a, dim, n_tile):
-    init_dim = a.size(dim)
-    repeat_idx = [1] * a.dim()
-    repeat_idx[dim] = n_tile
-    a = a.repeat(*(repeat_idx))
-    order_index = torch.LongTensor(np.concatenate([init_dim * np.arange(n_tile) + i for i in range(init_dim)])).to(device)
-    return torch.index_select(a, dim, order_index)
-
 ##############################################################################
 # NETWORK (conv-conv-fc-fc)
 
@@ -123,17 +115,10 @@ class Lenet(nn.Module):
         #-2e10, 1, 5, -2
 
     def switch_func(self, output, SstackT):
-        #############S
-
-
         rep = SstackT.unsqueeze(2).unsqueeze(2).repeat(1, 1, output.shape[2], output.shape[3])  # (150,10,24,24)
         # output is (100,10,24,24), we want to have 100,150,10,24,24, I guess
-
         output = torch.einsum('ijkl, mjkl -> imjkl', (rep, output))
-
         output = output.view(output.shape[0] * output.shape[1], output.shape[2], output.shape[3], output.shape[4])
-
-        ##################
         return output, SstackT
 
     def switch_func_fc(self, output, SstackT):
@@ -141,11 +126,8 @@ class Lenet(nn.Module):
 
         #rep = SstackT.unsqueeze(2).unsqueeze(2).repeat(1, 1,)  # (150,10,24,24)
         # output is (100,10,24,24), we want to have 100,150,10,24,24, I guess
-
         output=torch.einsum('ij, mj -> imj', (SstackT, output))
         #output = torch.einsum('ijkl, mjkl -> imjkl', (rep, output))
-
-
         output = output.reshape(output.shape[0] * output.shape[1], output.shape[2])
 
         ##################
@@ -392,8 +374,6 @@ def loss_functionKL(prediction, true_y, S, alpha_0, hidden_dim, how_many_samps, 
 
 
 
-
-#################################
 
 
 ###################################################
