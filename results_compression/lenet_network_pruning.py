@@ -38,7 +38,7 @@ arguments=argparse.ArgumentParser()
 arguments.add_argument("--arch", default="5,8,30,10")
 arguments.add_argument("--folder")
 arguments.add_argument("--method", default="switch_integral")
-arguments.add_argument("--switch_samps", default=300, type=int)
+arguments.add_argument("--switch_samps", default=500, type=int)
 arguments.add_argument("--switch_comb", default='train')
 arguments.add_argument("--dataset", default="fashionmnist")
 
