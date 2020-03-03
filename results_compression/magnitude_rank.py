@@ -12,8 +12,37 @@ from torchvision import datasets, transforms
 import numpy as np
 import csv
 import pdb
+import os
+import sys
+import socket
 
 from torch.nn.parameter import Parameter
+#######
+# path stuff
+cwd = os.getcwd()
+if 'g0' in socket.gethostname() or 'p0' in socket.gethostname():
+    #the cwd is where the sub file is so ranking/
+    sys.path.append(os.path.join(cwd, "results_switch"))
+    path_compression = os.path.join(cwd, "results_compression")
+    path_networktest = os.path.join(cwd, "results_networktest")
+    path_main= cwd
+else:
+    #the cwd is results_compression
+    parent_path = os.path.abspath('..')
+    sys.path.append(os.path.join(parent_path, "results_switch"))
+    path_compression = cwd
+    path_networktest = os.path.join(parent_path, "results_networktest")
+    path_main= parent_path
+
+print(cwd)
+print(sys.path)
+
+print("newh2")
+sys.path.append(os.path.join(path_networktest, "external_codes/pytorch-cifar-master/models"))
+sys.path.append(path_compression)
+
+
+############################
 
 #######################
 # takes the network parameters from the conv layer and clusters them (with the purpose of removing some of them)
@@ -338,7 +367,7 @@ def setup(network_arg='vgg_cifar', dataset_arg='cifar'):
         # for name, param in net.named_parameters():
         #     print (name, param.shape)
 
-        checkpoint = torch.load('./checkpoint/ckpt_vgg16_94.34.t7')
+        checkpoint = torch.load(path_compression+'/checkpoint/ckpt_vgg16_94.34.t7')
         # checkpoint = torch.load('./checkpoint/ckpt_vgg16_prunedto[39, 39, 63, 48, 55, 98, 97, 52, 62, 22, 42, 47, 47, 42, 62]_64.55.t7')
         net.load_state_dict(checkpoint['net'])
         # print(net.module.c1.module.weight)
@@ -384,9 +413,9 @@ def get_ranks(method, net):
     # print(net.named_parameters()['c1.weight'])
     for name, param in net.named_parameters():
 
-        if (("c" in name) or ("f" in name)) and ("weight" in name):
+        if (("c" in name) or ("f" in name) or ("l1" in name)) and ("weight" in name): #i think f and l are both fullt connected
             # print(name)
-            # print (name, param.shape)
+            print (name, param.shape)
             m = torch.flatten(param, start_dim=1)
 
             l2 = torch.norm(m, p=2, dim=1)
