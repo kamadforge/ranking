@@ -33,13 +33,13 @@ switch_samps=500
 
 queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters2.txt
 
-dataset=fashionmnist
+dataset=mnist
 method=switch_integral
 switch_samps=300
 
 queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters2.txt
 
-dataset=fashionmnist
+dataset=mnist
 method=switch_integral
 switch_samps=500
 
