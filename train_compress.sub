@@ -23,25 +23,27 @@ request_gpus = 1
 #switch_point_multiple
 dataset=fashionmnist
 method=switch_integral
-switch_samps=50
+switch_samps=300
 
-queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters.txt
+queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters2.txt
 
 dataset=fashionmnist
 method=switch_integral
-switch_samps=150
+switch_samps=500
 
-queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters.txt
+queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters2.txt
 
 dataset=fashionmnist
-method=switch_point
+method=switch_integral
+switch_samps=300
 
-queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters.txt
+queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters2.txt
 
-dataset=mnist
-method=switch_point
+dataset=fashionmnist
+method=switch_integral
+switch_samps=500
 
-queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters.txt
+queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters2.txt
 
 
 
