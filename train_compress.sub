@@ -30,42 +30,42 @@ switch_samps=5
 dataset=mnist
 method=l2
 
-queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters2.txt
+queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters.txt
 
 dataset=mnist
 method=l1
 
-queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters2.txt
+queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters.txt
 
 dataset=mnist
 method=fisher
 
-queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters2.txt
+queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters.txt
 
 dataset=mnist
 method=random
 
-queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters2.txt
+queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters.txt
 
 dataset=fashionmnist
 method=fisher
 
-queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters2.txt
+queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters.txt
 
 dataset=fashionmnist
 method=l2
 
-queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters2.txt
+queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters.txt
 
-# dataset=fashionmnist
-# method=l1
-#
-# queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters2.txt
-#
-# dataset=fashionmnist
-# method=random
-#
-# queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters2.txt
+dataset=fashionmnist
+method=l1
+
+queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters.txt
+
+dataset=fashionmnist
+method=random
+
+queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters.txt
 
 
 
