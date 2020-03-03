@@ -129,7 +129,7 @@ import torch
 import torch.nn as nn
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--arch", nargs='+', default='25,25,65,80,201,158,159,460,450,490,470,465,465,450')
+parser.add_argument("--arch", default='25,25,65,80,201,158,159,460,450,490,470,465,465,450')
 # ar.add_argument("-arch", default=[21,20,65,80,201,147,148,458,436,477,454,448,445,467,441])
 parser.add_argument('--layer', help="layer to prune", default="c1")
 parser.add_argument("--method", default='l1')
