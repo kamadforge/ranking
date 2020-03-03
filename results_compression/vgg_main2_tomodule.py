@@ -1184,7 +1184,7 @@ if prune_bool:
                                                                                     [450]):
 
         print('\n****************\n')
-        for method in ['l1', 'l2']:
+        for method in ['l1']:
             # for method in ['fisher']:
             print('\n\n' + method + "\n")
             thresh = [i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15]
