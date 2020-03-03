@@ -686,7 +686,7 @@ def testval():
 def load_model(test_bool=True):
     # Load checkpoint.
     # print('==> Resuming from checkpoint..')
-    assert os.path.isdir('checkpoint'), 'Error: no checkpoint directory found!'
+    #assert os.path.isdir('checkpoint'), 'Error: no checkpoint directory found!'
     checkpoint = torch.load(model2load)
     # checkpoint = torch.load('./checkpoint/ckpt_vgg16_prunedto[39, 39, 63, 48, 55, 98, 97, 52, 62, 22, 42, 47, 47, 42, 62]_64.55.t7')
     net.load_state_dict(checkpoint['net'], strict=False)
