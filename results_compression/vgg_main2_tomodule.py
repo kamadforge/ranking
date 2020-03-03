@@ -129,10 +129,10 @@ import torch
 import torch.nn as nn
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-arch", default=[25, 25, 65, 80, 201, 158, 159, 460, 450, 490, 470, 465, 465, 450])
+parser.add_argument("--arch", nargs='+', default='25,25,65,80,201,158,159,460,450,490,470,465,465,450')
 # ar.add_argument("-arch", default=[21,20,65,80,201,147,148,458,436,477,454,448,445,467,441])
-parser.add_argument('--layer',
-                    help="layer to prune", default="c1")
+parser.add_argument('--layer', help="layer to prune", default="c1")
+parser.add_argument("--method", default='l1')
 
 args = parser.parse_args()
 print(args.layer)
@@ -1174,20 +1174,21 @@ if prune_bool:
     #                                                                                 [40, 80], [40, 80],
     #                                                                                 [40, 80], [40, 80],
     #                                                                                 [40, 80]):
-    for i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15 in product([25], [25],
-                                                                                    [60, 40], [60, 40],
-                                                                                    [175], [140, 170],
-                                                                                    [140], [430],
-                                                                                    [380, 430], [380, 430],
-                                                                                    [440], [440, 400],
-                                                                                    [440], [450],
-                                                                                    [450]):
-
+    # for i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15 in product([25], [25],
+    #                                                                                 [60, 40], [60, 40],
+    #                                                                                 [175], [140, 170],
+    #                                                                                 [140], [430],
+    #                                                                                 [380, 430], [380, 430],
+    #                                                                                 [440], [440, 400],
+    #                                                                                 [440], [450],
+    #                                                                                 [450]):
+    if 1:
         print('\n****************\n')
-        for method in ['l1']:
+        for method in [args.method]:
             # for method in ['fisher']:
             print('\n\n' + method + "\n")
-            thresh = [i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15]
+            thresh = [int(n) for n in args.arch.split(",")]
+            #[i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15]
             print(thresh)
             prune_and_retrain(thresh)
 
