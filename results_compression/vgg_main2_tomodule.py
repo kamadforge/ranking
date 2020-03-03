@@ -75,12 +75,36 @@ import os
 import argparse
 
 import sys
+import socket
 
+
+#######
+# path stuff
+cwd = os.getcwd()
+if 'g0' in socket.gethostname() or 'p0' in socket.gethostname():
+    #the cwd is where the sub file is so ranking/
+    sys.path.append(os.path.join(cwd, "results_switch"))
+    path_compression = os.path.join(cwd, "results_compression")
+    path_networktest = os.path.join(cwd, "results_networktest")
+    path_main= cwd
+else:
+    #the cwd is results_compression
+    parent_path = os.path.abspath('..')
+    sys.path.append(os.path.join(parent_path, "results_switch"))
+    path_compression = cwd
+    path_networktest = os.path.join(parent_path, "results_networktest")
+    path_main= parent_path
+
+print(cwd)
 print(sys.path)
+
 print("newh2")
-sys.path.append(
-    "/home/kamil/Dropbox/Current_research/python_tests/results_networktest/external_codes/pytorch-cifar-master/models")
-sys.path.append("/home/kamil/Dropbox/Current_research/python_tests/results_compression")
+sys.path.append(os.path.join(path_networktest, "external_codes/pytorch-cifar-master/models"))
+sys.path.append(path_compression)
+
+
+############################
+
 import numpy as np
 from torch.nn.parameter import Parameter
 import torch.nn.functional as f
@@ -88,8 +112,8 @@ import logging
 import matplotlib.pyplot as plt
 import magnitude_rank
 import argparse
-from vgg_computeComb import compute_combinations
-from vgg_computeComb import test_val
+from vgg_computeComb2 import compute_combinations
+from vgg_computeComb2 import test_val
 import argparse
 from itertools import product
 
@@ -262,9 +286,9 @@ class VGG(nn.Module):
                 plt.gca().yaxis.set_major_locator(plt.NullLocator())
                 cax_00 = plt.imshow(img, cmap=cmap_col)
                 plt.show()
-                plt.savefig(
-                    "/home/kamil/Dropbox/Current_research/python_tests/results_networktest/vis/feature_maps/cifar/94.34/input_batch%d_filternum%d" % (
-                        i, filter_num), bbox_inches='tight', pad_inches=0)
+                # plt.savefig(
+                #     "/home/kamil/Dropbox/Current_research/python_tests/results_networktest/vis/feature_maps/cifar/94.34/input_batch%d_filternum%d" % (
+                #         i, filter_num), bbox_inches='tight', pad_inches=0)
 
         output = f.relu(self.bn1(self.c1(x)))
 
@@ -288,9 +312,9 @@ class VGG(nn.Module):
                 plt.gca().xaxis.set_major_locator(plt.NullLocator())
                 plt.gca().yaxis.set_major_locator(plt.NullLocator())
 
-                plt.savefig(
-                    "/home/kamil/Dropbox/Current_research/python_tests/results_networktest/vis/feature_maps/cifar/94.34/conv1_batch%d_filternum%d" % (
-                    i, filter_num), bbox_inches='tight', pad_inches=0)
+                # plt.savefig(
+                #     "/home/kamil/Dropbox/Current_research/python_tests/results_networktest/vis/feature_maps/cifar/94.34/conv1_batch%d_filternum%d" % (
+                #     i, filter_num), bbox_inches='tight', pad_inches=0)
 
         # out = self.activation1(output)
         self.act[1] = self.activation1(output)
@@ -698,9 +722,9 @@ def save_checkpoint(epoch, acc, best_acc, remaining=0):
             os.mkdir('checkpoint')
         if acc > 85.:
             if remaining == 0:  # regular training
-                torch.save(state, './checkpoint/ckpt_vgg16_{}.t7'.format(acc))
+                torch.save(state, path_compression+'/checkpoint/ckpt_vgg16_{}.t7'.format(acc))
             else:
-                torch.save(state, './checkpoint/ckpt_vgg16_prunedto{}_{}.t7'.format(remaining, acc))
+                torch.save(state, path_compression+'/checkpoint/ckpt_vgg16_prunedto{}_{}.t7'.format(remaining, acc))
         best_acc = acc
 
     return best_acc
@@ -1031,7 +1055,7 @@ def prune_and_retrain(thresh):
         # if prune_bool:
         #     file.write("\n\nprunedto:%s\n\n" % (" ".join(str(e) for e in remaining)))
 
-        path = "./checkpoint/"
+        path = path_compression+"/checkpoint/"
 
         # here retraining works
         net.train()
@@ -1103,12 +1127,12 @@ def prune_and_retrain(thresh):
 
 #################################################################
 
-model2load = './checkpoint/ckpt_vgg16_94.34.t7'
+model2load = path_compression+'/checkpoint/ckpt_vgg16_94.34.t7'
 orig_accuracy = 94.34
 # if all False just train thenetwork
 resume = True
 prune_bool = True
-retrain_bool = False  # whether we retrain the model or just evaluate
+retrain_bool = True  # whether we retrain the model or just evaluate
 
 comp_combinations = False  # must be with resume #with retrain if we want to retrain combinations
 vis = False
@@ -1142,17 +1166,25 @@ if prune_bool:
     # thresh=[5, 5, 10, 10, 10, 10, 10, 20, 20, 20, 10, 10, 10, 10, 10] #~18 #0.95
 
     # for i1,i2,i3,i4,i5,i6,i7,i8,i9,i10,i11,i12,i13,i14,i15 in product([5,10,15], [5,10,15], [10,20,40], [10,20,40], [20,40,80], [20,40,80], [20,40,80], [40,80,160], [40,80,160], [40,80,160], [40,80,160], [40,80,160], [40,80,160], [40,80,160], [40,80,160]):
-    for i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15 in product([5, 10], [5, 10],
-                                                                                    [10, 20], [10, 20],
-                                                                                    [20, 40], [20, 40],
-                                                                                    [20, 40], [40, 80],
-                                                                                    [40, 80], [40, 80],
-                                                                                    [40, 80], [40, 80],
-                                                                                    [40, 80], [40, 80],
-                                                                                    [40, 80]):
+    # for i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15 in product([5, 10], [5, 10],
+    #                                                                                 [10, 20], [10, 20],
+    #                                                                                 [20, 40], [20, 40],
+    #                                                                                 [20, 40], [40, 80],
+    #                                                                                 [40, 80], [40, 80],
+    #                                                                                 [40, 80], [40, 80],
+    #                                                                                 [40, 80], [40, 80],
+    #                                                                                 [40, 80]):
+    for i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15 in product([25], [25],
+                                                                                    [60, 40], [60, 40],
+                                                                                    [175], [140, 170],
+                                                                                    [140], [430],
+                                                                                    [380, 430], [380, 430],
+                                                                                    [440], [440, 400],
+                                                                                    [440], [450],
+                                                                                    [450]):
 
         print('\n****************\n')
-        for method in ['l1', 'l2', 'filter']:
+        for method in ['l1', 'l2']:
             # for method in ['fisher']:
             print('\n\n' + method + "\n")
             thresh = [i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15]
