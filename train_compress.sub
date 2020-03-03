@@ -20,7 +20,7 @@ request_gpus = 1
 
 
 #dummy
-switch_sampes=5
+switch_samps=5
 #CHECK
 #switch_point_multiple
 
