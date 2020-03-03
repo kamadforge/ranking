@@ -25,25 +25,25 @@ dataset=fashionmnist
 method=switch_integral
 switch_samps=300
 
-queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters2.txt
+queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters.txt
 
 dataset=fashionmnist
 method=switch_integral
 switch_samps=500
 
-queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters2.txt
+queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters.txt
 
 dataset=mnist
 method=switch_integral
 switch_samps=300
 
-queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters2.txt
+queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters.txt
 
 dataset=mnist
 method=switch_integral
 switch_samps=500
 
-queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters2.txt
+queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters.txt
 
 
 
