@@ -37,10 +37,10 @@ import argparse
 arguments=argparse.ArgumentParser()
 arguments.add_argument("--arch", default="5,8,30,10")
 arguments.add_argument("--folder")
-arguments.add_argument("--method", default="fisher")
-arguments.add_argument("--switch_samps", default=50, type=int)
-arguments.add_argument("--switch_comb", default='load')
-arguments.add_argument("--dataset", default="fashionmnist")
+arguments.add_argument("--method", default="switch_point") #switch_itegral, swithc_point, fisher, l1, l2, random
+arguments.add_argument("--switch_samps", default=300, type=int)
+arguments.add_argument("--switch_comb", default='train')
+arguments.add_argument("--dataset", default="mnist")
 
 args=arguments.parse_args()
 
@@ -344,8 +344,8 @@ def load_model():
     #path="models/fashionmnist_conv:20_conv:50_fc:800_fc:500_rel_bn_trainval1.0_epo:11_acc:90.01"
     #path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_trainval_modelopt1.0_epo:309_acc:99.19"
     if dataset=="mnist":
-        #path=path_compression+"/models/mnist_conv10_conv20_fc100_fc25_rel_bn_drop_trainval_modelopt1.0_epo540_acc99.27"
-        path=path_compression+"/models/MNIST_conv_10_conv_20_fc_100_fc_25_rel_bn_drop_trainval_modelopt1.0_epo_231_acc_99.19"
+        path=path_compression+"/models/mnist_conv10_conv20_fc100_fc25_rel_bn_drop_trainval_modelopt1.0_epo540_acc99.27"
+        #path=path_compression+"/models/MNIST_conv_10_conv_20_fc_100_fc_25_rel_bn_drop_trainval_modelopt1.0_epo_231_acc_99.19"
 
         #path="models/mnist_trainval0.9_epo461_acc99.06"
     elif dataset=="fashionmnist":
@@ -651,8 +651,8 @@ def get_ranks(method):
 
 
         print("integral evaluation")
-        epochs_num = 7
-        file_path=os.path.join(path_main, 'results_switch/results/switch_data_%s_9032_integral_samps_%s_epochs_%i.npy' % (dataset, str(num_samps_for_switch), epochs_num))
+        epochs_num = 3
+        file_path=os.path.join(path_main, 'results_switch/results/switch_data_%s_9927_integral_samps_%s_epochs_%i.npy' % (dataset, str(num_samps_for_switch), epochs_num))
 
         if getranks_method=='train':
 
@@ -684,8 +684,8 @@ def get_ranks(method):
 
         print("switch mean")
 
-        epochs_num = 7
-        file_path=os.path.join(path_main, 'results_switch/results/switch_data_%s_9032_pointest_epochs_%i.npy' % (dataset, epochs_num))
+        epochs_num = 3
+        file_path=os.path.join(path_main, 'results_switch/results/switch_data_%s_9927_pointest_epochs_%i.npy' % (dataset, epochs_num))
 
         if getranks_method == 'train':
 
