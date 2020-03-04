@@ -86,6 +86,7 @@ if 'g0' in socket.gethostname() or 'p0' in socket.gethostname():
     sys.path.append(os.path.join(cwd, "results_switch"))
     path_compression = os.path.join(cwd, "results_compression")
     path_networktest = os.path.join(cwd, "results_networktest")
+    path_switch = os.path.join(cwd, "results_switch")
     path_main= cwd
 else:
     #the cwd is results_compression
@@ -93,6 +94,7 @@ else:
     sys.path.append(os.path.join(parent_path, "results_switch"))
     path_compression = cwd
     path_networktest = os.path.join(parent_path, "results_networktest")
+    path_switch = os.path.join(parent_path, "results_switch")
     path_main= parent_path
 
 print(cwd)
@@ -132,7 +134,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--arch", default='25,25,65,80,201,158,159,460,450,490,470,465,465,450')
 # ar.add_argument("-arch", default=[21,20,65,80,201,147,148,458,436,477,454,448,445,467,441])
 parser.add_argument('--layer', help="layer to prune", default="c1")
-parser.add_argument("--method", default='l1')
+parser.add_argument("--method", default='switch')
+parser.add_argument("--switch_samps", default=100, type=int)
 
 args = parser.parse_args()
 print(args.layer)
@@ -745,8 +748,9 @@ def prune_and_retrain(thresh):
         ############################3
         # READ THE RANKS
 
-        if method == 'filter':
-            ranks_method = 'shapley'
+        #it seems that unlike in lenet here the ranks are from worse to best
+        if method == 'switch':
+            ranks_method = 'switches'
             switches_epoch = 10
 
             if ranks_method == 'shapley':
@@ -777,32 +781,38 @@ def prune_and_retrain(thresh):
 
             elif ranks_method == 'switches':
                 # combinationss=torch.load('results/ranks/ranks_93.92_switches.pt')
-                combinationss = [0] * len(cfg['VGGBC'])  # 15
-                ranks_path = '../Dir_switch/results/cifar/vgg_93.92/switch_init_-1, alpha_2/'
-                for i in range(len(combinationss)):
-                    ranks_filepath = ranks_path + "93.92_conv" + str(i + 1) + "_ep49.pt"
+                #combinationss = [0] * len(cfg['VGGBC'])  # 15
+                ranks_path = path_switch+'/results/switch_data_cifar_integral_samps_%i_epochs_7.npy' % args.switch_samps
 
-                    switch_values = torch.load(ranks_filepath)
-                    # print(switch_values)
-                    # combinationss[i]=torch.argsort(switch_values)
-                    # combinationss[i]=torch.LongTensor(np.argsort(switch_values.cpu().detach().numpy()).copy())#argsort is increasing order, we want decreasing hence [::-1]
+                # for i in range(len(combinationss)):
+                #     ranks_filepath = ranks_path + "93.92_conv" + str(i + 1) + "_ep49.pt"
+                #
+                #     switch_values = torch.load(ranks_filepath)
+                #     # print(switch_values)
+                #     # combinationss[i]=torch.argsort(switch_values)
+                #     # combinationss[i]=torch.LongTensor(np.argsort(switch_values.cpu().detach().numpy()).copy())#argsort is increasing order, we want decreasing hence [::-1]
+                #
+                #     combinationss[i] = torch.LongTensor(np.argsort(switch_values.cpu().detach().numpy())[
+                #                                         ::-1].copy())  # argsort is increasing order, we want decreasing hence [::-1]
+                #     # print(combinationss[i])
+                #     # print("new")
+                #
+                # file = open("switches.txt", "a")
+                # for comb in combinationss:
+                #     comb_det = comb.detach().cpu().numpy()
+                #     comb_str = ",".join([str(a) for a in comb_det])
+                #     file.write(comb_str)
+                #     file.write("\n")
 
-                    combinationss[i] = torch.LongTensor(np.argsort(switch_values.cpu().detach().numpy())[
-                                                        ::-1].copy())  # argsort is increasing order, we want decreasing hence [::-1]
-                    # print(combinationss[i])
-                    # print("new")
-
-                file = open("switches.txt", "a")
-                for comb in combinationss:
-                    comb_det = comb.detach().cpu().numpy()
-                    comb_str = ",".join([str(a) for a in comb_det])
-                    file.write(comb_str)
-                    file.write("\n")
+                combinationss=list(np.load(ranks_path,  allow_pickle=True).item()['combinationss'])
 
             # these numbers from the beginning will be cut off, meaning the worse will be cut off
+            #for i in range(len(combinationss)):
+            #    combinationss[i] = torch.LongTensor(combinationss[i][:thresh[i]])
+            #print(combinationss[1])
+            #we change to the other way around
             for i in range(len(combinationss)):
-                combinationss[i] = torch.LongTensor(combinationss[i][:thresh[i]])
-            print(combinationss[1])
+                combinationss[i] = torch.LongTensor(combinationss[i][thresh[i]:].copy())
 
 
         elif method == 'l1' or method == 'l2':
@@ -830,7 +840,7 @@ def prune_and_retrain(thresh):
             finetune()
 
             combinationss = []
-            for i in range(15):
+            for i in range(14):
                 fisher_rank = torch.argsort(net.module.running_fisher[i], descending=True)
                 combinationss.append(fisher_rank.detach().cpu())
 

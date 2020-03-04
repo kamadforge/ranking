@@ -11,7 +11,7 @@ var=vgg_cifar_$(method)_$(arch)
 error = clust/clust_err/$(var).$(Process).err
 output = clust/clust_out/$(var).$(Process).out
 log = clust/clust_log/$(var).$(Process).log
-requirements = TARGET.CUDAGlobalMemoryMb > 15000
+#requirements = TARGET.CUDAGlobalMemoryMb > 15000
 #buffer_size = 1000
 #stream_output=True
 request_memory = 8040
@@ -23,7 +23,14 @@ request_gpus = 1
 #folder=lenet_switch_integral
 #switch_point_multiple
 
+method=switch
+queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters_vgg.txt
 
 method=l1
+queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters_vgg.txt
 
+method=l2
+queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters_vgg.txt
+
+method=fisher
 queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters_vgg.txt
