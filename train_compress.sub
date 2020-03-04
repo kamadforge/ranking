@@ -29,22 +29,21 @@ var=lenet_$(method)_$(switch_samps)_retraining_$(dataset)_$(arch)
 
 switch_samps=50
 dataset=switch_integral
-method=l2
+method=switch_integral
 
-queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters2.txt
-
+queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters.txt
 
 switch_samps=150
 dataset=mnist
 method=switch_integral
 
-queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters2.txt
+queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters.txt
 
 switch_samps=300
 dataset=mnist
 method=switch_integral
 
-queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters2.txt
+queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters.txt
 
 
 
@@ -54,23 +53,23 @@ switch_samps=5
 dataset=mnist
 method=switch_point
 
-queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters2.txt
+queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters.txt
 
 
 dataset=mnist
 method=l2
 
-queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters2.txt
+queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters.txt
 
 dataset=mnist
 method=l1
 
-queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters2.txt
+queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters.txt
 
 dataset=mnist
 method=fisher
 
-queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters2.txt
+queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/utils/parameters.txt
 #
 # dataset=mnist
 # method=random
