@@ -39,7 +39,7 @@ arguments.add_argument("--arch", default="5,8,30,10")
 arguments.add_argument("--folder")
 arguments.add_argument("--method", default="switch_point") #switch_itegral, swithc_point, fisher, l1, l2, random
 arguments.add_argument("--switch_samps", default=300, type=int)
-arguments.add_argument("--switch_comb", default='train')
+arguments.add_argument("--switch_comb", default='load')
 arguments.add_argument("--dataset", default="mnist")
 
 args=arguments.parse_args()
