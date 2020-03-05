@@ -808,6 +808,7 @@ def prune_and_retrain(thresh):
                 combinationss=list(np.load(ranks_path,  allow_pickle=True).item()['combinationss'])
 
             elif ranks_method == 'point':
+                print(ranks_method)
                 # combinationss=torch.load('results/ranks/ranks_93.92_switches.pt')
                 #combinationss = [0] * len(cfg['VGGBC'])  # 15
                 ranks_path = path_switch+'/results/switch_data_cifar_point_epochs_7.npy'
@@ -1084,7 +1085,7 @@ def prune_and_retrain(thresh):
         best_accuracy = 0;
         entry = np.zeros(3);
         best_model = -1;
-        early_stopping = 400
+        early_stopping = 100
         optimizer = optim.SGD(net.parameters(), lr=0.0001, momentum=0.9, weight_decay=5e-4)
         while (stop < early_stopping):
             epoch = epoch + 1
