@@ -136,6 +136,7 @@ parser.add_argument("--arch", default='25,25,65,80,201,158,159,460,450,490,470,4
 parser.add_argument('--layer', help="layer to prune", default="c1")
 parser.add_argument("--method", default='switch')
 parser.add_argument("--switch_samps", default=100, type=int)
+parser.add_argument("--ranks_method", default='point')
 
 args = parser.parse_args()
 print(args.layer)
@@ -750,7 +751,7 @@ def prune_and_retrain(thresh):
 
         #it seems that unlike in lenet here the ranks are from worse to best
         if method == 'switch':
-            ranks_method = 'switches'
+            ranks_method=args.ranks_method
             switches_epoch = 10
 
             if ranks_method == 'shapley':
@@ -779,7 +780,7 @@ def prune_and_retrain(thresh):
             #     for i in range(len(combinationss)):
             #         ranks_filepath = ranks_path + "93.92_alpha0.05_switchinit0.05_conv" + str(i + 1) + "_ep"+str(switches_epoch)+".pt"
 
-            elif ranks_method == 'switches':
+            elif ranks_method == 'integral':
                 # combinationss=torch.load('results/ranks/ranks_93.92_switches.pt')
                 #combinationss = [0] * len(cfg['VGGBC'])  # 15
                 ranks_path = path_switch+'/results/switch_data_cifar_integral_samps_%i_epochs_7.npy' % args.switch_samps
@@ -805,6 +806,15 @@ def prune_and_retrain(thresh):
                 #     file.write("\n")
 
                 combinationss=list(np.load(ranks_path,  allow_pickle=True).item()['combinationss'])
+
+            elif ranks_method == 'point':
+                # combinationss=torch.load('results/ranks/ranks_93.92_switches.pt')
+                #combinationss = [0] * len(cfg['VGGBC'])  # 15
+                ranks_path = path_switch+'/results/switch_data_cifar_point_epochs_7.npy'
+
+
+                combinationss=list(np.load(ranks_path,  allow_pickle=True).item()['combinationss'])
+
 
             # these numbers from the beginning will be cut off, meaning the worse will be cut off
             #for i in range(len(combinationss)):
