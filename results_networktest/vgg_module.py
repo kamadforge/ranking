@@ -95,6 +95,7 @@ elif dataset=='housenums':
 # NETWORK
 
 architecture="64x2_128x2_256x3_512x8_L512x2"
+vis=True
 
 class VGG(nn.Module):
     def __init__(self):
@@ -150,21 +151,251 @@ class VGG(nn.Module):
 
     def forward(self, x):
 
+
+        if vis:
+            for filter_num in range(3):
+                mm = x.cpu().detach().numpy()
+                # Split
+                img = mm[1, filter_num, :, :]
+                if filter_num == 0:
+                    cmap_col = 'Reds'
+                elif filter_num == 1:
+                    cmap_col = 'Greens'
+                elif filter_num == 2:
+                    cmap_col = 'Blues'
+
+                # plt.imshow(matrix)  # showing 2nd channel (example of a channel)
+
+                plt.gca().set_axis_off()
+                plt.subplots_adjust(top=1, bottom=0, right=1, left=0,
+                                    hspace=0, wspace=0)
+                plt.margins(0, 0)
+                plt.gca().xaxis.set_major_locator(plt.NullLocator())
+                plt.gca().yaxis.set_major_locator(plt.NullLocator())
+                cax_00 = plt.imshow(img, cmap=cmap_col)
+                # plt.show()
+                plt.savefig(
+                    "/home/kamil/Dropbox/Current_research/ranking/results_networktest/vis/feature_maps/housenums/95.36/input/%d/input_batch%d_filternum%d" % (
+                        i, i, filter_num), bbox_inches='tight', pad_inches=0)
+
         output = f.relu(self.bn1(self.c1(x)))
+
+
+        if vis:
+            for filter_num in range(64):
+                mm = output.cpu().detach().numpy()
+
+                matrix = mm[1, filter_num, :, :]
+                print(filter_num)
+                # print(matrix[0:20, 0])
+                # ave=0
+                ave = np.average(matrix[0:20, 0])
+                matrix = matrix - ave
+
+                plt.imshow(matrix, cmap="coolwarm", vmin=-1, vmax=1)  # showing 2nd channel (example of a channel)
+
+                plt.gca().set_axis_off()
+                plt.subplots_adjust(top=1, bottom=0, right=1, left=0,
+                                    hspace=0, wspace=0)
+                plt.margins(0, 0)
+                plt.gca().xaxis.set_major_locator(plt.NullLocator())
+                plt.gca().yaxis.set_major_locator(plt.NullLocator())
+
+                plt.savefig(
+                    "/home/kamil/Dropbox/Current_research/ranking/results_networktest/vis/feature_maps/housenums/95.36/conv1/%d/conv1_batch%d_filternum%d" % (
+                    i, i, filter_num), bbox_inches='tight', pad_inches=0)
+
         output = f.relu(self.bn2(self.c2(output)))
+
+        if vis:
+            for filter_num in range(64):
+                mm = output.cpu().detach().numpy()
+
+                matrix = mm[1, filter_num, :, :]
+                print(filter_num)
+                # print(matrix[0:20, 0])
+                # ave=0
+                ave = np.average(matrix[0:20, 0])
+                matrix = matrix - ave
+
+                plt.imshow(matrix, cmap="coolwarm", vmin=-1, vmax=1)  # showing 2nd channel (example of a channel)
+
+                plt.gca().set_axis_off()
+                plt.subplots_adjust(top=1, bottom=0, right=1, left=0,
+                                    hspace=0, wspace=0)
+                plt.margins(0, 0)
+                plt.gca().xaxis.set_major_locator(plt.NullLocator())
+                plt.gca().yaxis.set_major_locator(plt.NullLocator())
+
+                plt.savefig(
+                    "/home/kamil/Dropbox/Current_research/ranking/results_networktest/vis/feature_maps/housenums/95.36/conv2/%d/conv2_batch%d_filternum%d" % (
+                        i, i, filter_num), bbox_inches='tight', pad_inches=0)
+
         output = self.mp1(output)
 
         output = f.relu(self.bn3(self.c3(output)))
+
+        if vis:
+            for filter_num in range(128):
+                mm = output.cpu().detach().numpy()
+
+                matrix = mm[1, filter_num, :, :]
+                print(filter_num)
+                # print(matrix[0:20, 0])
+                # ave=0
+                ave = np.average(matrix[0:20, 0])
+                matrix = matrix - ave
+
+                plt.imshow(matrix, cmap="coolwarm", vmin=-1, vmax=1)  # showing 2nd channel (example of a channel)
+
+                plt.gca().set_axis_off()
+                plt.subplots_adjust(top=1, bottom=0, right=1, left=0,
+                                    hspace=0, wspace=0)
+                plt.margins(0, 0)
+                plt.gca().xaxis.set_major_locator(plt.NullLocator())
+                plt.gca().yaxis.set_major_locator(plt.NullLocator())
+
+                plt.savefig(
+                    "/home/kamil/Dropbox/Current_research/ranking/results_networktest/vis/feature_maps/housenums/95.36/conv3/%d/conv3_batch%d_filternum%d" % (
+                        i, i, filter_num), bbox_inches='tight', pad_inches=0)
+
+
         output = f.relu(self.bn4(self.c4(output)))
+
+        if vis:
+            for filter_num in range(128):
+                mm = output.cpu().detach().numpy()
+
+                matrix = mm[1, filter_num, :, :]
+                print(filter_num)
+                # print(matrix[0:20, 0])
+                # ave=0
+                ave = np.average(matrix[0:20, 0])
+                matrix = matrix - ave
+
+                plt.imshow(matrix, cmap="coolwarm", vmin=-1, vmax=1)  # showing 2nd channel (example of a channel)
+
+                plt.gca().set_axis_off()
+                plt.subplots_adjust(top=1, bottom=0, right=1, left=0,
+                                    hspace=0, wspace=0)
+                plt.margins(0, 0)
+                plt.gca().xaxis.set_major_locator(plt.NullLocator())
+                plt.gca().yaxis.set_major_locator(plt.NullLocator())
+
+                plt.savefig(
+                    "/home/kamil/Dropbox/Current_research/ranking/results_networktest/vis/feature_maps/housenums/95.36/conv4/%d/conv4_batch%d_filternum%d" % (
+                        i, i, filter_num), bbox_inches='tight', pad_inches=0)
+
         output = self.mp2(output)
 
         output = f.relu(self.bn5(self.c5(output)))
+
+        if vis:
+            for filter_num in range(256):
+                mm = output.cpu().detach().numpy()
+
+                matrix = mm[1, filter_num, :, :]
+                print(filter_num)
+                # print(matrix[0:20, 0])
+                # ave=0
+                ave = np.average(matrix[0:20, 0])
+                matrix = matrix - ave
+
+                plt.imshow(matrix, cmap="coolwarm", vmin=-1, vmax=1)  # showing 2nd channel (example of a channel)
+
+                plt.gca().set_axis_off()
+                plt.subplots_adjust(top=1, bottom=0, right=1, left=0,
+                                    hspace=0, wspace=0)
+                plt.margins(0, 0)
+                plt.gca().xaxis.set_major_locator(plt.NullLocator())
+                plt.gca().yaxis.set_major_locator(plt.NullLocator())
+
+                plt.savefig(
+                    "/home/kamil/Dropbox/Current_research/ranking/results_networktest/vis/feature_maps/housenums/95.36/conv5/%i/conv5_batch%d_filternum%d" % (
+                        i, i, filter_num), bbox_inches='tight', pad_inches=0)
+
         output = f.relu(self.bn6(self.c6(output)))
+
+        if vis:
+            for filter_num in range(256):
+                mm = output.cpu().detach().numpy()
+
+                matrix = mm[1, filter_num, :, :]
+                print(filter_num)
+                # print(matrix[0:20, 0])
+                # ave=0
+                ave = np.average(matrix[0:20, 0])
+                matrix = matrix - ave
+
+                plt.imshow(matrix, cmap="coolwarm", vmin=-1, vmax=1)  # showing 2nd channel (example of a channel)
+
+                plt.gca().set_axis_off()
+                plt.subplots_adjust(top=1, bottom=0, right=1, left=0,
+                                    hspace=0, wspace=0)
+                plt.margins(0, 0)
+                plt.gca().xaxis.set_major_locator(plt.NullLocator())
+                plt.gca().yaxis.set_major_locator(plt.NullLocator())
+
+                plt.savefig(
+                    "/home/kamil/Dropbox/Current_research/ranking/results_networktest/vis/feature_maps/housenums/95.36/conv6/%d/conv6_batch%d_filternum%d" % (
+                        i, i, filter_num), bbox_inches='tight', pad_inches=0)
+
+
         output = f.relu(self.bn7(self.c7(output)))
+        #
+        # if vis:
+        #     for filter_num in range(256):
+        #         mm = output.cpu().detach().numpy()
+        #
+        #         matrix = mm[1, filter_num, :, :]
+        #         print(filter_num)
+        #         # print(matrix[0:20, 0])
+        #         # ave=0
+        #         ave = np.average(matrix[0:20, 0])
+        #         matrix = matrix - ave
+        #
+        #         plt.imshow(matrix, cmap="coolwarm", vmin=-1, vmax=1)  # showing 2nd channel (example of a channel)
+        #
+        #         plt.gca().set_axis_off()
+        #         plt.subplots_adjust(top=1, bottom=0, right=1, left=0,
+        #                             hspace=0, wspace=0)
+        #         plt.margins(0, 0)
+        #         plt.gca().xaxis.set_major_locator(plt.NullLocator())
+        #         plt.gca().yaxis.set_major_locator(plt.NullLocator())
+        #
+        #         plt.savefig(
+        #             "/home/kamil/Dropbox/Current_research/ranking/results_networktest/vis/feature_maps/housenums/95.36/conv3/conv3_batch%d_filternum%d" % (
+        #                 i, filter_num), bbox_inches='tight', pad_inches=0)
+
         output = self.mp3(output)
 
 
         output = f.relu(self.bn8(self.c8(output)))
+        #
+        # if vis:
+        #     for filter_num in range(512):
+        #         mm = output.cpu().detach().numpy()
+        #
+        #         matrix = mm[1, filter_num, :, :]
+        #         print(filter_num)
+        #         # print(matrix[0:20, 0])
+        #         # ave=0
+        #         ave = np.average(matrix[0:20, 0])
+        #         matrix = matrix - ave
+        #
+        #         plt.imshow(matrix, cmap="coolwarm", vmin=-1, vmax=1)  # showing 2nd channel (example of a channel)
+        #
+        #         plt.gca().set_axis_off()
+        #         plt.subplots_adjust(top=1, bottom=0, right=1, left=0,
+        #                             hspace=0, wspace=0)
+        #         plt.margins(0, 0)
+        #         plt.gca().xaxis.set_major_locator(plt.NullLocator())
+        #         plt.gca().yaxis.set_major_locator(plt.NullLocator())
+        #
+        #         plt.savefig(
+        #             "/home/kamil/Dropbox/Current_research/ranking/results_networktest/vis/feature_maps/housenums/95.36/conv3/conv3_batch%d_filternum%d" % (
+        #                 i, filter_num), bbox_inches='tight', pad_inches=0)
+
         output = f.relu(self.bn9(self.c9(output)))
         output = f.relu(self.bn10(self.c10(output)))
         output = f.relu(self.bn11(self.c11(output)))
