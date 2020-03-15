@@ -9,7 +9,7 @@ arguments = /home/kadamczewski/miniconda3/bin/python /home/kadamczewski/Dropbox_
 #var=lenet_multiple_$(dataset)_$(arch)_switch
 
 #var=vgg_$(method)_$(dataset)_iter_$(epoch_num)_possiblesamples_$(switch_samps)
-var=vgg_scratch
+var=vgg_scratch_is50
 
 error = clust/clust_err/$(var).$(Process).err
 output = clust/clust_out/$(var).$(Process).out
@@ -20,7 +20,7 @@ log = clust/clust_log/$(var).$(Process).log
 request_memory = 8040
 request_cpus = 1
 request_gpus = 1
-queue 1
+queue 20
 
 
 #CHECK
