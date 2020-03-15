@@ -158,8 +158,7 @@ cfg = {
     'VGG11': [64, 'M', 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
     'VGG13': [64, 64, 'M', 128, 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
     'VGG16': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 'M', 512, 512, 512, 'M', 512, 512, 512, 'M'],
-    'VGG15': [64, 64, 128, 128, 256, 256, 256, 512, 512, 512, 512, 512, 512, 512],
-    'VGG15_comp': [39, 39, 63, 48, 55, 88, 87, 52, 62, 22, 42, 47, 47, 47],
+    'VGGBC': [64, 64, 128, 128, 256, 256, 256, 512, 512, 512, 512, 512, 512, 512, 512],
     'VGG19': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 256, 'M', 512, 512, 512, 512, 'M', 512, 512, 512, 512, 'M'],
 }
 
@@ -176,46 +175,44 @@ class VGG(nn.Module):
     def __init__(self, vgg_name):
         super(VGG, self).__init__()
 
-        cfg_arch=cfg['VGG15_comp']
-
-        self.c1 = nn.Conv2d(3, cfg_arch[0], 3, padding=1)
-        self.bn1 = nn.BatchNorm2d(cfg_arch[0], eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-        self.c2 = nn.Conv2d(cfg_arch[0], cfg_arch[1], 3, padding=1)
-        self.bn2 = nn.BatchNorm2d(cfg_arch[1], eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        self.c1 = nn.Conv2d(3, 64, 3, padding=1)
+        self.bn1 = nn.BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        self.c2 = nn.Conv2d(64, 64, 3, padding=1)
+        self.bn2 = nn.BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
         self.mp1 = nn.MaxPool2d(2)
 
-        self.c3 = nn.Conv2d(cfg_arch[1], cfg_arch[2], 3, padding=1)
-        self.bn3 = nn.BatchNorm2d(cfg_arch[2], eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-        self.c4 = nn.Conv2d(cfg_arch[2], cfg_arch[3], 3, padding=1)
-        self.bn4 = nn.BatchNorm2d(cfg_arch[3], eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        self.c3 = nn.Conv2d(64, 128, 3, padding=1)
+        self.bn3 = nn.BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        self.c4 = nn.Conv2d(128, 128, 3, padding=1)
+        self.bn4 = nn.BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
         self.mp2 = nn.MaxPool2d(2)
 
-        self.c5 = nn.Conv2d(cfg_arch[3], cfg_arch[4], 3, padding=1)
-        self.bn5 = nn.BatchNorm2d(cfg_arch[4], eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-        self.c6 = nn.Conv2d(cfg_arch[4], cfg_arch[5], 3, padding=1)
-        self.bn6 = nn.BatchNorm2d(cfg_arch[5], eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-        self.c7 = nn.Conv2d(cfg_arch[5], cfg_arch[6], 3, padding=1)
-        self.bn7 = nn.BatchNorm2d(cfg_arch[6], eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        self.c5 = nn.Conv2d(128, 256, 3, padding=1)
+        self.bn5 = nn.BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        self.c6 = nn.Conv2d(256, 256, 3, padding=1)
+        self.bn6 = nn.BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        self.c7 = nn.Conv2d(256, 256, 3, padding=1)
+        self.bn7 = nn.BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
         self.mp3 = nn.MaxPool2d(2)
 
-        self.c8 = nn.Conv2d(cfg_arch[6], cfg_arch[7], 3, padding=1)
-        self.bn8 = nn.BatchNorm2d(cfg_arch[7], eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-        self.c9 = nn.Conv2d(cfg_arch[7], cfg_arch[8], 3, padding=1)
-        self.bn9 = nn.BatchNorm2d(cfg_arch[8], eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-        self.c10 = nn.Conv2d(cfg_arch[8], cfg_arch[9], 3, padding=1)
-        self.bn10 = nn.BatchNorm2d(cfg_arch[9], eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        self.c8 = nn.Conv2d(256, 512, 3, padding=1)
+        self.bn8 = nn.BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        self.c9 = nn.Conv2d(512, 512, 3, padding=1)
+        self.bn9 = nn.BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        self.c10 = nn.Conv2d(512, 512, 3, padding=1)
+        self.bn10 = nn.BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
         self.mp4 = nn.MaxPool2d(2)
 
-        self.c11 = nn.Conv2d(cfg_arch[9], cfg_arch[10], 3, padding=1)
-        self.bn11 = nn.BatchNorm2d(cfg_arch[10], eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-        self.c12 = nn.Conv2d(cfg_arch[10], cfg_arch[11], 3, padding=1)
-        self.bn12 = nn.BatchNorm2d(cfg_arch[11], eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-        self.c13 = nn.Conv2d(cfg_arch[11], cfg_arch[12], 3, padding=1)
-        self.bn13 = nn.BatchNorm2d(cfg_arch[12], eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        self.c11 = nn.Conv2d(512, 512, 3, padding=1)
+        self.bn11 = nn.BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        self.c12 = nn.Conv2d(512, 512, 3, padding=1)
+        self.bn12 = nn.BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        self.c13 = nn.Conv2d(512, 512, 3, padding=1)
+        self.bn13 = nn.BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
         self.mp5 = nn.MaxPool2d(2)
 
-        self.l1 = nn.Linear(cfg_arch[12], cfg_arch[13])
-        self.l3 = nn.Linear(cfg_arch[13], 10)
+        self.l1 = nn.Linear(512, 512)
+        self.l3 = nn.Linear(512, 10)
         self.d1 = nn.Dropout()
         self.d2 = nn.Dropout()
 
@@ -223,19 +220,14 @@ class VGG(nn.Module):
 
         # Fisher method is called on backward passes
         self.running_fisher = []
-        # for i in range(3):
-        #     self.running_fisher.append(torch.Tensor(64).to(device))
-        # for i in range(2):
-        #     self.running_fisher.append(torch.Tensor(128).to(device))
-        # for i in range(3):
-        #     self.running_fisher.append(torch.Tensor(256).to(device))
-        # for i in range(7):
-        #     self.running_fisher.append(torch.Tensor(512).to(device))
-
-        self.running_fisher.append(torch.Tensor(64).to(device)) #first dummy for 0
-        for i in range(len(cfg_arch)):
-            self.running_fisher.append(torch.Tensor(cfg_arch[i]).to(device))
-
+        for i in range(3):
+            self.running_fisher.append(torch.Tensor(64).to(device))
+        for i in range(2):
+            self.running_fisher.append(torch.Tensor(128).to(device))
+        for i in range(3):
+            self.running_fisher.append(torch.Tensor(256).to(device))
+        for i in range(7):
+            self.running_fisher.append(torch.Tensor(512).to(device))
 
         self.act = [0] * 15
 
@@ -365,7 +357,7 @@ class VGG(nn.Module):
         self.act[13] = self.activation13(output)
         output = self.mp5(output)
 
-        output = output.view(-1, cfg['VGG15_comp'][13])
+        output = output.view(-1, 512)
         output = self.l1(output)
         self.act[14] = self.activation14(output)
         output = self.l3(output)

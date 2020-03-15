@@ -30,7 +30,7 @@ desired_save_accuracy=99.1
 
 #MNIST, FashionMNIST,housenum
 
-dataset="FashionMNIST"
+dataset="MNIST"
 trainval_perc=1
 BATCH_SIZE = 100
 # Download or load downloaded MNIST dataset
@@ -268,6 +268,7 @@ print("\n\n NEW EXPERIMENT:\n")
 # PARAMS
 early_stopping=600
 sum_average=0; conv1=10; conv2=20; fc1=100; fc2=25
+conv1=6; conv2=7; fc1=35; fc2=17
 filename="%s_test_conv_relu_bn_drop_trainval%.1f_conv:%d_conv:%d_fc:%d_fc:%d.txt" % (dataset, trainval_perc, conv1, conv2, fc1, fc2)
 filename="%s_test_conv_relu_bn_drop_trainval%.1f_conv:%d_conv:%d_fc:%d_fc:%d.txt" % (dataset, trainval_perc, conv1, conv2, fc1, fc2)
 

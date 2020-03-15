@@ -1,3 +1,6 @@
+#a little bit bigger architecture
+#mp layers and more conv and fc (linear) layers
+
 #################
 # architecture of VGG (the implementation of no-filters like in bayesian compression, and linear layers are like in the chengyangfu impl (in results_network test)
 
@@ -39,10 +42,9 @@ print(device)
 ###########################################################
 # DATA
 
-dataset = "cifar10"
+dataset = "housenums"
 trainval_perc=1
 BATCH_SIZE=200
-save_accuracy=90.0
 
 if dataset=="cifar10":
 
@@ -96,7 +98,7 @@ elif dataset=='housenums':
 # NETWORK
 
 architecture="64x2_128x2_256x3_512x8_L512x2"
-vis=False
+vis=True
 
 def visualize_fmaps(output, channels, layer_name):
     if channels==3:
@@ -153,48 +155,53 @@ def visualize_fmaps(output, channels, layer_name):
                   layer_name, i, layer_name, i, filter_num), bbox_inches='tight', pad_inches=0)
 
 class VGG(nn.Module):
-    def __init__(self, layer_size):
+    def __init__(self):
         super(VGG, self).__init__()
 
-        self.c1=nn.Conv2d(3, layer_size[0], 3, padding=1)
-        self.bn1=nn.BatchNorm2d(layer_size[0])
-        self.c2=nn.Conv2d(layer_size[0], layer_size[1], 3, padding=1)
-        self.bn2 = nn.BatchNorm2d(layer_size[1])
+        self.c1=nn.Conv2d(3, 64, 3, padding=1)
+        self.bn1=nn.BatchNorm2d(64)
+        self.c2=nn.Conv2d(64, 64, 3, padding=1)
+        self.bn2 = nn.BatchNorm2d(64)
         self.mp1=nn.MaxPool2d(2)
 
-        self.c3=nn.Conv2d(layer_size[1], layer_size[2], 3, padding=1)
-        self.bn3 = nn.BatchNorm2d(layer_size[2])
-        self.c4=nn.Conv2d(layer_size[2],layer_size[3], 3, padding=1)
-        self.bn4 = nn.BatchNorm2d(layer_size[3])
+        self.c3=nn.Conv2d(64, 128, 3, padding=1)
+        self.bn3 = nn.BatchNorm2d(128)
+        self.c4=nn.Conv2d(128,128, 3, padding=1)
+        self.bn4 = nn.BatchNorm2d(128)
         self.mp2 = nn.MaxPool2d(2)
 
-        self.c5=nn.Conv2d(layer_size[3], layer_size[4], 3, padding=1)
-        self.bn5 = nn.BatchNorm2d(layer_size[4])
-        self.c6=nn.Conv2d(layer_size[4], layer_size[5], 3, padding=1)
-        self.bn6 = nn.BatchNorm2d(layer_size[5])
-        self.c7=nn.Conv2d(layer_size[5], layer_size[6], 3, padding=1)
-        self.bn7 = nn.BatchNorm2d(layer_size[6])
+        self.c5=nn.Conv2d(128, 256, 3, padding=1)
+        self.bn5 = nn.BatchNorm2d(256)
+        self.c6=nn.Conv2d(256, 256, 3, padding=1)
+        self.bn6 = nn.BatchNorm2d(256)
+        self.c7=nn.Conv2d(256, 256, 3, padding=1)
+        self.bn7 = nn.BatchNorm2d(256)
         self.mp3=nn.MaxPool2d(2)
 
-        self.c8 = nn.Conv2d(layer_size[6], layer_size[7], 3, padding=1)
-        self.bn8 = nn.BatchNorm2d(layer_size[7])
-        self.c9 = nn.Conv2d(layer_size[7], layer_size[8], 3, padding=1)
-        self.bn9 = nn.BatchNorm2d(layer_size[8])
-        self.c10 = nn.Conv2d(layer_size[8], layer_size[9], 3, padding=1)
-        self.bn10 = nn.BatchNorm2d(layer_size[9])
+        self.c8 = nn.Conv2d(256, 512, 3, padding=1)
+        self.bn8 = nn.BatchNorm2d(512)
+        self.c9 = nn.Conv2d(512, 512, 3, padding=1)
+        self.bn9 = nn.BatchNorm2d(512)
+        self.c10 = nn.Conv2d(512, 512, 3, padding=1)
+        self.bn10 = nn.BatchNorm2d(512)
+        self.c11 = nn.Conv2d(512, 512, 3, padding=1)
+        self.bn11 = nn.BatchNorm2d(512)
         self.mp4 = nn.MaxPool2d(2)
 
-        self.c11 = nn.Conv2d(layer_size[9], layer_size[10], 3, padding=1)
-        self.bn11 = nn.BatchNorm2d(layer_size[10])
-        self.c12 = nn.Conv2d(layer_size[10], layer_size[11], 3, padding=1)
-        self.bn12 = nn.BatchNorm2d(layer_size[11])
-        self.c13 = nn.Conv2d(layer_size[11], layer_size[12], 3, padding=1)
-        self.bn13 = nn.BatchNorm2d(layer_size[12])
+        self.c12 = nn.Conv2d(512, 512, 3, padding=1)
+        self.bn12 = nn.BatchNorm2d(512)
+        self.c13 = nn.Conv2d(512, 512, 3, padding=1)
+        self.bn13 = nn.BatchNorm2d(512)
+        self.c14 = nn.Conv2d(512, 512, 3, padding=1)
+        self.bn14 = nn.BatchNorm2d(512)
+        self.c15 = nn.Conv2d(512, 512, 3, padding=1)
+        self.bn15 = nn.BatchNorm2d(512)
         self.mp5 = nn.MaxPool2d(2)
 
-        self.l1 = nn.Linear(layer_size[12], layer_size[13])
-        #self.l2 =nn.Linear(512, 512)
-        self.l3 = nn.Linear(layer_size[13],10)
+
+        self.l1 = nn.Linear(512, 512)
+        self.l2 =nn.Linear(512, 512)
+        self.l3 = nn.Linear(512,10)
         self.d1=nn.Dropout()
         self.d2 = nn.Dropout()
 
@@ -211,35 +218,32 @@ class VGG(nn.Module):
         if vis:
             visualize_fmaps(output, 64, "conv2")
         output = self.mp1(output)
-
-
         output = f.relu(self.bn3(self.c3(output)))
         if vis:
             visualize_fmaps(output, 128, "conv3")
         output = f.relu(self.bn4(self.c4(output)))
         output = self.mp2(output)
-
-
         output = f.relu(self.bn5(self.c5(output)))
         output = f.relu(self.bn6(self.c6(output)))
         output = f.relu(self.bn7(self.c7(output)))
         output = self.mp3(output)
-
         output = f.relu(self.bn8(self.c8(output)))
         output = f.relu(self.bn9(self.c9(output)))
         output = f.relu(self.bn10(self.c10(output)))
-        output = self.mp4(output)
-
         output = f.relu(self.bn11(self.c11(output)))
+        output = self.mp4(output)
         output = f.relu(self.bn12(self.c12(output)))
         output = f.relu(self.bn13(self.c13(output)))
+        output = f.relu(self.bn14(self.c14(output)))
+        output = f.relu(self.bn15(self.c15(output)))
         output = self.mp5(output)
+
 
         output = self.d1(output)
         output=output.view(-1, 512)
         output = f.relu(self.l1(output))
         output = self.d2(output)
-        output = f.relu(self.l3(output))
+        output = f.relu(self.l2(output))
 
         return output
 
@@ -271,17 +275,15 @@ def evaluate():
 
     ###########################
 
-layer_size=[64, 64, 128, 128, 256, 256, 256,   512, 512, 512,   512, 512, 512,   512]
-vgg=VGG(layer_size).to(device)
+vgg=VGG().to(device)
 criterion=nn.CrossEntropyLoss()
-#optimizer=optim.Adam(vgg.parameters(), lr=0.001)
-#optimizer=optim.Adam(vgg.parameters(), lr=0.1)
-optimizer = optim.SGD(vgg.parameters(), lr=0.1, momentum=0.9, weight_decay=5e-4)
-
+optimizer=optim.Adam(vgg.parameters(), lr=0.001)
 
 def weights_init(m):
     if isinstance(m, nn.Conv2d):
+
         init.xavier_normal_(m.weight.data)
+
         if m.bias is not None:
             init.normal_(m.bias.data)
 
@@ -330,15 +332,14 @@ while (stop < early_stopping):
         entry[2]=1
         best_model=vgg.state_dict()
         best_optim=optimizer.state_dict()
-        if best_accuracy>save_accuracy:
-            if 'g0' not in socket.gethostname():
-                torch.save({'model_state_dict': best_model, 'optimizer_state_dict': best_optim},
-                           "/home/kamil/Dropbox/Current_research/ranking/results_networktest/models/%s_%s_rel_bn_drop_trainval_modelopt%.1f_epo_%d_acc_%.2f" % (
-                           dataset, architecture, trainval_perc, epoch, best_accuracy))
-            else:
-                torch.save({'model_state_dict': best_model, 'optimizer_state_dict': best_optim},
-                           "/home/kadamczewski/Dropbox_from/Current_research/ranking/results_networktest/models/%s_%s_rel_bn_drop_trainval_modelopt%.1f_epo_%d_acc_%.2f" % (
-                           dataset, architecture, trainval_perc, epoch, best_accuracy))
+        if 'g0' not in socket.gethostname():
+            torch.save({'model_state_dict': best_model, 'optimizer_state_dict': best_optim},
+                       "models/%s_%s_rel_bn_drop_trainval_modelopt%.1f_epo_%d_acc_%.2f" % (
+                       dataset, architecture, trainval_perc, epoch, best_accuracy))
+        else:
+            torch.save({'model_state_dict': best_model, 'optimizer_state_dict': best_optim},
+                       "/home/kadamczewski/Dropbox_from/Current_research/ranking/results_networktest/models/%s_%s_rel_bn_drop_trainval_modelopt%.1f_epo_%d_acc_%.2f" % (
+                       dataset, architecture, trainval_perc, epoch, best_accuracy))
 
     print("\n")
 #write

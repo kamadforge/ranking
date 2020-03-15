@@ -26,6 +26,8 @@ from torch.distributions import Gamma
 import torch.nn.functional as f
 import argparse
 import socket
+import scipy
+import scipy.io
 
 #######
 # path stuff
@@ -345,39 +347,74 @@ class VGG(nn.Module):
 
 #####################################
 # DATA
-
-#parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
-#parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
-#parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')
-#args = parser.parse_args()
-
+dataset='cifar10'
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 best_acc = 0  # best test accuracy
 start_epoch = 0  # start from epoch 0 or last checkpoint epoch
 
-# Data
-print('==> Preparing data..')
-transform_train = transforms.Compose([
-    transforms.RandomCrop(32, padding=4),
-    transforms.RandomHorizontalFlip(),
-    transforms.ToTensor(),
-    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-])
+if dataset=="cifar10":
 
-transform_test = transforms.Compose([
-    transforms.ToTensor(),
-    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-])
+    # Data
+    print('==> Preparing data..')
+    transform_train = transforms.Compose([
+        transforms.RandomCrop(32, padding=4),
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+    ])
 
-trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
-trainloader = torch.utils.data.DataLoader(trainset, batch_size=BATCH_SIZE, shuffle=True, num_workers=0)
+    transform_test = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+    ])
 
-testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform_test)
-testloader = torch.utils.data.DataLoader(testset, batch_size=BATCH_SIZE, shuffle=False, num_workers=0)
+    trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
+    trainloader = torch.utils.data.DataLoader(trainset, batch_size=BATCH_SIZE, shuffle=True, num_workers=0)
 
-classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
+    testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform_test)
+    testloader = torch.utils.data.DataLoader(testset, batch_size=BATCH_SIZE, shuffle=False, num_workers=0)
+
+    classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
 
+
+
+
+
+
+elif dataset=='housenums':
+
+    print(socket.gethostname())
+    if 'g0' not in socket.gethostname():
+        train_data = scipy.io.loadmat('/datadisk1/data/house_ numbers/train_32x32.mat')
+        test_data = scipy.io.loadmat('/datadisk1/data/house_ numbers/train_32x32.mat')
+    else:
+        train_data = scipy.io.loadmat('/home/kadamczewski/data/house_ numbers/train_32x32.mat')
+        test_data = scipy.io.loadmat('/home/kadamczewski/data/house_ numbers/test_32x32.mat')
+
+    train_data_x = train_data['X'].swapaxes(2, 3).swapaxes(1, 2).swapaxes(0, 1).swapaxes(2,3).swapaxes(1,2)
+    train_data_y = train_data['y']
+    train_data_y=np.where(train_data_y==10, 0, train_data_y)
+
+    tensor_x = torch.stack([torch.FloatTensor(i) for i in train_data_x])  # transform to torch tensors
+    tensor_y = torch.stack([torch.FloatTensor(i) for i in train_data_y])
+
+    my_dataset = torch.utils.data.TensorDataset(tensor_x, tensor_y.squeeze())  # create your datset
+    trainloader = torch.utils.data.DataLoader(my_dataset, batch_size=BATCH_SIZE, shuffle=True)  # create your dataloader
+
+
+    ####
+
+    test_data_x = test_data['X'].swapaxes(2, 3).swapaxes(1, 2).swapaxes(0, 1).swapaxes(2, 3).swapaxes(1, 2)
+    test_data_y = test_data['y']
+    test_data_y=np.where(test_data_y==10, 0, test_data_y)
+
+
+    tensor_x_test = torch.stack([torch.FloatTensor(i) for i in test_data_x])  # transform to torch tensors
+    tensor_y_test = torch.stack([torch.FloatTensor(i) for i in test_data_y])
+
+    my_dataset = torch.utils.data.TensorDataset(tensor_x_test, tensor_y_test.squeeze())  # create your datset
+    testloader = torch.utils.data.DataLoader(my_dataset, batch_size=BATCH_SIZE, shuffle=True)
 
 
 ###################################################
@@ -417,10 +454,18 @@ def load_weights(net_all):
         # Load checkpoint.
         print('==> Resuming from checkpoint..')
         #assert os.path.isdir('checkpoint'), 'Error: no checkpoint directory found!'
-        checkpoint = torch.load(path_switch+'/checkpoint/ckpt_vgg16_%s.t7' % model_parameters, map_location=lambda storage, loc: storage)
-        net_all.load_state_dict(checkpoint['net'], strict=False)
-        best_acc = checkpoint['acc']
-        start_epoch = checkpoint['epoch']
+        if dataset == 'cifar':
+            checkpoint = torch.load(path_switch + '/checkpoint/ckpt_vgg16_%s.t7' % model_parameters,
+                                    map_location=lambda storage, loc: storage)
+            net_all.load_state_dict(checkpoint['net'], strict=False)
+
+        elif dataset == 'housenums':
+            checkpoint = torch.load(
+                '/home/kamil/Dropbox/Current_research/ranking/results_switch/models/housenums_64x2_128x2_256x3_512x8_L512x2_rel_bn_drop_trainval_modelopt1.0_epo_424_acc_95.36')
+            net_all.load_state_dict(checkpoint, strict=False)
+
+        #best_acc = checkpoint['acc']
+        #start_epoch = checkpoint['epoch']
 
 #load_weights(net)
 
@@ -469,7 +514,7 @@ def train(epoch, net_all, optimizer, hidden_dim, switch_layer):
     total = 0
     annealing_rate = beta_func(epoch)
     for batch_idx, (inputs, targets) in enumerate(trainloader):
-        inputs, targets = inputs.to(device), targets.to(device)
+        inputs, targets = inputs.to(device), targets.to(device=device, dtype=torch.int64)
         optimizer.zero_grad()
         outputs, S = net_all(inputs, switch_layer)
         #loss = criterion(outputs, targets)
@@ -523,7 +568,7 @@ def test(epoch, net_all, switch_layer):
     total = 0
     with torch.no_grad():
         for batch_idx, (inputs, targets) in enumerate(testloader):
-            inputs, targets = inputs.to(device), targets.to(device)
+            inputs, targets = inputs.to(device), targets.to(device=device, dtype=torch.int64)
             outputs = net_all(inputs, switch_layer)[0] #[0] added because of the tuple output,S
             loss = criterion(outputs, targets)
 
@@ -617,7 +662,7 @@ def test(epoch, net_all, switch_layer):
 #compute_combinations_random(file_write)
 
 #def main(switch_layer, epochs_num, switch_samps, hidden_dim):
-def main(switch_layer, epochs_num, switch_samps):
+def main(switch_layer, epochs_num, switch_samps, hidden_dim):
 
     training=True
     hidden_dim = model_structure[int(switch_layer[4:])]  # it's a number of parameters we want to estimate, e.g. # conv1 filters
@@ -665,4 +710,4 @@ def main(switch_layer, epochs_num, switch_samps):
 
 
 if __name__=="__main__":
-    main("c1", epochs_num, switch_samps, hidden_dim)
+    main("conv1", epochs_num, switch_samps, "conv1")
