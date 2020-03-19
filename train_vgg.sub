@@ -8,8 +8,8 @@ arguments = /home/kadamczewski/miniconda3/bin/python /home/kadamczewski/Dropbox_
 #var=lenet_$(method)_$(switch_samps)_retraining_$(dataset)_$(arch)_switch
 #var=lenet_multiple_$(dataset)_$(arch)_switch
 
-#var=vgg_$(method)_$(dataset)_iter_$(epoch_num)_possiblesamples_$(switch_samps)
-var=vgg_scratch_mean
+var=vgg_$(method)_$(dataset)_iter_$(epoch_num)_possiblesamples_$(switch_samps)
+#var=vgg_scratch_mean
 
 error = clust/clust_err/$(var).$(Process).err
 output = clust/clust_out/$(var).$(Process).out
