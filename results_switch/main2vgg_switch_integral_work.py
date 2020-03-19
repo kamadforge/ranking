@@ -662,10 +662,11 @@ def test(epoch, net_all, switch_layer):
 #compute_combinations_random(file_write)
 
 #def main(switch_layer, epochs_num, switch_samps, hidden_dim):
-def main(switch_layer, epochs_num, switch_samps, hidden_dim):
+def main(switch_layer, epochs_num, switch_samps, hidden_dim='conv10'):
 
     training=True
     hidden_dim = model_structure[int(switch_layer[4:])]  # it's a number of parameters we want to estimate, e.g. # conv1 filters
+    print(hidden_dim)
 
     # Model
     print('==> Building model..')
