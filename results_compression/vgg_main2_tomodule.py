@@ -8,8 +8,47 @@
 # other features:
 # it loads the ranks from shapley or switches (ranks_path = '../Dir_switch/results/cifar/vgg_93.92/switch_init_-1, alpha_2/')
 
+from __future__ import print_function
 
-#
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import torch.nn.functional as F
+import torch.backends.cudnn as cudnn
+
+import torchvision
+import torchvision.transforms as transforms
+
+import os
+import argparse
+
+import sys
+import socket
+
+import numpy as np
+from torch.nn.parameter import Parameter
+import torch.nn.functional as f
+import logging
+import matplotlib.pyplot as plt
+import magnitude_rank
+import argparse
+from vgg_computeComb2 import compute_combinations
+from vgg_computeComb2 import test_val
+import argparse
+from itertools import product
+
+# file_dir = os.path.dirname("utlis.p")
+# sys.path.append(file_dir)
+
+# from models import *
+
+# from utils import progress_bar
+import torch
+import torch.nn as nn
+
+
+
+
 #
 # Sequential(
 #   (0): Conv2d(3, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
@@ -59,24 +98,8 @@
 #   (44): AvgPool2d(kernel_size=1, stride=1, padding=0)
 # )
 
-'''Train CIFAR10 with PyTorch.'''
-from __future__ import print_function
 
-import torch
-import torch.nn as nn
-import torch.optim as optim
-import torch.nn.functional as F
-import torch.backends.cudnn as cudnn
-
-import torchvision
-import torchvision.transforms as transforms
-
-import os
-import argparse
-
-import sys
-import socket
-
+network_structure_dummy=0
 
 #######
 # path stuff
@@ -105,30 +128,9 @@ sys.path.append(os.path.join(path_networktest, "external_codes/pytorch-cifar-mas
 sys.path.append(path_compression)
 
 
-############################
 
-import numpy as np
-from torch.nn.parameter import Parameter
-import torch.nn.functional as f
-import logging
-import matplotlib.pyplot as plt
-import magnitude_rank
-import argparse
-from vgg_computeComb2 import compute_combinations
-from vgg_computeComb2 import test_val
-import argparse
-from itertools import product
-
-# file_dir = os.path.dirname("utlis.p")
-# sys.path.append(file_dir)
-
-# from models import *
-
-# from utils import progress_bar
-
-'''VGG11/13/16/19 in Pytorch.'''
-import torch
-import torch.nn as nn
+##############################
+# PARAMETERS
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--arch", default='25,25,65,80,201,158,159,460,450,490,470,465,465,450')
@@ -138,17 +140,15 @@ parser.add_argument('--layer', help="layer to prune", default="c1")
 parser.add_argument("--method", default='l1')
 parser.add_argument("--switch_samps", default=100, type=int)
 parser.add_argument("--ranks_method", default='point')
+# parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
+# parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')
 save_accuracy=90.0
 
 args = parser.parse_args()
 print(args.layer)
 print("aaa", args.arch)
 
-# [39, 40, 63, 47, 53, 96, 94, 54, 64, 26, 40, 49, 46, 45, 64]/[25, 24, 65, 81, 203, 160, 162, 458, 448, 486, 472, 463, 466, 467, 448] - err 8.8%
 
-# stri=args["arch"][1:-1]
-# str_array=stri.split(',')
-# str_array_int=[int(i) for i in str_array]
 
 #######################################################################################################################################3
 ############################################################
@@ -471,11 +471,6 @@ class VGG(nn.Module):
 #####################################
 # DATA
 
-# parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
-# parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
-# parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')
-# args = parser.parse_args()
-
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 best_acc = 0  # best test accuracy
 start_epoch = 0  # start from epoch 0 or last checkpoint epoch
@@ -524,7 +519,6 @@ classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship'
 # MAKE AN INSTANCE OF A NETWORK AND (POSSIBLY) LOAD THE MODEL
 
 
-# Model
 print('==> Building model..')
 net = VGG('VGG16')
 # net = ResNet18()
@@ -566,8 +560,13 @@ if device == 'cuda':
 # for name, layer in net.named_modules():
 #     layer.register_backward_hook(func(name))
 
-########################################################
-# TRAIN
+
+
+
+a=0
+
+#######################################################
+#TRAIN
 
 
 def train(epoch):
@@ -628,6 +627,8 @@ def finetune():
 
 #################################################################
 # TEST
+
+
 
 def test(dataset):
     # for name, param in net.named_parameters():
@@ -696,13 +697,15 @@ def testval():
 
 
 ########################################
-# just RESUME
+## just LOAD MODEL AND SAVE
 
-# if args.resume:
+
+
+
 def load_model(test_bool=True):
     # Load checkpoint.
     # print('==> Resuming from checkpoint..')
-    #assert os.path.isdir('checkpoint'), 'Error: no checkpoint directory found!'
+    # assert os.path.isdir('checkpoint'), 'Error: no checkpoint directory found!'
     checkpoint = torch.load(model2load)
     # checkpoint = torch.load('./checkpoint/ckpt_vgg16_prunedto[39, 39, 63, 48, 55, 98, 97, 52, 62, 22, 42, 47, 47, 42, 62]_64.55.t7')
     net.load_state_dict(checkpoint['net'], strict=False)
@@ -720,8 +723,9 @@ def load_model(test_bool=True):
         compute_combinations(True, net, testval, args.layer)
 
 
+
 ######################################################
-# RUN EXPERIMENT
+# SAVE experiment
 
 def save_checkpoint(epoch, acc, best_acc, remaining=0):
     # Save checkpoint.
@@ -750,12 +754,17 @@ def save_checkpoint(epoch, acc, best_acc, remaining=0):
 # PRUNEand RETRAIN
 
 def prune_and_retrain(thresh):
-    load_model(False)
 
+    #LOAD
+    load_model(False)
     # PRINT
     # for name, param in net.named_parameters():
     #    print (name)
     #    print(param.shape)
+
+    dummy=0
+
+    # PRUNE
 
     if prune_bool:
         ############################3
@@ -1057,27 +1066,33 @@ def prune_and_retrain(thresh):
         # h12 = net.module.bn15.weight.register_hook(gradi15)
         # h13 = net.module.bn15.bias.register_hook(gradi15)
 
-    # it = -1
-    # for name, param in net.named_parameters():
-    #     print(name)
-    #     if "module.c" in name and "weight" in name:
-    #         it += 1
-    #
-    #         def gradi(module):
-    #             module[combinationss[it]] = 0
-    #
-    #         h1 = param.register_hook(gradi)
-    #
-    #     if "module.c" in name and "bias" in name:
-    #         #param.data[combinationss[it - 1]] = 0
-    #         #print(param.data)
-    #
-    #         def gradi(module):
-    #             module[combinationss[it]] = 0
-    #
-    #         h1 = param.register_hook(gradi)
+
+
+        # it = -1
+        # for name, param in net.named_parameters():
+        #     print(name)
+        #     if "module.c" in name and "weight" in name:
+        #         it += 1
+        #
+        #         def gradi(module):
+        #             module[combinationss[it]] = 0
+        #
+        #         h1 = param.register_hook(gradi)
+        #
+        #     if "module.c" in name and "bias" in name:
+        #         #param.data[combinationss[it - 1]] = 0
+        #         #print(param.data)
+        #
+        #         def gradi(module):
+        #             module[combinationss[it]] = 0
+        #
+        #         h1 = param.register_hook(gradi)
 
     #######################################################
+
+    #RETRAIN
+
+
 
     if retrain_bool:
         print("Retraining")
@@ -1156,6 +1171,9 @@ def prune_and_retrain(thresh):
 
         print(loss.item())
         accuracy = test(-1)
+
+
+
 
 
 #################################################################
