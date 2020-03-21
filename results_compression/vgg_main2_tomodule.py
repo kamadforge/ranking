@@ -139,7 +139,7 @@ parser.add_argument("--arch", default='25,25,65,80,201,158,159,460,450,490,470,4
 parser.add_argument('--layer', help="layer to prune", default="c1")
 parser.add_argument("--method", default='switch')
 parser.add_argument("--switch_samps", default=100, type=int)
-parser.add_argument("--switch_epochs", default=8)
+parser.add_argument("--switch_epochs", default=8, type=int)
 parser.add_argument("--ranks_method", default='integral')
 # parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
 # parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')

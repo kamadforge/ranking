@@ -25,6 +25,7 @@ request_gpus = 1
 
 switch_samps=20
 ranks_method=point
+switch_epochs=8
 
 # var=vgg_cifar_$(method)_$(arch)
 # method=l1
