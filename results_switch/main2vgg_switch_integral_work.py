@@ -28,6 +28,8 @@ import argparse
 import socket
 import scipy
 import scipy.io
+import torch
+import torch.nn as nn
 
 #######
 # path stuff
@@ -59,9 +61,6 @@ else:
 resume=True
 
 
-'''VGG11/13/16/19 in Pytorch.'''
-import torch
-import torch.nn as nn
 
 ##############################3
 # CHANGE
@@ -337,14 +336,6 @@ class VGG(nn.Module):
 
 
 
-# def test():
-#     net = VGG('VGG11')
-#     x = torch.randn(2,3,32,32)
-#     y = net(x)
-#     print(y.size())
-
-# test()
-
 #####################################
 # DATA
 dataset='cifar10'
@@ -595,64 +586,6 @@ def test(epoch, net_all, switch_layer):
             os.mkdir('checkpoint')
         torch.save(state, './checkpoint/ckpt_%.2f.t7' % acc)
         best_acc = acc
-
-###########################################################
-#copied from network pruning
-#
-# def compute_combinations_random(file_write):
-#     for name, param in net.named_parameters():
-#         print(name)
-#         print(param.shape)
-#         layer = "module.features.1.weight"
-#         if layer in name:
-#             layerbias = layer[:17] + ".bias"
-#             params_bias = net.state_dict()[layerbias]
-#             while (True):
-#
-#                 all_results = {}
-#                 # s=torch.range(0,49) #list from 0 to 19 as these are the indices of the data tensor
-#                 # for r in range(1,50): #produces the combinations of the elements in s
-#                 #    results=[]
-#                 randperm = np.random.permutation(param.shape[0])
-#                 randint = 0
-#                 while (randint == 0):
-#                     randint = np.random.randint(param.shape[0])
-#                 randint_indextoremove = np.random.randint(randint)
-#                 combination = randperm[:randint]
-#                 combination2 = np.delete(combination, randint_indextoremove)
-#                 print(combination[randint_indextoremove])
-#
-#                 #if file_write:
-#                 print("in")
-#                 with open("results_running/combinations_pruning_cifar_vgg_%s.txt" % (layer),
-#                           "a+") as textfile:
-#                     textfile.write("%d\n" % randint_indextoremove)
-#
-#                 for combination in [combination, combination2]:
-#                     # for combination in list(combinations(s, r)):
-#
-#                     combination = torch.LongTensor(combination)
-#
-#                     print(combination)
-#                     params_saved = param[combination].clone()
-#                     param_bias_saved = params_bias[combination].clone()
-#
-#                     # param[torch.LongTensor([1, 4])] = 0
-#                     # workaround, first using multiple indices does not work, but if one of the change first then it works to use  param[combinations]
-#                     if len(combination) != 0:
-#                         param[combination[0]] = 0
-#                         # param[combination]=0
-#                         params_bias[combination] = 0
-#
-#                     accuracy = test(-1)
-#                     param[combination] = params_saved
-#                     params_bias[combination] = param_bias_saved
-#
-#                     #if file_write:
-#                     print("out")
-#                     with open("results_running/combinations_pruning_cifar_vgg_%s.txt" % (layer),
-#                               "a+") as textfile:
-#                         textfile.write("%s: %.2f\n" % (",".join(str(x) for x in combination.numpy()), accuracy))
 
 
 ##########################################################################3

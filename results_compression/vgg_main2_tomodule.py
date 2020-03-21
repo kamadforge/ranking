@@ -137,12 +137,13 @@ parser.add_argument("--arch", default='25,25,65,80,201,158,159,460,450,490,470,4
 #parser.add_argument("--arch", default='25,25,65,80,201,158,159,460,450,490,470,465,465,450')
 # ar.add_argument("-arch", default=[21,20,65,80,201,147,148,458,436,477,454,448,445,467,441])
 parser.add_argument('--layer', help="layer to prune", default="c1")
-parser.add_argument("--method", default='l1')
+parser.add_argument("--method", default='switch')
 parser.add_argument("--switch_samps", default=100, type=int)
-parser.add_argument("--ranks_method", default='point')
+parser.add_argument("--switch_epochs", default=8)
+parser.add_argument("--ranks_method", default='integral')
 # parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
 # parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')
-save_accuracy=90.0
+save_accuracy=91.0
 
 args = parser.parse_args()
 print(args.layer)
@@ -179,7 +180,7 @@ class VGG(nn.Module):
     def __init__(self, vgg_name):
         super(VGG, self).__init__()
 
-        cfg_arch=cfg['VGG15_comp']
+        cfg_arch=cfg['VGG15']
 
         self.c1 = nn.Conv2d(3, cfg_arch[0], 3, padding=1)
         self.bn1 = nn.BatchNorm2d(cfg_arch[0], eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
@@ -368,7 +369,7 @@ class VGG(nn.Module):
         self.act[13] = self.activation13(output)
         output = self.mp5(output)
 
-        output = output.view(-1, cfg['VGG15_comp'][13])
+        output = output.view(-1, cfg['VGG15'][13])
         output = self.l1(output)
         self.act[14] = self.activation14(output)
         output = self.l3(output)
@@ -770,10 +771,10 @@ def prune_and_retrain(thresh):
         ############################3
         # READ THE RANKS
 
-        #it seems that unlike in lenet here the ranks are from worse to best
+
+
         if method == 'switch':
             ranks_method=args.ranks_method
-            switches_epoch = 10
 
             if ranks_method == 'shapley':
                 combinationss = []
@@ -804,7 +805,7 @@ def prune_and_retrain(thresh):
             elif ranks_method == 'integral':
                 # combinationss=torch.load('results/ranks/ranks_93.92_switches.pt')
                 #combinationss = [0] * len(cfg['VGGBC'])  # 15
-                ranks_path = path_switch+'/results/switch_data_cifar_integral_samps_%i_epochs_7.npy' % args.switch_samps
+                ranks_path = path_switch+'/results/switch_data_cifar_integral_samps_%i_epochs_%i.npy' % (args.switch_samps, args.switch_epochs)
 
                 # for i in range(len(combinationss)):
                 #     ranks_filepath = ranks_path + "93.92_conv" + str(i + 1) + "_ep49.pt"
@@ -832,7 +833,7 @@ def prune_and_retrain(thresh):
                 print(ranks_method)
                 # combinationss=torch.load('results/ranks/ranks_93.92_switches.pt')
                 #combinationss = [0] * len(cfg['VGGBC'])  # 15
-                ranks_path = path_switch+'/results/switch_data_cifar_point_epochs_7.npy'
+                ranks_path = path_switch+'/results/switch_data_cifar_point_epochs_%i.npy' % (args.switch_epochs)
 
 
                 combinationss=list(np.load(ranks_path,  allow_pickle=True).item()['combinationss'])
@@ -892,8 +893,8 @@ def prune_and_retrain(thresh):
         # PRINT THE PRUNED ARCHITECTURE
         remaining = []
         for i in range(len(combinationss)):
-            print(cfg['VGGBC'][i], len(combinationss[i]))
-            remaining.append(int(cfg['VGGBC'][i]) - len(combinationss[i]))
+            print(cfg['VGG15'][i], len(combinationss[i]))
+            remaining.append(int(cfg['VGG15'][i]) - len(combinationss[i]))
         print(remaining)
 
         # PRUNE
@@ -927,11 +928,15 @@ def prune_and_retrain(thresh):
         # net.c5.weight.data[combination3] = 0;net.c5.bias.data[combination3] = 0
         # net.f6.weight.data[combination4] = 0;net.f6.bias.data[combination4] = 0
 
+
         print("After pruning")
 
         test(-1)
 
-        ######## RETRAINING
+        ######## GRAD
+
+
+
 
         def gradi1(module):
             module[combinationss[0]] = 0
@@ -1181,9 +1186,9 @@ def prune_and_retrain(thresh):
 model2load = path_compression+'/checkpoint/ckpt_vgg16_94.34.t7'
 orig_accuracy = 94.34
 # if all False just train thenetwork
-resume = False
-prune_bool = False
-retrain_bool = False  # whether we retrain the model or just evaluate
+resume = True
+prune_bool = True
+retrain_bool = True  # whether we retrain the model or just evaluate
 
 comp_combinations = False  # must be with resume #with retrain if we want to retrain combinations
 vis = False
