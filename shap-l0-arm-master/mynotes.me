@@ -1,0 +1,65 @@
+Model has following parameters:
+
+convs.0.bias torch.Size([20])
+convs.0.weights torch.Size([20, 1, 5, 5])
+convs.0.z_phi torch.Size([20])
+convs.3.bias torch.Size([50])
+convs.3.weights torch.Size([50, 20, 5, 5])
+convs.3.z_phi torch.Size([50])
+fcs.0.weights torch.Size([800, 500])
+fcs.0.z_phi torch.Size([800])
+fcs.0.bias torch.Size([500])
+fcs.2.weights torch.Size([500, 10])
+fcs.2.z_phi torch.Size([500])
+fcs.2.bias torch.Size([10])
+
+
+ARM_Conv
+
+we first draw
+self.u = torch.Tensor(self.dim_z).uniform_(0, 1)
+
+self.z_phi = Parameter(torch.Tensor(out_channels))
+z_phi in  ARM_Conv.py has the length of the number of filters and it seems it is similar to the importance switches
+
+
+update_phi_gradient - i guess very important function where we actually compute the gradient and we use the formula from ARM
+compute the gradient and update:  self.z_phi.grad = e
+
+
+count_expected_flops_and_l0 function in ARM_Conv does a strange thing of computing expected flops reduction where it somehow sums the values ion z_phi and then myltiplies it by the number of weights in a filter
+
+Then in sample_z we went through a sigmoid with that sample_z
+if self.forward_mode (both training and testing), we make z go through a thresholf 0.5 (opt.t) and the ones below are zeroed.
+
+
+Lenet
+
+Compute loss:
+
+1 Part
+
+in the forward motion, we compute two components of the loss, f1 and f2
+f1
+We set the forward mode to True
+1. we first compute the "score" which is the output of the network for each training image
+score = self.score(x) #output of the lenet network (value for each vategory)
+2. we compute the crossentropy between this output and the true labels y. this is the first part of the loss, f1
+f2
+it is the same as f1 only in the forward_mode set as False
+
+For some reason the loss takes into account those two values in the forward mode and not in the forward mode
+
+Then we feed it to
+self.update_phi_gradient(f1, f2)
+
+
+2 Part
+
+regularition
+
+
+
+main
+
+both losses are combined in the criterion function in the main

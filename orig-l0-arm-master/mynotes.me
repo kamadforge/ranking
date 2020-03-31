@@ -1,0 +1,55 @@
+------ARM_Conv
+
+we first draw
+self.u = torch.Tensor(self.dim_z).uniform_(0, 1)
+
+self.z_phi = Parameter(torch.Tensor(out_channels))
+z_phi in  ARM_Conv.py has the length of the number of filters and it seems it is similar to the importance switches
+
+
+update_phi_gradient - i guess very important function where we actually compute the gradient and we use the formula from ARM
+compute the gradient and update:  self.z_phi.grad = e
+
+
+count_expected_flops_and_l0 function in ARM_Conv does a strange thing of computing expected flops reduction where it somehow sums the values ion z_phi and then myltiplies it by the number of weights in a filter
+
+Then in sample_z we went through a sigmoid with that sample_z
+if self.forward_mode (both training and testing), we make z go through a thresholf 0.5 (opt.t) and the ones below are zeroed.
+
+
+-------Lenet
+
+Network
+
+The model/network consists of arm modules which are counterparts of regular layers
+
+The forward pass (returned in main as score when we run 'model') returns either just a simple forward pass (in the else part) or if self.training is done it does return a simple forward pass, but it also makes another pass for the gradient update. it does it in the eval mode, so that doesn't need to run again in the forward pass
+
+Compute loss:
+
+1 Part
+
+in the forward motion, we compute two components of the loss, f1 and f2
+f1
+We set the forward mode to True
+1. we first compute the "score" which is the output of the network for each training image
+score = self.score(x) #output of the lenet network (value for each vategory)
+2. we compute the crossentropy between this output and the true labels y. this is the first part of the loss, f1
+f2
+it is the same as f1 only in the forward_mode set as False
+
+For some reason the loss takes into account those two values in the forward mode and not in the forward mode
+
+Then we feed it to
+self.update_phi_gradient(f1, f2)
+
+
+2 Part
+
+regularition
+
+
+
+------main
+
+both losses are combined in the criterion function in the main
