@@ -79,14 +79,18 @@ def get_external_weights(model):
 
 
     # model.convs[0].z_phi.register_hook(gradi)
-    # model.convs[0].weights.register_hook(lambda grad: grad * 0)
-    # model.convs[3].bias.register_hook(lambda grad: grad * 0)
-    # model.convs[0].weights.register_hook(lambda grad: grad * 0)
-    # model.convs[3].bias.register_hook(lambda grad: grad * 0)
-    # model.fcs[0].weights.register_hook(lambda grad: grad * 0)
-    # model.fcs[0].bias.register_hook(lambda grad: grad * 0)
-    # model.fcs[2].weights.register_hook(lambda grad: grad * 0)
-    # model.fcs[2].bias.register_hook(lambda grad: grad * 0)
+    model.conv1.weights.register_hook(lambda grad: grad * 0)
+    model.conv1.bias.register_hook(lambda grad: grad * 0)
+    model.conv2.weights.register_hook(lambda grad: grad * 0)
+    model.conv2.bias.register_hook(lambda grad: grad * 0)
+    model.fcs[0].weights.register_hook(lambda grad: grad * 0)
+    model.fcs[0].bias.register_hook(lambda grad: grad * 0)
+    model.fcs[2].weights.register_hook(lambda grad: grad * 0)
+    model.fcs[2].bias.register_hook(lambda grad: grad * 0)
+
+    model.conv2.z_phi.register_hook(lambda grad: grad * 0)
+    model.fcs[0].z_phi.register_hook(lambda grad: grad * 0)
+    model.fcs[2].z_phi.register_hook(lambda grad: grad * 0)
 
     return model
 
@@ -156,11 +160,12 @@ def train(**kwargs):
             optimizer.zero_grad()
             score = model(input_, target)
             #model.conv1.z_phi[0]=-10000
-            score2 = model(input_, target)
 
             loss = criterion(score, target)
             loss.backward()
             optimizer.step()
+
+            #print(model.fcs[2].z_phi)
 
             #loss_meter.add(loss.cpu().data)
             accuracy_meter.add(score.data, target.data)
