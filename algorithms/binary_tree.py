@@ -1,3 +1,14 @@
+class Tree:
+    def __init__(self):
+        self.root=None
+
+    def insert(self, data):
+        if not self.root:
+            self.root=Node(data)
+        else:
+            self.root.insert(data)
+
+
 class Node:
 
     def __init__(self, data):
@@ -31,9 +42,20 @@ class Node:
             self.right.PrintTree()
 
 # Use the insert method to add nodes
-root = Node(12)
-root.insert(6)
-root.insert(14)
-root.insert(3)
+# root = Node(12)
+# root.insert(6)
+# root.insert(14)
+# root.insert(3)
 
-root.PrintTree()
+# root.PrintTree()
+
+#second way
+tree=Tree()
+tree.insert(3)
+tree.insert(10)
+tree.insert(12)
+tree.insert(5)
+tree.insert(6)
+tree.insert(11)
+
+tree.root.PrintTree()
