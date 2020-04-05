@@ -6,6 +6,10 @@
 # - computes the combinations with the pruned model
 
 
+#IMPORTANT
+#for 99.27 and 90.04 models remove output = self.out7(output)
+
+
 import torch
 from torch import nn, optim
 import sys
@@ -41,6 +45,10 @@ arguments.add_argument("--method", default="switch_point") #switch_itegral, swit
 arguments.add_argument("--switch_samps", default=300, type=int)
 arguments.add_argument("--switch_comb", default='load')
 arguments.add_argument("--dataset", default="mnist")
+
+arguments.add_argument("--resume", default=True)
+arguments.add_argument("--prune_bool", default=False)
+arguments.add_argument("--retrain", default=False)
 
 args=arguments.parse_args()
 
@@ -358,6 +366,9 @@ def load_model():
     net.load_state_dict(torch.load(path, map_location=lambda storage, loc: storage)['model_state_dict'], strict=False)
     #net.load_state_dict(torch.load(path, map_location=lambda storage, loc: storage), strict=False)
 
+    for name, param in net.named_parameters():
+        torch.save(param.data, "models/arrays/99.27_%s" % name)
+
 
     print(dataset, "loaded.")
     return net
@@ -393,6 +404,8 @@ def evaluate():
     accuracy = 100 * float(correct) / total
     print("test accuracy: %.2f %%" % (accuracy))
     return accuracy
+
+
 
 
 ############################3
@@ -863,9 +876,9 @@ save=False
 write_training=False
 #################################
 
-resume=True
-prune_bool=True
-retrain=True
+resume=args.resume
+prune_bool=args.prune_bool
+retrain=args.retrain
 
 
 ##############################
