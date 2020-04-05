@@ -13,6 +13,13 @@ fcs.2.weights torch.Size([500, 10])
 fcs.2.z_phi torch.Size([500])
 fcs.2.bias torch.Size([10])
 
+python main.py train --model=ARMLeNet5 --dataset=mnist --lambas="[.1,.1,.1,.1]" --optimizer=adam --lr=0.001
+        python main.py test --model=ARMLeNet5 --dataset=mnist --lambas="[.1,.1,.1,.1]" --load_file="checkpoints/ARMLeNet5_2019-06-19 14:27:03/0.model"
+        test --model=ARMLeNet5 --dataset=mnist --lambas="[.1,.1,.1,.1]" --load_file="checkpoints/ARMLeNet5_2020-03-25 15:50:07/0.model" --use_gpu=False
+
+        python main.py train --model=ARMWideResNet --dataset=cifar10 --lambas=.001 --optimizer=momentum --lr=0.1 --schedule_milestone="[60, 120]"
+        python main.py help
+
 
 ARM_Conv
 
@@ -58,8 +65,26 @@ self.update_phi_gradient(f1, f2)
 
 regularition
 
-
-
 main
 
 both losses are combined in the criterion function in the main
+
+-----
+
+f2 is passed to update_gradient in armconv from Lenet (one level up, from its forward function)
+in Lenet update_gradient is called for every layer of Lenet model when running a forward function,
+that forward function runs forward and produces a score f1, f2, score is just a "mini-forward" function that just runs through the model
+score on the other hand calls the forward function in the armconv, which calls the sample_z,
+sample_z produces the vector with zeros and ones, like this [0 0 0 1 1 0..]
+
+Parameters:
+
+opt.t is the value of the threshold where we set all the values less than that value to 0. The values higher than opt.t will stay the same (we don't set them to 1)
+
+e.g. if all the phis are below 0, then all the sigmoid values will be less than 0.5 and then by taking opt.t=0.5, all the values will be 0.
+
+Some results:
+[array(10), array(20), array(114), array(73)]
+epoch:77,lr:0.001,loss:0.05,val_acc:99.15,prune_rate:95.18
+epoch:177,lr:0.001,loss:0.04,val_acc:99.18,prune_rate:96.39
+epoch:196,lr:0.001,loss:0.04,val_acc:99.15,prune_rate:96.68

@@ -6,24 +6,25 @@ import numpy as np
 from torch.nn.parameter import Parameter
 
 device="cpu"
+mode='train'
+load=False
 ##############
 BATCH_SIZE=100
 # trainval_perc=1.0
+
+train_dataset = datasets.FashionMNIST('data', train=True, download=True,
+                                         # transform=transforms.Compose([transforms.ToTensor(),
+                                         # transforms.Normalize((0.1307,), (0.3081,))]),
+                                         transform=transforms.ToTensor())
+
 #
-# trainval_dataset = datasets.FashionMNIST('data', train=True, download=True,
-#                                          # transform=transforms.Compose([transforms.ToTensor(),
-#                                          # transforms.Normalize((0.1307,), (0.3081,))]),
-#                                          transform=transforms.ToTensor())
-#
-# train_size = int(trainval_perc * len(trainval_dataset))
-# val_size = len(trainval_dataset) - train_size
-# train_dataset, val_dataset = torch.utils.data.random_split(trainval_dataset, [train_size, val_size])
-#
+
+
 test_dataset = datasets.FashionMNIST('data/FashionMNIST', train=False, download=True, transform=transforms.ToTensor())
 
 test_loader = torch.utils.data.DataLoader(test_dataset,batch_size=BATCH_SIZE, shuffle=False)
 
-
+train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=False)
 ############################
 
 
@@ -45,6 +46,7 @@ class Lenet(nn.Module):
 
         self.parameter = Parameter(-1e-10*torch.ones(nodesNum1),requires_grad=True) # this parameter lies #S
 
+        self.c1.bias[0].detach()
 
 
     def forward(self, x):
@@ -55,6 +57,8 @@ class Lenet(nn.Module):
         # output=self.bn2(output)
         # output=self.fc3(output)
         # return output
+
+        #print(self.c1.bias[0])
 
         # #x=x.view(-1,784)
         output = self.c1(x)
@@ -73,23 +77,63 @@ class Lenet(nn.Module):
 nodesNum1, nodesNum2, nodesFc1, nodesFc2 = 10, 20, 100, 25
 net = Lenet(nodesNum1, nodesNum2, nodesFc1, nodesFc2).to(device)
 
-path="models/fashionmnist_conv10_conv20_fc100_fc25_rel_bn_drop_trainval_modelopt1.0_epo62_acc90.04"
-#path = "models/mnist_conv10_conv20_fc100_fc25_rel_bn_drop_trainval_modelopt1.0_epo540_acc99.27"
 
-net.load_state_dict(torch.load(path, map_location=lambda storage, loc: storage)['model_state_dict'], strict=False)
+for name, param in net.named_parameters():
+    print(name, param.shape)
 
-##############
-net.eval()
-correct = 0
-total = 0
-for j, data in enumerate(test_loader):
-    images, labels = data
-    print(labels)
-    images = images.to(device)
-    predicted_prob = net.forward(images)  # images.view(-1,28*28)
-    predicted = np.argmax(predicted_prob.cpu().detach().numpy(), axis=1)
-    print(predicted)
-    total += labels.size(0)
-    correct += (predicted == labels.numpy()).sum().item()
-accuracy = 100 * float(correct) / total
-print("accuracy: %.2f %%" % (accuracy))
+
+
+def test():
+    path="models/fashionmnist_conv10_conv20_fc100_fc25_rel_bn_drop_trainval_modelopt1.0_epo62_acc90.04"
+    #path = "models/mnist_conv10_conv20_fc100_fc25_rel_bn_drop_trainval_modelopt1.0_epo540_acc99.27"
+
+    if load:
+        net.load_state_dict(torch.load(path, map_location=lambda storage, loc: storage)['model_state_dict'], strict=False)
+
+
+
+    ##############
+
+    net.eval()
+    correct = 0
+    total = 0
+    for j, data in enumerate(test_loader):
+        images, labels = data
+        #print(labels)
+        images = images.to(device)
+        predicted_prob = net.forward(images)  # images.view(-1,28*28)
+        predicted = np.argmax(predicted_prob.cpu().detach().numpy(), axis=1)
+        #print(predicted)
+        total += labels.size(0)
+        correct += (predicted == labels.numpy()).sum().item()
+    accuracy = 100 * float(correct) / total
+    print("accuracy: %.2f %%" % (accuracy))
+
+######################
+
+def train():
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9, weight_decay=5e-4)
+
+
+    net.train()
+
+    for j,data in enumerate(train_loader):
+        images, labels = data
+        images, labels = images.to(device), labels.to(device)
+        optimizer.zero_grad()
+        out=net.forward(images)
+        net.eval()
+        out = net.forward(images)
+        loss=criterion(out, labels)
+        loss.backward()
+        optimizer.step()
+
+        net.c1.bias[0].data=torch.tensor(2)
+
+        if j % 100 == 0:
+            print(j)
+            test()
+
+
+train()

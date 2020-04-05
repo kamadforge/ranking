@@ -44,6 +44,11 @@ class ARMDense(nn.Module):
             e = k * ((f1 - f2) * (self.u - .5)).mean(dim=0)
         self.z_phi.grad = e
 
+    def zero_gradients(self):
+        self.weights.grad = torch.zeros_like(self.weights)
+        self.bias.grad = torch.zeros_like(self.bias)
+        self.z_phi.grad = torch.zeros_like(self.z_phi)
+
     def regularization(self):
         ''' similar with L0 paper'''
         if opt.hardsigmoid:

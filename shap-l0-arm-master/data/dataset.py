@@ -8,7 +8,7 @@ def mnist(batch_size=100, pm=False):
         transf.append(transforms.Lambda(lambda x: x.view(-1, 784)))
     transform_data = transforms.Compose(transf)
 
-    kwargs = {'num_workers': 4, 'pin_memory': torch.cuda.is_available()}
+    kwargs = {'num_workers': 0, 'pin_memory': torch.cuda.is_available()}
     train_loader = torch.utils.data.DataLoader(
         datasets.MNIST('../data', train=True, download=True,
                        transform=transform_data),
@@ -83,7 +83,7 @@ def cifar100(augment=True, batch_size=128):
         ])
 
     print(logging + ' CIFAR 100.')
-    kwargs = {'num_workers': 4, 'pin_memory': torch.cuda.is_available()}
+    kwargs = {'num_workers': 1, 'pin_memory': torch.cuda.is_available()}
     train_loader = torch.utils.data.DataLoader(
         datasets.CIFAR100('../data', train=True, download=True,
                          transform=transform_train),

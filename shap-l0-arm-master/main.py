@@ -30,6 +30,69 @@ print(current_time)
 vis = None
 
 
+def gradi(module):
+    module[0] = 0
+    #print(module[0])
+    #print(module[1])
+
+def gradi_all(module):
+    module[:]=0
+
+
+
+def get_external_weights(model):
+
+    for name, param in model.named_parameters():
+        print (name, param.shape)
+        #name.register_hook(gradi)
+
+    # model.state_dict()['convs.0.weights'][:] = torch.load("../results_compression/models/arrays/99.27_c1.weight").to(
+    #     device)
+    # model.state_dict()['convs.0.bias'][:] = torch.load("../results_compression/models/arrays/99.27_c1.bias").to(device)
+    # model.state_dict()['convs.3.weights'][:] = torch.load("../results_compression/models/arrays/99.27_c3.weight").to(
+    #     device)
+    # model.state_dict()['convs.3.bias'][:] = torch.load("../results_compression/models/arrays/99.27_c3.bias").to(device)
+
+    model.state_dict()['conv1.weights'][:] = torch.load("../results_compression/models/arrays/99.27_c1.weight").to(
+        device)
+    model.state_dict()['conv1.bias'][:] = torch.load("../results_compression/models/arrays/99.27_c1.bias").to(device)
+    model.state_dict()['conv2.weights'][:] = torch.load("../results_compression/models/arrays/99.27_c3.weight").to(
+        device)
+    model.state_dict()['conv2.bias'][:] = torch.load("../results_compression/models/arrays/99.27_c3.bias").to(device)
+
+    model.state_dict()['fcs.0.weights'][:] = torch.load("../results_compression/models/arrays/99.27_c5.weight").t().to(
+        device)
+    model.state_dict()['fcs.0.bias'][:] = torch.load("../results_compression/models/arrays/99.27_c5.bias").to(device)
+    model.state_dict()['fcs.2.weights'][:] = torch.load("../results_compression/models/arrays/99.27_f6.weight").t().to(
+        device)
+    model.state_dict()['fcs.2.bias'][:] = torch.load("../results_compression/models/arrays/99.27_f6.bias").to(device)
+
+    #test_phi = 0
+    #model.state_dict()['convs.0.z_phi'][:] = (torch.ones(10) * test_phi).to(device)
+    # model.state_dict()['convs.3.z_phi'][:] = (torch.ones(20) * test_phi).to(device)
+    # model.state_dict()['fcs.0.z_phi'][:] = (torch.ones(320) * test_phi).to(device)
+    # model.state_dict()['fcs.2.z_phi'][:] = (torch.ones(100) * test_phi).to(device)
+    #model.state_dict()['convs.0.z_phi'][0]=100000.
+    model.state_dict()['conv1.z_phi'][0].detach()
+    model.state_dict()['conv1.z_phi'][0]=100000.
+
+
+
+    # model.convs[0].z_phi.register_hook(gradi)
+    # model.convs[0].weights.register_hook(lambda grad: grad * 0)
+    # model.convs[3].bias.register_hook(lambda grad: grad * 0)
+    # model.convs[0].weights.register_hook(lambda grad: grad * 0)
+    # model.convs[3].bias.register_hook(lambda grad: grad * 0)
+    # model.fcs[0].weights.register_hook(lambda grad: grad * 0)
+    # model.fcs[0].bias.register_hook(lambda grad: grad * 0)
+    # model.fcs[2].weights.register_hook(lambda grad: grad * 0)
+    # model.fcs[2].bias.register_hook(lambda grad: grad * 0)
+
+    return model
+
+
+
+
 def train(**kwargs):
     global device, vis
     if opt.seed is not None:
@@ -47,6 +110,9 @@ def train(**kwargs):
     # load model
     model = getattr(models, opt.model)(lambas=opt.lambas, num_classes=num_classes, weight_decay=opt.weight_decay).to(
         device)
+
+
+    model=get_external_weights(model)
 
     if opt.gpus > 1:
         model = nn.DataParallel(model)
@@ -89,11 +155,14 @@ def train(**kwargs):
             input_, target = input_.to(device), target.to(device)
             optimizer.zero_grad()
             score = model(input_, target)
+            #model.conv1.z_phi[0]=-10000
+            score2 = model(input_, target)
+
             loss = criterion(score, target)
             loss.backward()
             optimizer.step()
 
-            loss_meter.add(loss.cpu().data)
+            #loss_meter.add(loss.cpu().data)
             accuracy_meter.add(score.data, target.data)
 
             e_fl, e_l0 = model.get_exp_flops_l0() if opt.gpus <= 1 else model.module.get_exp_flops_l0()
@@ -117,25 +186,25 @@ def train(**kwargs):
         if epoch % 10 == 0 or epoch == opt.max_epoch - 1:
             torch.save(model.state_dict(), directory + '/{}.model'.format(epoch))
         # validate model
-        val_accuracy, val_loss = val(model, val_loader, criterion)
-
-        vis.plot('val/loss', val_loss)
-        vis.plot('val/accuracy', val_accuracy)
+        # val_accuracy, val_loss = val(model, val_loader, criterion)
+        #
+        # vis.plot('val/loss', val_loss)
+        # vis.plot('val/accuracy', val_accuracy)
 
         # update lr
-        if scheduler is not None:
-            if isinstance(optimizer, torch.optim.lr_scheduler.ReduceLROnPlateau):
-                scheduler.step(val_loss)
-            else:
-                scheduler.step(epoch)
-        if opt.verbose:
-            print("epoch:{epoch},lr:{lr},loss:{loss:.2f},val_acc:{val_acc:.2f},prune_rate:{pr:.2f}"
-                  .format(epoch=epoch, loss=loss_meter.value()[0], val_acc=val_accuracy, lr=optimizer.param_groups[0]['lr'],
-                          pr=model.prune_rate() if opt.gpus <= 1 else model.module.prune_rate()))
-        for (i, num) in enumerate(model.get_expected_activated_neurons() if opt.gpus <= 1
-                                  else model.module.get_expected_activated_neurons()):
-            vis.plot("Training_layer/{}".format(i), num)
-        vis.plot('lr', optimizer.param_groups[0]['lr'])
+        # if scheduler is not None:
+        #     if isinstance(optimizer, torch.optim.lr_scheduler.ReduceLROnPlateau):
+        #         scheduler.step(val_loss)
+        #     else:
+        #         scheduler.step(epoch)
+        # if opt.verbose:
+        #     print("epoch:{epoch},lr:{lr},loss:{loss:.2f},val_acc:{val_acc:.2f},prune_rate:{pr:.2f}"
+        #           .format(epoch=epoch, loss=loss_meter.value()[0], val_acc=val_accuracy, lr=optimizer.param_groups[0]['lr'],
+        #                   pr=model.prune_rate() if opt.gpus <= 1 else model.module.prune_rate()))
+        # for (i, num) in enumerate(model.get_expected_activated_neurons() if opt.gpus <= 1
+        #                           else model.module.get_expected_activated_neurons()):
+        #     vis.plot("Training_layer/{}".format(i), num)
+        # vis.plot('lr', optimizer.param_groups[0]['lr'])
 
 
 def val(model, dataloader, criterion):
@@ -163,6 +232,7 @@ def val(model, dataloader, criterion):
     return accuracy_meter.value()[0], loss_meter.value()[0]
 
 
+
 def test(**kwargs):
     opt.parse(kwargs)
     global device, vis
@@ -180,10 +250,14 @@ def test(**kwargs):
         return total_loss
 
     if len(opt.load_file) > 0:
-        model.load_state_dict(torch.load(opt.load_file))
+        #model.load_state_dict(torch.load(opt.load_file))
         for name, param in model.named_parameters():
             print (name, param.shape)
-            param.data[0]=0.5 #example how change
+            #param.data[0]=0.5 #example how change
+
+        model=get_external_weights(model)
+
+        #-1 everything is pruned
 
 
         val_accuracy, val_loss = val(model, val_loader, criterion)
