@@ -74,10 +74,6 @@ def get_external_weights(model):
 
     test_phi = 10
     model.state_dict()['conv1.z_phi'][:] = (torch.ones(10) * test_phi).to(device)
-
-    model.state_dict()['conv1.z_phi'][:]=\
-        torch.tensor([1.0000e+05, -4.3877e-01, 6.5680e-01, 7.2174e-02, -3.5518e-01,
-     -2.0797e-01, -1.1507e-01, -3.9121e-01, -4.0855e-01, 2.3960e-01]).to(device)
     model.state_dict()['conv2.z_phi'][:] = (torch.ones(20) * test_phi).to(device)
     model.state_dict()['fcs.0.z_phi'][:] = (torch.ones(320) * test_phi).to(device)
     model.state_dict()['fcs.2.z_phi'][:] = (torch.ones(100) * test_phi).to(device)

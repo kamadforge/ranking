@@ -44,16 +44,16 @@ class ArmConv2d(nn.Module):
         if self.use_bias:
             self.bias.data.fill_(0)
 
-    def update_phi_gradient_sh(self, f1, f2, f3):
+    def update_phi_gradient_sh(self, f1, f2, f3, node):
         # only handle first part of phi's gradient
         k = opt.k
         if opt.ar:
             #f3 is 0 and f2 is 1 and it should be negative and we want to minimize (that's we mazimizing the gap between the two)
-            e = k * (f2 * (1 - 2 * self.un)).mean(dim=0)  - k * (f3 * (1 - 2 * self.un)).mean(dim=0) # averaging over the batch
+            e = 0.05*(k * (f3 * (1 - 2 * self.un)).mean(dim=0)  - k * (f2 * (1 - 2 * self.un)).mean(dim=0)) # averaging over the batch
         else:
             e = k * ((f1 - f2) * (self.un - .5)).mean(dim=0)  # averaging over the batch
         # print(self.z_phi.grad)
-        e[0] = 0
+        e[node] = 0
         self.z_phi.grad = e
         # print(self.z_phi.grad)
         # print("*****")
@@ -68,6 +68,8 @@ class ArmConv2d(nn.Module):
         #print(self.z_phi.grad)
         e[0]=0
         self.z_phi.grad = e
+        #if len(self.z_phi)==10:
+        #    print(e)
         #print(self.z_phi.grad)
         #print("*****")
 
@@ -163,7 +165,7 @@ class ArmConv2d(nn.Module):
                     z = pi.expand(batch_size, self.dim_z)
                     z[z < opt.t] = 0
                 self.test_z = z
-                #print(self.test_z)
+                print(self.test_z)
                 #print(self.test_z.shape)
         else:
             # pi2 = torch.sigmoid(-opt.k * self.z_phi)

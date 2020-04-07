@@ -68,6 +68,8 @@ class DefaultConfig:
     note = ''
     verbose = True
     print_freq = 100
+    node = 0
+
 
 
 def parse(self, kwargs):
