@@ -69,6 +69,7 @@ class DefaultConfig:
     verbose = True
     print_freq = 100
     node = 0
+    node_remove = False
 
 
 
