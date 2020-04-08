@@ -221,6 +221,7 @@ def readdata_sampled_compute_sv():
 # COMPUTE SHAPLEY ONLY
 # full shplaey 1
 
+#the characteristic function values are arbitrary for this toy example
 def full_shapley_1():
     dict={(1,2,3): 6, (1,3) : 5, (2,3) : 5, (1,2): 2, (2,): 2, (3,) : 2, (1,): 1, ():0}
     elements=[1,2,3]
@@ -242,6 +243,41 @@ def full_shapley_1():
                 #print(a_removed, dict[a_removed])
         shapley=sum/math.factorial(len(elements))
         print(shapley)
+
+#########################################3
+#shapley 1b
+
+#computing a complete shapley value for an arbitrary dict
+
+def full_shapley_1b(dict):
+
+    elem_num = 10
+    elements = np.arange(elem_num)
+    shapleys=[]
+
+    for elem in elements:
+        print(elem)
+        sum=0
+        for a in dict:
+            if elem in a:
+                elem_list=list(a)
+                elem_list.remove(elem)
+                a_removed=tuple(elem_list)
+
+                sfact=math.factorial(len(a_removed))
+                vsmin1fact=math.factorial(len(elements)-len(a_removed)-1)
+                sum+=sfact*vsmin1fact*(dict[a]-dict[a_removed])
+
+                #print(a, dict[a])
+                #print(a_removed, dict[a_removed])
+        shapley=sum/math.factorial(len(elements))
+        print(shapley)
+        shapleys.append(shapley)
+
+    print(np.argsort(shapleys)[::-1])
+    print(np.sort(shapleys)[::-1])
+
+
 
 ###################################################################3
 # full shapley 2
@@ -270,12 +306,12 @@ def full_shapley_1():
 
 ####################################
 
-
+#computing the partial shapley value for the subsets of size k
 def full_shapley_2(dict):
     #dict={(1,2,3): 6, (1,3) : 5, (1,2): 2, (2,3): 5, (2,): 2, (3,) : 2, (1,): 1, ():0}
     elem_num=10
     elements=np.arange(elem_num)
-    k=5
+    k=5 #the size of the subset
 
     shapleys=[]
 
@@ -289,7 +325,7 @@ def full_shapley_2(dict):
                 ind=perm.index(elem)
                 if ind==k:
                     del perm_list[ind+1:]
-                    perm_list.sort()
+                    perm_list.sort() #sort to check characteristic function
                     perm_tuple=tuple(perm_list)
                     perm_list.remove(elem)
                     removed_perm_tuple=tuple(perm_list)
@@ -297,17 +333,21 @@ def full_shapley_2(dict):
                     sum+=val
                     coalitions_vals.append(val)
                     #print(val)
-        for i in coalitions_vals:
-            coalitions_vals_normal.append(i)
-            coalitions_vals_normal.append(-i)
-        print("var: ", np.var(coalitions_vals_normal))
-        print("mean: ", np.mean(coalitions_vals_normal))
-        plt.hist(coalitions_vals)
-        plt.show()
+        #it is not part of the core shapley value computation NOTE
+        #it just looks how the ch
+        #for i in coalitions_vals:
+        #    coalitions_vals_normal.append(i)
+        #    coalitions_vals_normal.append(-i)
+        #print("var: ", np.var(coalitions_vals_normal))
+        #print("mean: ", np.mean(coalitions_vals_normal))
+        #plt.hist(coalitions_vals)
+        #plt.show()
+
         # number of permutations with the same group of nodes before and after ind
         repetitions_num = math.factorial(k)*math.factorial(elem_num-k-1)
-        #partial_shap=sum/repetitions_num #to jeszcze podzielic przez number of this unique sets before and after
-        partial_shap=sum/math.factorial(len(elements))
+        partial_shap=sum*repetitions_num #to jeszcze podzielic przez number of this unique sets before and after
+        #partial_shap=sum/math.factorial(len(elements))
+        partial_shap=partial_shap/math.factorial(len(elements))
         shap = sum / math.factorial(len(elements)-1)
         print("shap: ", partial_shap)
         shapleys.append(partial_shap)
@@ -476,13 +516,14 @@ for layer in vgg_layername:
     #file="/home/kamil/Dropbox/Current_research/python_tests/results_compression/combinations/94.34/zeroing_0.2val/combinations_vgg_"+layer+".0.out"
     #file="/home/kamil/Dropbox/Current_research/python_tests/results_compression/combinations/fashionmnist/90.04/zeroing_trainval1_val0.2/combinations_fashionmnist_trainval1_val0.2_"+layer+"_.0.out"
     #file="/home/kamil/Dropbox/Current_research/python_tests/results_compression/combinations/99.27/zeroing_trainval1_val0.2/combinations_trainval1_val0.2_"+layer+"_.0.out"
-    file="/home/kamil/Dropbox/Current_research/python_tests/results_shapley/combinations/combinations_pruning_mnist_conv:10_conv:50_fc:800_fc:500_rel_bn_epo:103_acc:99.37/combinations_pruning_mnist_conv:10_conv:50_fc:800_fc:500_rel_bn_epo:103_acc:99.37_"+layer+".weight.txt"
+    #file="/home/kamil/Dropbox/Current_research/python_tests/results_shapley/combinations/combinations_pruning_mnist_conv:10_conv:50_fc:800_fc:500_rel_bn_epo:103_acc:99.37/combinations_pruning_mnist_conv:10_conv:50_fc:800_fc:500_rel_bn_epo:103_acc:99.37_"+layer+".weight.txt"
     #file="/home/kamil/Dropbox/Current_research/python_tests/results_compression/combinations/99.06/zeroing/combinations_trainval0.9_"+layer+"_.0.out"
     #file = "/home/kamil/Dropbox/Current_research/python_tests/results_compression/combinations/99.27/additive_noise/combinations_9927_addnoise_"+layer+".0.out"
     #file="/home/kamil/Dropbox/Current_research/python_tests/results_shapley/results/combinations_pruning_mnist_mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:540_acc:99.27/combinations_pruning_mnist_mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:540_acc:99.27_%s.weight.txt" % layer
     #file="/home/kamil/Dropbox/Current_research/python_tests/results_shapley/results/combinations_fashionmnist/combinations_pruning_mnist_fashionmnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:62_acc:90.04_%s.weight.txt" % layer
     #file="/home/kamil/Dropbox/Current_research/python_tests/results_shapley/results/vgg_93.92/combinations_pruning_cifar_vgg16_module.c3.weight.txt"
     #file="/home/kamil/Dropbox/Current_research/python_tests/results_shapley/results/vgg_93.92/tesst_vgg15.0.out"
+    file="/home/kamil/Desktop/Dropbox/Current_research/ranking/results_shapley/combinations/mnist/99.27/combinations_pruning_mnist_mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:540_acc:99.27/combinations_pruning_mnist_mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:540_acc:99.27_c1.weight.txt"
     #dirfile=os.path.split(file)[0]
     #save_textfile=os.path.join(dirfile, "shapley.txt")
     #file_tosave=open(save_textfile, "a+")
@@ -498,6 +539,7 @@ for layer in vgg_layername:
 #2. shapley_samp - choose number of filters
 
 #dict=readdata_notsampled_clu0ster()
+
 
 ########################################
 # parse and save the dictionaries of combinations
@@ -523,6 +565,7 @@ for layer in vgg_layername:
 
 ###############################################
 
+
     ############### fc
     #
     original_accuracy=99.37
@@ -530,9 +573,11 @@ for layer in vgg_layername:
     dict[tuple(np.arange(10))]=original_accuracy
     #dict=readdata_vggformat()
     print(dict)
-
     #full_shapley_2(dict) #full shapley
-    sorted_indices_filters=shapley_samp(dict, lenet_filternums[layer], 10000) #IMP #approximation lenet
+    full_shapley_1b(dict)
+
+
+    #sorted_indices_filters=shapley_samp(dict, lenet_filternums[layer], 10000) #IMP #approximation lenet
     #sorted_indices_filters=shapley_samp(dict, vgg_filternums[layer], 100000) #IMP
 
 #if having only one value per node IMP
