@@ -107,7 +107,7 @@ class ARMLeNet5(nn.Module):
         if self.training:
             self.forward_mode(True)
 
-            self.conv1.z_phi[node].data = torch.tensor(10000)
+            self.conv2.z_phi[node] = torch.tensor(10000)
             score = self.score(x, True) #with neuron #should be smaller loss now
             f2 = nn.CrossEntropyLoss()(score, y).data #with neuron #should be smaller loss now
 
@@ -121,7 +121,7 @@ class ARMLeNet5(nn.Module):
                 f1 = 0
 
             #self.conv1.z_phi[0].detach()
-            self.conv1.z_phi[node].data=torch.tensor(-10000)
+            self.conv2.z_phi[node]=torch.tensor(-10000)
             score3 = self.score(x, False).data
             f3 = nn.CrossEntropyLoss()(score3, y).data #removed neuron #should be bigger loss now
             #self.conv1.z_phi[0]=temp
@@ -135,7 +135,7 @@ class ARMLeNet5(nn.Module):
             self.update_phi_gradient(f1, f2)
 
             #print(self.conv1.z_phi.grad)
-            self.conv1.update_phi_gradient_sh(f1, f2, f3, node)
+            self.conv2.update_phi_gradient_sh(f1, f2, f3, node)
             #print(self.conv1.z_phi.grad)
 
             self.train() if opt.gpus <= 1 else self.module.train()

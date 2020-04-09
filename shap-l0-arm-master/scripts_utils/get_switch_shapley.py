@@ -1,8 +1,15 @@
+
+#simply reads the outputs from the things savced by script and main, that is the marginal contributions for each samplea
+
 import numpy as np
 
 filename='../results/shapley_switches.txt'
 
+
+
 file=open(filename)
+
+
 
 array=[]
 for i in range(10):

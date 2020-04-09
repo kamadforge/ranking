@@ -156,6 +156,7 @@ class ArmConv2d(nn.Module):
                     z[(pi.expand(batch_size, self.dim_z)) < opt.t] = 0
                 self.train_z = z
             else:
+                #here it's fixed, in the test mode, we don't sample, so resutling vector is always the same
                 #print("opt.t: ", opt.t)
                 z[self.z_phi.expand(batch_size, self.dim_z) > 0] = 1
                 #print(self.z_phi.expand(batch_size, self.dim_z))
@@ -165,7 +166,8 @@ class ArmConv2d(nn.Module):
                     z = pi.expand(batch_size, self.dim_z)
                     z[z < opt.t] = 0
                 self.test_z = z
-                print(self.test_z)
+                #if len(self.test_z[0])==10:
+                #    print(self.test_z[0])
                 #print(self.test_z.shape)
         else:
             # pi2 = torch.sigmoid(-opt.k * self.z_phi)

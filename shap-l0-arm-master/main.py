@@ -114,7 +114,8 @@ def get_external_weights(model, run_type):
         # model.state_dict()['conv1.z_phi'][opt.node].detach()
         # model.state_dict()['conv1.z_phi'][opt.node]=100000.
 
-
+    for name, param in model.named_parameters():
+        print (name)
 
     # model.convs[0].z_phi.register_hook(gradi)
     model.conv1.weights.register_hook(lambda grad: grad * 0)
@@ -126,7 +127,7 @@ def get_external_weights(model, run_type):
     model.fcs[2].weights.register_hook(lambda grad: grad * 0)
     model.fcs[2].bias.register_hook(lambda grad: grad * 0)
 
-    model.conv2.z_phi.register_hook(lambda grad: grad * 0)
+    model.conv1.z_phi.register_hook(lambda grad: grad * 0)
     model.fcs[0].z_phi.register_hook(lambda grad: grad * 0)
     model.fcs[2].z_phi.register_hook(lambda grad: grad * 0)
 
@@ -204,6 +205,7 @@ def train(**kwargs):
             #loss = criterion(score, target)
             #loss.backward()
             optimizer.step()
+            #print(model.conv1.weights[1:3])
 
 
 
@@ -220,7 +222,7 @@ def train(**kwargs):
                 #plt.scatter(counter_plot, diff.detach().cpu().numpy())
                 #plt.pause(0.05)
                 #print(model.conv1.z_phi.grad)
-                print(model.conv1.z_phi)
+                print(model.conv2.z_phi)
 
             if (model.beta_ema if opt.gpus <= 1 else model.module.beta_ema) > 0.:
                 model.update_ema() if opt.gpus <= 1 else model.module.update_ema()
