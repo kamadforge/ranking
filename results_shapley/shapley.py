@@ -219,7 +219,7 @@ def readdata_sampled_compute_sv():
 
 #############################################
 # COMPUTE SHAPLEY ONLY
-# full shplaey 1
+# full shapley 1
 
 #the characteristic function values are arbitrary for this toy example
 def full_shapley_1():
@@ -475,18 +475,20 @@ def shapley_samp(dict_passed, nodesnum, samples_num):
 ###########################################################
 # sampled permutation sampled shapley
 
-def shapley_samp_perm_samp(dict_passed):
+# given characteristic function values (complete or incomplete) we simply sample permuations,
+# and see the contribution of giving element for that permutation
+
+def shapley_samp_perm_samp(dict_passed, elements_num, iterations):
     print("Partial nodes and permutations Random Shapley")
     dict = dict_passed
 
     # permutations = list(itertools.permutations(elements))
     shap_array = []
-    elements_num = 10
     for elem in range(elements_num):  # for each element we want to compute SV of
         sum = 0
         dict_elems = 0
         print(elem)
-        for i in range(10000):
+        for i in range(iterations):
             perm = np.random.permutation(elements_num).tolist()
             # print(perm)
             # we look at all the permutations
@@ -509,7 +511,7 @@ def shapley_samp_perm_samp(dict_passed):
     print(",".join(str(i) for i in np.argsort(shap_array)))
 
 # FILES
-vgg_layername=["c1"]
+vgg_layername=["c3"]
 
 for layer in vgg_layername:
 
@@ -519,11 +521,10 @@ for layer in vgg_layername:
     #file="/home/kamil/Dropbox/Current_research/python_tests/results_shapley/combinations/combinations_pruning_mnist_conv:10_conv:50_fc:800_fc:500_rel_bn_epo:103_acc:99.37/combinations_pruning_mnist_conv:10_conv:50_fc:800_fc:500_rel_bn_epo:103_acc:99.37_"+layer+".weight.txt"
     #file="/home/kamil/Dropbox/Current_research/python_tests/results_compression/combinations/99.06/zeroing/combinations_trainval0.9_"+layer+"_.0.out"
     #file = "/home/kamil/Dropbox/Current_research/python_tests/results_compression/combinations/99.27/additive_noise/combinations_9927_addnoise_"+layer+".0.out"
-    #file="/home/kamil/Dropbox/Current_research/python_tests/results_shapley/results/combinations_pruning_mnist_mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:540_acc:99.27/combinations_pruning_mnist_mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:540_acc:99.27_%s.weight.txt" % layer
+    file="/home/kamil/Desktop/Dropbox/Current_research/ranking/results_shapley/combinations/mnist/99.27/combinations_pruning_mnist_mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:540_acc:99.27/combinations_pruning_mnist_mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:540_acc:99.27_%s.weight.txt" % layer
     #file="/home/kamil/Dropbox/Current_research/python_tests/results_shapley/results/combinations_fashionmnist/combinations_pruning_mnist_fashionmnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:62_acc:90.04_%s.weight.txt" % layer
     #file="/home/kamil/Dropbox/Current_research/python_tests/results_shapley/results/vgg_93.92/combinations_pruning_cifar_vgg16_module.c3.weight.txt"
     #file="/home/kamil/Dropbox/Current_research/python_tests/results_shapley/results/vgg_93.92/tesst_vgg15.0.out"
-    file="/home/kamil/Desktop/Dropbox/Current_research/ranking/results_shapley/combinations/mnist/99.27/combinations_pruning_mnist_mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:540_acc:99.27/combinations_pruning_mnist_mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:540_acc:99.27_c1.weight.txt"
     #dirfile=os.path.split(file)[0]
     #save_textfile=os.path.join(dirfile, "shapley.txt")
     #file_tosave=open(save_textfile, "a+")
@@ -566,15 +567,14 @@ for layer in vgg_layername:
 ###############################################
 
 
-    ############### fc
-    #
-    original_accuracy=99.37
+
+    original_accuracy=99.27
     dict=readdata_notsampled(original_accuracy)
     dict[tuple(np.arange(10))]=original_accuracy
-    #dict=readdata_vggformat()
     print(dict)
-    #full_shapley_2(dict) #full shapley
-    full_shapley_1b(dict)
+
+    #shapley_samp_perm_samp(dict, 20, 100)
+    shapley_samp(dict, 20, 100)
 
 
     #sorted_indices_filters=shapley_samp(dict, lenet_filternums[layer], 10000) #IMP #approximation lenet
