@@ -366,8 +366,8 @@ def load_model():
     net.load_state_dict(torch.load(path, map_location=lambda storage, loc: storage)['model_state_dict'], strict=False)
     #net.load_state_dict(torch.load(path, map_location=lambda storage, loc: storage), strict=False)
 
-    for name, param in net.named_parameters():
-        torch.save(param.data, "models/arrays/99.27_%s" % name)
+    # for name, param in net.named_parameters():
+    #     torch.save(param.data, "models/arrays/99.27_%s" % name)
 
 
     print(dataset, "loaded.")
