@@ -1,0 +1,16 @@
+executable = /home/kadamczewski/miniconda3/envs/BayesianNeuralNetwork/bin/python
+#executable =/home/kadamczewski/miniconda3/bin/python
+#arguments =/home/kadamczewski/Dropbox_from/Current_research/python_test/results_compression/vgg_main2_tomodule.py
+#var_arch=[25,25,65,80,201,158,159,460,450,490,470,465,465,470,450]
+#var_arch=[25,25,65,80,201,158,159,460,450,490,470,465,465,470,450]
+layer_name=c12
+arguments =/home/kadamczewski/Dropbox_from/Current_research/python_test/results_compression/vgg_main2_tomodule.py --layer $(layer_name)
+#var=vgg_retrain_withval_$(var_arch)
+var = combinations_vgg_$(layer_name)
+error = clust_err/$(var).$(Process).err
+output = clust_out/$(var).$(Process).out
+log = clust_log/$(var).$(Process).log
+request_memory = 2040
+request_cpus = 1
+request_gpus = 1
+queue 1
