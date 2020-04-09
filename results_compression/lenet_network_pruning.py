@@ -895,7 +895,7 @@ if resume:
     load_model()
     evaluate()
     if comp_combinations:
-        compute_combinations_lenet(True, net, evaluate, dataset, "zeroing") #can be "additive noise instead of zeroing
+        compute_combinations_lenet(False, net, evaluate, dataset, "zeroing") #can be "additive noise instead of zeroing
 
 
     #methods=['switches', 'l1', 'l2', 'fisher','filter_ranking']
