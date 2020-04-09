@@ -1,0 +1,29 @@
+#executable = /home/kadamczewski/miniconda3/envs/BayesianNeuralNetwork/bin/python
+executable = /usr/bin/unbuffer
+
+arguments = /home/kadamczewski/miniconda3/bin/python /home/kadamczewski/Dropbox_from/Current_research/ranking/results_compression/lenet_network_pruning.py
+
+
+#var=lenet_$(method)_$(switch_samps)_retraining_$(dataset)_$(arch)
+#var=lenet_multiple_$(dataset)_$(arch)_switch
+var = combinations_lenet_mnist_9927_c5
+
+error = clust/clust_err/$(var).$(Process).err
+output = clust/clust_out/$(var).$(Process).out
+log = clust/clust_log/$(var).$(Process).log
+#requirements = TARGET.CUDAGlobalMemoryMb > 15000
+#buffer_size = 1000
+#stream_output=True
+request_memory = 8040
+request_cpus = 1
+request_gpus = 1
+
+
+#dummy
+
+#CHECK
+#switch_point_multiple
+
+
+
+
