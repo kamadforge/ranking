@@ -152,14 +152,14 @@ def compute_combinations_lenet(file_write, net, evaluate, dataset, perturbation_
     for name, param in net.named_parameters():
         #print (name)
         #print (param.shape)
-        layer="c5.weight"
+        layer="c3.weight"
         print(layer)
         if layer in name:
             layerbias=layer[:3]+"bias"
             params_bias = net.state_dict()[layerbias]
 
             all_results={}
-            s=torch.range(0,param.shape[0]-1) #list from 0 to 19 as these are the indices of the data tensor
+            s=torch.arange(0,param.shape[0]) #list from 0 to 19 as these are the indices of the data tensor
             for r in range(1,param.shape[0]): #produces the combinations of the elements in s
                 results=[]
                 for combination in list(combinations(s, r)):

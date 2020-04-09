@@ -258,7 +258,7 @@ class Lenet(nn.Module):
         output = self.f6(output)
         out = self.activation4(output)
         self.act4 = out
-        output = self.out7(output) #remove for 99.27 and 90.04 models
+        #output = self.out7(output) #remove for 99.27 and 90.04 models
 
         return output
 
@@ -884,7 +884,7 @@ retrain=args.retrain
 ##############################
 
 file_write=False #oly one file_write here (and one read fie)
-comp_combinations=False
+comp_combinations=True
 
 #################################3################
 ################################################
