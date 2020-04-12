@@ -1,5 +1,8 @@
 import torch
 from torchvision import transforms, datasets
+import numpy as np
+import torch.utils.data as data
+
 
 
 def mnist(batch_size=100, pm=False):
@@ -94,3 +97,28 @@ def cifar100(augment=True, batch_size=128):
     num_classes = 100
 
     return train_loader, val_loader, num_classes
+
+def toy_dataset(var):
+    classes_num=3
+    input_size=40
+
+    x_train = np.random.multivariate_normal(np.zeros(input_size), np.eye(input_size), int(2000 / 2))
+    y_train = np.random.choice(classes_num, [1000, 1])
+    # x_val = np.random.multivariate_normal(np.zeros(10), np.eye(10), int(2000 / 2))
+
+    list = []
+    list_y = []
+    for i in range(len(x_train)):
+        list.append(x_train[i])
+        list_y.append(np.array(y_train[i]))
+
+    x_s = torch.stack([torch.Tensor(i) for i in list])
+    y_s = torch.stack([torch.Tensor(i) for i in list_y])
+
+    train_dataset = data.TensorDataset(x_s, y_s)
+    train_loader = data.DataLoader(train_dataset)
+
+    return train_loader, train_loader, classes_num
+
+
+

@@ -72,35 +72,35 @@ def get_external_weights(model, run_type):
     #     device)
     # model.state_dict()['convs.3.bias'][:] = torch.load("../results_compression/models/arrays/99.27_c3.bias").to(device)
 
-    model.state_dict()['conv1.weights'][:] = torch.load("../results_compression/models/arrays/99.27_c1.weight").to(
-        device)
-    model.state_dict()['conv1.bias'][:] = torch.load("../results_compression/models/arrays/99.27_c1.bias").to(device)
-    model.state_dict()['conv2.weights'][:] = torch.load("../results_compression/models/arrays/99.27_c3.weight").to(
-        device)
-    model.state_dict()['conv2.bias'][:] = torch.load("../results_compression/models/arrays/99.27_c3.bias").to(device)
-
-    model.state_dict()['fcs.0.weights'][:] = torch.load("../results_compression/models/arrays/99.27_c5.weight").t().to(
-        device)
-    model.state_dict()['fcs.0.bias'][:] = torch.load("../results_compression/models/arrays/99.27_c5.bias").to(device)
-    model.state_dict()['fcs.2.weights'][:] = torch.load("../results_compression/models/arrays/99.27_f6.weight").t().to(
-        device)
-    model.state_dict()['fcs.2.bias'][:] = torch.load("../results_compression/models/arrays/99.27_f6.bias").to(device)
+    # model.state_dict()['conv1.weights'][:] = torch.load("../results_compression/models/arrays/99.27_c1.weight").to(
+    #     device)
+    # model.state_dict()['conv1.bias'][:] = torch.load("../results_compression/models/arrays/99.27_c1.bias").to(device)
+    # model.state_dict()['conv2.weights'][:] = torch.load("../results_compression/models/arrays/99.27_c3.weight").to(
+    #     device)
+    # model.state_dict()['conv2.bias'][:] = torch.load("../results_compression/models/arrays/99.27_c3.bias").to(device)
+    #
+    # model.state_dict()['fcs.0.weights'][:] = torch.load("../results_compression/models/arrays/99.27_c5.weight").t().to(
+    #     device)
+    # model.state_dict()['fcs.0.bias'][:] = torch.load("../results_compression/models/arrays/99.27_c5.bias").to(device)
+    # model.state_dict()['fcs.2.weights'][:] = torch.load("../results_compression/models/arrays/99.27_f6.weight").t().to(
+    #     device)
+    # model.state_dict()['fcs.2.bias'][:] = torch.load("../results_compression/models/arrays/99.27_f6.bias").to(device)
 
     test_phi = 10
     model.state_dict()['conv1.z_phi'][:] = (torch.ones(10) * test_phi).to(device)
 
     if run_type=='test':
 
-        z_phis=[[1.0000e+05, -4.3877e-01, 6.5680e-01, 7.2174e-02, -3.5518e-01,-2.0797e-01, -1.1507e-01, -3.9121e-01, -4.0855e-01, 2.3960e-01],
-        [-1.5193e-01, 1.0000e+05, 5.6770e-01, -3.8061e-02, -3.2549e-01, -1.3520e-01, -2.3034e-02, -4.9315e-01, -3.1906e-01, 2.7365e-01],
-        [-1.3943e-01, -4.2179e-01, 1.0000e+05, -6.6652e-02, -3.7092e-01,-1.8476e-01, -3.6386e-01, -3.4232e-01, -4.0615e-01, 1.9351e-01],
-        [-1.4723e-01, -4.1427e-01, 5.9977e-01, 1.0000e+05, -3.0970e-01,-2.3160e-01, -1.4783e-01, -3.0962e-01, -4.1965e-01, 2.9672e-01],
-        [-1.3354e-01, -3.8455e-01, 6.1556e-01, -5.7763e-02, 1.0000e+05, -1.1570e-01, -8.4818e-02, -3.6836e-01, -4.4823e-01, 3.0249e-01],
-        [3.7496e-03, -3.4185e-01, 5.9810e-01, -5.5021e-02, -2.8466e-01,1.0000e+05, -9.3396e-02, -3.5507e-01, -4.5072e-01, 3.1868e-01],
-        [-1.9322e-01, -3.9075e-01, 5.9369e-01, -1.7286e-01, -2.3313e-01,-1.3478e-01, 1.0000e+05, -3.6746e-01, -4.6805e-01, 2.2758e-01],
-        [-4.5005e-02, -4.8510e-01, 4.6703e-01, 1.2722e-01,-3.0572e-01,-1.7002e-01, -2.3059e-01, 1.0000e+05, -4.3838e-01,2.0406e-01],
-        [-9.8894e-02, -4.0972e-01, 6.4475e-01, -1.1214e-01,-3.1715e-01, -1.9220e-01, -2.1514e-01, -4.0147e-01, 1.0000e+05,3.1069e-01],
-        [-4.4040e-02, -3.6494e-01, 5.1821e-01, 9.7703e-02, -2.5698e-01, -1.5923e-01, -1.8586e-01, -2.8659e-01, -3.3394e-01, 1.0000e+05]]
+        # z_phis=[[1.0000e+05, -4.3877e-01, 6.5680e-01, 7.2174e-02, -3.5518e-01,-2.0797e-01, -1.1507e-01, -3.9121e-01, -4.0855e-01, 2.3960e-01],
+        # [-1.5193e-01, 1.0000e+05, 5.6770e-01, -3.8061e-02, -3.2549e-01, -1.3520e-01, -2.3034e-02, -4.9315e-01, -3.1906e-01, 2.7365e-01],
+        # [-1.3943e-01, -4.2179e-01, 1.0000e+05, -6.6652e-02, -3.7092e-01,-1.8476e-01, -3.6386e-01, -3.4232e-01, -4.0615e-01, 1.9351e-01],
+        # [-1.4723e-01, -4.1427e-01, 5.9977e-01, 1.0000e+05, -3.0970e-01,-2.3160e-01, -1.4783e-01, -3.0962e-01, -4.1965e-01, 2.9672e-01],
+        # [-1.3354e-01, -3.8455e-01, 6.1556e-01, -5.7763e-02, 1.0000e+05, -1.1570e-01, -8.4818e-02, -3.6836e-01, -4.4823e-01, 3.0249e-01],
+        # [3.7496e-03, -3.4185e-01, 5.9810e-01, -5.5021e-02, -2.8466e-01,1.0000e+05, -9.3396e-02, -3.5507e-01, -4.5072e-01, 3.1868e-01],
+        # [-1.9322e-01, -3.9075e-01, 5.9369e-01, -1.7286e-01, -2.3313e-01,-1.3478e-01, 1.0000e+05, -3.6746e-01, -4.6805e-01, 2.2758e-01],
+        # [-4.5005e-02, -4.8510e-01, 4.6703e-01, 1.2722e-01,-3.0572e-01,-1.7002e-01, -2.3059e-01, 1.0000e+05, -4.3838e-01,2.0406e-01],
+        # [-9.8894e-02, -4.0972e-01, 6.4475e-01, -1.1214e-01,-3.1715e-01, -1.9220e-01, -2.1514e-01, -4.0147e-01, 1.0000e+05,3.1069e-01],
+        # [-4.4040e-02, -3.6494e-01, 5.1821e-01, 9.7703e-02, -2.5698e-01, -1.5923e-01, -1.8586e-01, -2.8659e-01, -3.3394e-01, 1.0000e+05]]
 
         if opt.node_remove==True:
             z_phis[opt.node][opt.node]=-10000
@@ -156,7 +156,7 @@ def train(**kwargs):
         device)
 
 
-    model=get_external_weights(model, "train")
+    #model=get_external_weights(model, "train")
 
     if opt.gpus > 1:
         model = nn.DataParallel(model)
@@ -199,7 +199,7 @@ def train(**kwargs):
         for ii, (input_, target) in enumerate(train_loader):
             input_, target = input_.to(device), target.to(device)
             optimizer.zero_grad()
-            score, diff = model(input_, target, opt.node)
+            score = model(input_, target)
             #model.conv1.z_phi[0]=-10000
 
             #loss = criterion(score, target)
@@ -222,7 +222,7 @@ def train(**kwargs):
                 #plt.scatter(counter_plot, diff.detach().cpu().numpy())
                 #plt.pause(0.05)
                 #print(model.conv1.z_phi.grad)
-                print(model.conv2.z_phi)
+                #print(model.conv2.z_phi)
 
             if (model.beta_ema if opt.gpus <= 1 else model.module.beta_ema) > 0.:
                 model.update_ema() if opt.gpus <= 1 else model.module.update_ema()
@@ -315,7 +315,7 @@ def test(**kwargs):
 
         #-1 everything is pruned
 
-        print(model.state_dict()['conv1.z_phi'][:])
+        #print(model.state_dict()['conv1.z_phi'][:])
 
         val_accuracy, val_loss = val(model, val_loader, criterion)
         print("loss:{loss:.2f},val_acc:{val_acc:.2f},prune_rate:{pr:.2f}"

@@ -8,10 +8,10 @@ from copy import deepcopy
 from config import opt
 
 
-class ARMMLP(nn.Module):
-    def __init__(self, input_dim=784, num_classes=10, N=60000, layer_dims=(300, 100), beta_ema=0.999,
+class ARMMLP_toy(nn.Module):
+    def __init__(self, input_dim=40, num_classes=3, N=60000, layer_dims=(20, 10), beta_ema=0.999,
                  weight_decay=5e-4, lambas=(.1, .1, .1), local_rep=True):
-        super(ARMMLP, self).__init__()
+        super(ARMMLP_toy, self).__init__()
 
         self.layer_dims = layer_dims
         self.input_dim = input_dim
@@ -51,17 +51,17 @@ class ARMMLP(nn.Module):
             self.forward_mode(True)
             score = self.score(x)
 
-            self.eval() if opt.gpus <= 1 else self.module.eval()
-            if opt.ar is not True:
-                self.forward_mode(False)
-                score2 = self.score(x).data
-                f1 = nn.CrossEntropyLoss()(score2, y).data
-            else:
-                f1 = 0
-            f2 = nn.CrossEntropyLoss()(score, y).data
-
-            self.update_phi_gradient(f1, f2)
-            self.train() if opt.gpus <= 1 else self.module.train()
+            # self.eval() if opt.gpus <= 1 else self.module.eval()
+            # if opt.ar is not True:
+            #     self.forward_mode(False)
+            #     score2 = self.score(x).data
+            #     f1 = nn.CrossEntropyLoss()(score2, y).data
+            # else:
+            #     f1 = 0
+            # f2 = nn.CrossEntropyLoss()(score, y).data
+            #
+            # self.update_phi_gradient(f1, f2)
+            # self.train() if opt.gpus <= 1 else self.module.train()
         else:
             self.forward_mode(True)
             score = self.score(x)
