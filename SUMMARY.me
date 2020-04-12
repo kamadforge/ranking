@@ -2,9 +2,15 @@ COMPRESSION
 
 - vgg_main2_tomodule - turning nn.Seqeuential to Module to train, loads the model, computes combinations, does everthing that
 netwokr pruning for lenet plus vis and training from scratch
-- lenet_network_pruning - # for four layer lenet:# -loads the models# -evaluates the model#- prunes the model# -retrains the model#
+- lenet_network_pruning -
+    # for four layer lenet:
+    # -loads the models
+    # -evaluates the model
+    #- prunes the model
+    # -retrains the model#
+    # imports from and can compute combinations (and can also get combinations  add additive noise)
+    - lenet_network_pruning_with combinations
 - vgg_computeComb - computes the combinations with the pruned model for vgg
-- lenet_network_pruning_with combinations - computes the pruned model for lenet
 - magnitude_pruning.py - takes a model and computes the rank based on the weight magnitutes, that is using KL and L2 norms
 
 functional:
