@@ -39,16 +39,16 @@ import argparse
 # params
 
 arguments=argparse.ArgumentParser()
-arguments.add_argument("--arch", default="5,8,30,10")
+arguments.add_argument("--arch", default="7,10,40,20")
 arguments.add_argument("--folder")
 arguments.add_argument("--method", default="switch_point") #switch_itegral, swithc_point, fisher, l1, l2, random
-arguments.add_argument("--switch_samps", default=300, type=int)
+arguments.add_argument("--switch_samps", default=150, type=int)
 arguments.add_argument("--switch_comb", default='load')
 arguments.add_argument("--dataset", default="mnist")
 
 arguments.add_argument("--resume", default=True)
-arguments.add_argument("--prune_bool", default=False)
-arguments.add_argument("--retrain", default=False)
+arguments.add_argument("--prune_bool", default=True)
+arguments.add_argument("--retrain", default=True)
 
 args=arguments.parse_args()
 
@@ -151,30 +151,6 @@ test_loader = torch.utils.data.DataLoader(
     batch_size=BATCH_SIZE, shuffle=False)
 
 
-
-
-# #change: three times datasetname, path to load, combination arrays to rpune filter ranking
-#
-# dataset="mnist"
-#
-#
-# BATCH_SIZE = 100
-# # Download or load downloaded MNIST dataset
-# # shuffle data at every epoch
-# trainval_dataset=datasets.MNIST('data', train=True, download=True,
-#                     #transform=transforms.Compose([transforms.ToTensor(),
-#                     #transforms.Normalize((0.1307,), (0.3081,))]),
-#                     transform=transforms.ToTensor())
-#
-# train_size = int(0.8 * len(trainval_dataset))
-# val_size = len(trainval_dataset) - train_size
-# train_dataset, val_dataset = torch.utils.data.random_split(trainval_dataset, [train_size, val_size])
-#
-# train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
-# val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=True)
-# # Same for test data
-# test_loader = torch.utils.data.DataLoader(datasets.MNIST('data', train=False, transform=transforms.ToTensor()), batch_size=BATCH_SIZE, shuffle=False)
-
 ##############################################################################################3####33
 # ###############################################################################3##########
 # NETWORK (conv-conv-fc-fc)
@@ -258,7 +234,7 @@ class Lenet(nn.Module):
         output = self.f6(output)
         out = self.activation4(output)
         self.act4 = out
-        #output = self.out7(output) #remove for 99.27 and 90.04 models
+        output = self.out7(output) #remove for 99.27 and 90.04 models
 
         return output
 
@@ -352,8 +328,9 @@ def load_model():
     #path="models/fashionmnist_conv:20_conv:50_fc:800_fc:500_rel_bn_trainval1.0_epo:11_acc:90.01"
     #path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_trainval_modelopt1.0_epo:309_acc:99.19"
     if dataset=="mnist":
-        path=path_compression+"/models/mnist_conv10_conv20_fc100_fc25_rel_bn_drop_trainval_modelopt1.0_epo540_acc99.27"
-        #path=path_compression+"/models/MNIST_conv_10_conv_20_fc_100_fc_25_rel_bn_drop_trainval_modelopt1.0_epo_231_acc_99.19"
+        #path=path_compression+"/models/mnist_conv10_conv20_fc100_fc25_rel_bn_drop_trainval_modelopt1.0_epo540_acc99.27"
+        path=path_compression+"/models/MNIST_conv_10_conv_20_fc_100_fc_25_rel_bn_drop_trainval_modelopt1.0_epo_231_acc_99.19"
+        path=path_compression+"/models/MNIST_conv_10_conv_20_fc_100_fc_25_rel_bn_drop_trainval_modelopt1.0_epo_231_acc_99.19_retrained_epo_4_prunedto_7_10_40_20_acc_97.56"
 
         #path="models/mnist_trainval0.9_epo461_acc99.06"
     elif dataset=="fashionmnist":
@@ -371,6 +348,7 @@ def load_model():
 
 
     print(dataset, "loaded.")
+    print(os.path.split(path)[1])
     return net
 
 
@@ -442,7 +420,7 @@ def train(thresh=[-1,-1,-1,-1]):
         print(loss.item())
         accuracy = evaluate()
         print("Epoch " + str(epoch) + " ended.")
-        print((net.c1.weight.grad == 0).sum())  # the hook is automatically applied, here we just check the gradient
+        #print((net.c1.weight.grad == 0).sum())  # the hook is automatically applied, here we just check the gradient
 
         if (accuracy <= best_accuracy):
             stop = stop + 1
@@ -457,13 +435,8 @@ def train(thresh=[-1,-1,-1,-1]):
             if save:
                 if retrain:
                     if best_accuracy > save_accuracy:
-                        torch.save(best_model, "%s_retrained_epo_%d_prunedto_%d_%d_%d_%d_acc_%.2f" % (
+                        torch.save({'model_state_dict': best_model, 'optimizer_state_dict': best_optim}, "%s_retrained_epo_%d_prunedto_%d_%d_%d_%d_acc_%.2f" % (
                         path, epoch, thresh[0], thresh[1], thresh[2], thresh[3], best_accuracy))
-                        #
-                        # torch.save({'model_state_dict': best_model, 'optimizer_state_dict': best_optim},
-                        #            "models/%s_conv:%d_conv:%d_fc:%d_fc:%d_rel_bn_drop_trainval_modelopt%.1f_epo:%d_acc:%.2f" % (
-                        #            dataset, conv1, conv2, fc1, fc2, trainval_perc, epoch, best_accuracy))
-
                 else:
                     if best_accuracy > save_accuracy:
                         torch.save({'model_state_dict': best_model, 'optimizer_state_dict': best_optim}, "%s_trainval%.1f_epo%d_acc%.2f" % (
@@ -781,6 +754,9 @@ def threshold_prune_and_retrain(combinationss, thresh):
     #         file.write("\n\nprunedto:%d_%d_%d_%d\n\n" % (thresh[0], thresh[1], thresh[2], thresh[3]))
     print("\n\nprunedto:%d_%d_%d_%d\n" % (thresh[0], thresh[1], thresh[2], thresh[3]))
 
+    print("Channels pruned: ")
+    print(combinationss)
+
     #################################################################################################################3
     ########## PRUNE/ ZERO OUT THE WEIGHTS
 
@@ -866,11 +842,11 @@ def threshold_prune_and_retrain(combinationss, thresh):
 #SAVING MODEL
 #the models are saved in the savedirectory as the original model
 if dataset=="mnist":
-    save_accuracy=99.00
+    save_accuracy=98.6#98.85
 if dataset=="fashionmnist":
     save_accuracy=89.50
 
-save=False
+save=True
 #WRITING
 # the output text file will be saved also in the same directory as the original model
 write_training=False
@@ -884,7 +860,7 @@ retrain=args.retrain
 ##############################
 
 file_write=False #oly one file_write here (and one read fie)
-comp_combinations=True
+comp_combinations=False
 
 #################################3################
 ################################################
@@ -933,8 +909,8 @@ if resume:
                 accs[method]=acc
                 #prune(False, i1, i2, i3, i4, write, save)
 
-            if accs['filter_ranking']>accs['fisher'] and accs['filter_ranking']>accs['l1']:
-                print("Yay!")
+            # if accs['filter_ranking']>accs['fisher'] and accs['filter_ranking']>accs['l1']:
+            #     print("Yay!")
             print("\n*********************************\n\n")
         #prune_and_retrain([10,10,50,10])
 
