@@ -102,21 +102,26 @@ def toy_dataset(var):
     classes_num=3
     input_size=40
 
-    x_train = np.random.multivariate_normal(np.zeros(input_size), np.eye(input_size), int(2000 / 2))
-    y_train = np.random.choice(classes_num, [1000, 1])
-    # x_val = np.random.multivariate_normal(np.zeros(10), np.eye(10), int(2000 / 2))
 
-    list = []
-    list_y = []
-    for i in range(len(x_train)):
-        list.append(x_train[i])
-        list_y.append(np.array(y_train[i]))
+    # ceating new daraset REL
+    # x_train = np.random.multivariate_normal(np.zeros(input_size), np.eye(input_size), int(2000 / 2))
+    # y_train = np.random.choice(classes_num, [1000, 1])
+    # # x_val = np.random.multivariate_normal(np.zeros(10), np.eye(10), int(2000 / 2))
+    #
+    # list = []
+    # list_y = []
+    # for i in range(len(x_train)):
+    #     list.append(x_train[i])
+    #     list_y.append(np.array(y_train[i]))
+    #
+    # x_s = torch.stack([torch.FloatTensor(i) for i in list])
+    # y_s = torch.stack([torch.LongTensor(i) for i in list_y])
+    #
+    # train_dataset = data.TensorDataset(x_s, y_s)
+    # train_loader = data.DataLoader(train_dataset)
 
-    x_s = torch.stack([torch.Tensor(i) for i in list])
-    y_s = torch.stack([torch.Tensor(i) for i in list_y])
-
-    train_dataset = data.TensorDataset(x_s, y_s)
-    train_loader = data.DataLoader(train_dataset)
+    #loading dataset
+    train_loader = torch.load("data/toy_dataset.pt")
 
     return train_loader, train_loader, classes_num
 

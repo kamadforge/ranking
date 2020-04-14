@@ -87,9 +87,13 @@ def get_external_weights(model, run_type):
     # model.state_dict()['fcs.2.bias'][:] = torch.load("../results_compression/models/arrays/99.27_f6.bias").to(device)
 
     test_phi = 10
-    model.state_dict()['conv1.z_phi'][:] = (torch.ones(10) * test_phi).to(device)
+    #model.state_dict()['conv1.z_phi'][:] = (torch.ones(10) * test_phi).to(device)
+
 
     if run_type=='test':
+
+        model.state_dict()['output.2.z_phi'][0:4] = torch.ones(4)
+        model.state_dict()['output.2.z_phi'][4:] = torch.zeros(16)
 
         # z_phis=[[1.0000e+05, -4.3877e-01, 6.5680e-01, 7.2174e-02, -3.5518e-01,-2.0797e-01, -1.1507e-01, -3.9121e-01, -4.0855e-01, 2.3960e-01],
         # [-1.5193e-01, 1.0000e+05, 5.6770e-01, -3.8061e-02, -3.2549e-01, -1.3520e-01, -2.3034e-02, -4.9315e-01, -3.1906e-01, 2.7365e-01],
@@ -102,34 +106,46 @@ def get_external_weights(model, run_type):
         # [-9.8894e-02, -4.0972e-01, 6.4475e-01, -1.1214e-01,-3.1715e-01, -1.9220e-01, -2.1514e-01, -4.0147e-01, 1.0000e+05,3.1069e-01],
         # [-4.4040e-02, -3.6494e-01, 5.1821e-01, 9.7703e-02, -2.5698e-01, -1.5923e-01, -1.8586e-01, -2.8659e-01, -3.3394e-01, 1.0000e+05]]
 
-        if opt.node_remove==True:
-            z_phis[opt.node][opt.node]=-10000
-
-        vector=mc_sampling(z_phis[opt.node])
-
-        model.state_dict()['conv1.z_phi'][:]=torch.tensor(vector).to(device)
-        model.state_dict()['conv2.z_phi'][:] = (torch.ones(20) * test_phi).to(device)
-        model.state_dict()['fcs.0.z_phi'][:] = (torch.ones(320) * test_phi).to(device)
-        model.state_dict()['fcs.2.z_phi'][:] = (torch.ones(100) * test_phi).to(device)
+        # if opt.node_remove==True:
+        #     z_phis[opt.node][opt.node]=-10000
+        #
+        # vector=mc_sampling(z_phis[opt.node])
+        #
+        # model.state_dict()['conv1.z_phi'][:]=torch.tensor(vector).to(device)
+        # model.state_dict()['conv2.z_phi'][:] = (torch.ones(20) * test_phi).to(device)
+        # model.state_dict()['fcs.0.z_phi'][:] = (torch.ones(320) * test_phi).to(device)
+        # model.state_dict()['fcs.2.z_phi'][:] = (torch.ones(100) * test_phi).to(device)
         # model.state_dict()['conv1.z_phi'][opt.node].detach()
         # model.state_dict()['conv1.z_phi'][opt.node]=100000.
 
-    for name, param in model.named_parameters():
-        print (name)
 
     # model.convs[0].z_phi.register_hook(gradi)
-    model.conv1.weights.register_hook(lambda grad: grad * 0)
-    model.conv1.bias.register_hook(lambda grad: grad * 0)
-    model.conv2.weights.register_hook(lambda grad: grad * 0)
-    model.conv2.bias.register_hook(lambda grad: grad * 0)
-    model.fcs[0].weights.register_hook(lambda grad: grad * 0)
-    model.fcs[0].bias.register_hook(lambda grad: grad * 0)
-    model.fcs[2].weights.register_hook(lambda grad: grad * 0)
-    model.fcs[2].bias.register_hook(lambda grad: grad * 0)
+    # model.conv1.weights.register_hook(lambda grad: grad * 0)
+    # model.conv1.bias.register_hook(lambda grad: grad * 0)
+    # model.conv2.weights.register_hook(lambda grad: grad * 0)
+    # model.conv2.bias.register_hook(lambda grad: grad * 0)
+    # model.fcs[0].weights.register_hook(lambda grad: grad * 0)
+    # model.fcs[0].bias.register_hook(lambda grad: grad * 0)
+    # model.fcs[2].weights.register_hook(lambda grad: grad * 0)
+    # model.fcs[2].bias.register_hook(lambda grad: grad * 0)
+    #
+    # model.conv1.z_phi.register_hook(lambda grad: grad * 0)
+    # model.fcs[0].z_phi.register_hook(lambda grad: grad * 0)
+    # model.fcs[2].z_phi.register_hook(lambda grad: grad * 0)
 
-    model.conv1.z_phi.register_hook(lambda grad: grad * 0)
-    model.fcs[0].z_phi.register_hook(lambda grad: grad * 0)
-    model.fcs[2].z_phi.register_hook(lambda grad: grad * 0)
+    model.output[0].weights.register_hook(lambda grad: grad * 0)
+    model.output[0].bias.register_hook(lambda grad: grad * 0)
+    model.output[0].z_phi.register_hook(lambda grad: grad * 0)
+
+    model.output[2].weights.register_hook(lambda grad: grad * 0)
+    model.output[2].bias.register_hook(lambda grad: grad * 0)
+    #model.output[2].z_phi.register_hook(lambda grad: grad * 0)
+
+    #3LAY
+    #model.output[4].weights.register_hook(lambda grad: grad * 0)
+    #model.output[4].bias.register_hook(lambda grad: grad * 0)
+    #model.output[4].z_phi.register_hook(lambda grad: grad * 0)
+
 
     return model
 
@@ -155,8 +171,13 @@ def train(**kwargs):
     model = getattr(models, opt.model)(lambas=opt.lambas, num_classes=num_classes, weight_decay=opt.weight_decay).to(
         device)
 
+    #model.load_state_dict(torch.load("data/model_toy", map_location=lambda storage, loc: storage), strict=False)
 
-    #model=get_external_weights(model, "train")
+    for name, param in model.named_parameters():
+        print (name)
+
+
+    model=get_external_weights(model, "train")
 
     if opt.gpus > 1:
         model = nn.DataParallel(model)
@@ -196,16 +217,19 @@ def train(**kwargs):
         model.train() if opt.gpus <= 1 else model.module.train()
         loss_meter.reset()
         accuracy_meter.reset()
+
         for ii, (input_, target) in enumerate(train_loader):
             input_, target = input_.to(device), target.to(device)
             optimizer.zero_grad()
             score = model(input_, target)
             #model.conv1.z_phi[0]=-10000
-
-            #loss = criterion(score, target)
-            #loss.backward()
+            label_onehot=torch.zeros(3)
+            label_onehot[target]=1
+            loss = criterion(score, target)
+            loss.backward()
             optimizer.step()
-            #print(model.conv1.weights[1:3])
+            #print(model.output[0].weights)
+            #print(loss)
 
 
 
@@ -223,6 +247,7 @@ def train(**kwargs):
                 #plt.pause(0.05)
                 #print(model.conv1.z_phi.grad)
                 #print(model.conv2.z_phi)
+                print(model.output[2].z_phi)
 
             if (model.beta_ema if opt.gpus <= 1 else model.module.beta_ema) > 0.:
                 model.update_ema() if opt.gpus <= 1 else model.module.update_ema()
@@ -267,13 +292,22 @@ def val(model, dataloader, criterion):
     model.eval() if opt.gpus <= 1 else model.module.eval()
     loss_meter = meter.AverageValueMeter()
     accuracy_meter = meter.ClassErrorMeter(accuracy=True)
+    new_inputs, new_labels=[], []
     for ii, data in enumerate(dataloader):
         input_, label = data
         input_, label = input_.to(device), label.to(device)
         score = model(input_)
         accuracy_meter.add(score.data.squeeze(), label.long())
-        loss = criterion(score, label)
-        loss_meter.add(loss.cpu().data)
+        #loss = criterion(score, label)
+        #loss_meter.add(loss.cpu().data)
+        new_inputs.append(input_); new_labels.append(torch.argmax(score))
+
+    new_labels=torch.stack([a for a in new_labels])
+    new_inputs=torch.stack([a for a in new_inputs])
+
+    new_dataset=torch.utils.data.TensorDataset(new_inputs, new_labels)
+    new_loader=torch.utils.data.DataLoader(new_dataset)
+    torch.save(new_loader, "data/toy_dataset.pt")
 
     for (i, num) in enumerate(model.get_activated_neurons() if opt.gpus <= 1 else model.module.get_activated_neurons()):
         vis.plot("val_layer/{}".format(i), num)
@@ -296,6 +330,8 @@ def test(**kwargs):
     vis = Visualizer(opt.log_dir, opt.model, current_time)
     # load model
     model = getattr(models, opt.model)(lambas=opt.lambas).to(device)
+    torch.save(model.state_dict(), "model_toy")
+
     # load data set
     train_loader, val_loader, num_classes = getattr(dataset, opt.dataset)(opt.batch_size * opt.gpus)
 
@@ -312,6 +348,9 @@ def test(**kwargs):
             #param.data[0]=0.5 #example how change
 
         model=get_external_weights(model, "test")
+        print(model.state_dict()['output.0.z_phi'])
+        print(model.state_dict()['output.2.z_phi'])
+        #print(model.state_dict()['output.4.z_phi']) #3LA
 
         #-1 everything is pruned
 
@@ -323,8 +362,6 @@ def test(**kwargs):
                       pr=model.prune_rate() if opt.gpus <= 1 else model.module.prune_rate()))
 
         val_accuracy1=val_accuracy
-
-        model.conv1.z_phi[opt.node]=torch.tensor(0)
 
         print(model.state_dict()['conv1.z_phi'][:])
 

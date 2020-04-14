@@ -9,7 +9,7 @@ from config import opt
 
 
 class ARMMLP_toy(nn.Module):
-    def __init__(self, input_dim=40, num_classes=3, N=60000, layer_dims=(20, 10), beta_ema=0.999,
+    def __init__(self, input_dim=40, num_classes=3, N=60000, layer_dims=(20, ), beta_ema=0.999,
                  weight_decay=5e-4, lambas=(.1, .1, .1), local_rep=True):
         super(ARMMLP_toy, self).__init__()
 

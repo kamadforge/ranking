@@ -22,6 +22,9 @@ test --model=ARMLeNet5 --dataset=mnist --lambas="[.1,.1,.1,.1]" --load_file="che
 
 train --model=ARMMLP_toy --dataset=toy_dataset --lambas="[.1,.1,.1,.1]" --optimizer=adam --lr=0.001 --ar True
 test --model=ARMMLP_toy --dataset=toy_dataset --lambas="[.1,.1,.1,.1]" --load_file=shap-l0-arm-master/checkpoints/ARMMLP_toy_2020-04-12 22:32:56 --use_t_in_testing=False --k=70009
+test --model=ARMMLP_toy --dataset=toy_dataset --lambas="[.1,.1,.1,.1]" --load_file=shap-l0-arm-master/checkpoints/ARMMLP_toy_2020-04-14 23:25:15/10.model --use_t_in_testing=False --k=70009
+
+
 
 python main.py train --model=ARMWideResNet --dataset=cifar10 --lambas=.001 --optimizer=momentum --lr=0.1 --schedule_milestone="[60, 120]"
 python main.py help
