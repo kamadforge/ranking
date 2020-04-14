@@ -1,5 +1,8 @@
 #there can be an error
 #RuntimeError: Expected object of scalar type Long but got scalar type Float for argument #2 'target'
+# #in such case for some reason it may be useful to have such a strange setup:
+# x_s = torch.stack([torch.FloatTensor(i) for i in list])
+# y_s = torch.stack([torch.LongTensor(i) for i in list_y])
 
 import numpy as np
 import torch
@@ -16,7 +19,6 @@ if example==1:
 
     my_dataset = data.TensorDataset(tensor_x,tensor_y) # create your datset
     my_dataloader = data.DataLoader(my_dataset) # create your dataloader
-
 
 
     x_train = np.random.multivariate_normal(np.zeros(10), np.eye(10), int(2000 / 2))

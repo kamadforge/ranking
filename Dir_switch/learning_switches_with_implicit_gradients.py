@@ -222,6 +222,10 @@ def main():
 
     print('Starting Training')
 
+    for name,par in model.named_parameters():
+        print (name)
+
+
     for epoch in range(how_many_epochs):  # loop over the dataset multiple times
 
         print('epoch number is ', epoch)
@@ -236,6 +240,7 @@ def main():
             # get the inputs
             inputs = xTrain[i*mini_batch_size:(i+1)*mini_batch_size,:]
             labels = yTrain[i*mini_batch_size:(i+1)*mini_batch_size]
+            #print(model.parameter)
             # print(inputs.shape)
             # print(labels)
 
