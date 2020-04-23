@@ -12,6 +12,7 @@ n_datapoints=4000
 
 
 
+
 class Net(nn.Module):
     def __init__(self, input, hidden, output):
         super(Net, self).__init__()
