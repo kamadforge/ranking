@@ -1,4 +1,5 @@
-
+# made from main2vgg_switch_integral
+#and integral was made from main2vgg_switch
 
 
 '''Train CIFAR10 with PyTorch.'''
@@ -26,6 +27,8 @@ from torch.distributions import Gamma
 import torch.nn.functional as f
 import argparse
 import socket
+import scipy
+import scipy.io
 
 #######
 # path stuff
@@ -82,8 +85,8 @@ beta_func = lambda s: min(s, annealing_steps) / annealing_steps
 arguments=argparse.ArgumentParser()
 arguments.add_argument("--alpha", default=0.5, type=float)#2 # below 1 so that we encourage sparsity
 arguments.add_argument("--switch_init", default=0.05, type=float)#-1
-arguments.add_argument("--layer", default='conv2')
-arguments.add_argument("--epochs_num", default=3)
+arguments.add_argument("--layer", default='conv1')
+arguments.add_argument("--epochs_num", default=10)
 arguments.add_argument("--switch_samps", default=3)
 args=arguments.parse_args()
 #alpha = float(sys.argv[2]) if len (sys.argv)>2 else 0.5#2  # below 1 so that we encourage sparsity
@@ -94,6 +97,8 @@ switch_init=args.switch_init
 switch_layer=args.layer
 epochs_num=args.epochs_num
 switch_samps=args.switch_samps
+dataset='cifar'
+
 
 BATCH_SIZE=100
 model_parameters = '94.34'
@@ -127,14 +132,14 @@ cfg = {
 }
 
 model_structure = cfg['VGGKAMFULL']
-hidden_dim = model_structure[int(switch_layer[4:])] #it's a number of parameters we want to estimate, e.g. # conv1 filters
+hidden_dim2 = model_structure[int(switch_layer[4:])] #it's a number of parameters we want to estimate, e.g. # conv1 filters
 
 
 class VGG(nn.Module):
-    def __init__(self, vgg_name, switch_samps):
+    def __init__(self, vgg_name, switch_samps, hidden_dim):
         super(VGG, self).__init__()
-        #self.features = self._make_layers(cfg[vgg_name])
-        #self.classifier = nn.Linear(512, 10)
+        # self.features = self._make_layers(cfg[vgg_name])
+        # self.classifier = nn.Linear(512, 10)
 
         self.c1 = nn.Conv2d(3, 64, 3, padding=1)
         self.bn1 = nn.BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
@@ -185,138 +190,102 @@ class VGG(nn.Module):
         self.d1 = nn.Dropout()
         self.d2 = nn.Dropout()
 
-        self.num_samps_for_switch=switch_samps
+        # self.parameter = Parameter(-1 * torch.ones(64), requires_grad=True)  # this parameter lies #S
 
-        #self.parameter = Parameter(-1 * torch.ones(64), requires_grad=True)  # this parameter lies #S
+        # print("switch param %.1f" % switch_init)
+        self.parameter_switch = Parameter(switch_init * torch.ones(hidden_dim),
+                                          requires_grad=True)  # this parameter lies #S
 
-        #print("switch param %.1f" % switch_init)
-        self.parameter_switch = Parameter(switch_init*torch.ones(hidden_dim),requires_grad=True) # this parameter lies #S
+    def switch_multiplication(self, output, Sprime):
+        for i in range(len(Sprime)):
+            output[:, i] *= Sprime[i].expand_as(output[:, i])
+        return output
 
-    # def switch_multiplication(self, output, Sprime):
-    #     for i in range(len(Sprime)):
-    #         output[:, i] *= Sprime[i].expand_as(output[:, i])
-    #     return output
-
-    def switch_multiplication(self, output, SstackT):
-        rep = SstackT.unsqueeze(2).unsqueeze(2).repeat(1, 1, output.shape[2], output.shape[3])  # (150,10,24,24)
-        # output is (100,10,24,24), we want to have 100,150,10,24,24, I guess
-        output = torch.einsum('ijkl, mjkl -> imjkl', (rep, output))
-        output = output.view(output.shape[0] * output.shape[1], output.shape[2], output.shape[3], output.shape[4])
-        return output, SstackT
-
-    def switch_multiplication_fc(self, output, SstackT):
-        output = torch.einsum('ij, mj -> imj', (SstackT, output))
-        output = output.reshape(output.shape[0] * output.shape[1], output.shape[2])
-        return output, SstackT
-
-
-    def forward(self, x):
+    def forward(self, x, switch_layer):
         phi = f.softplus(self.parameter_switch)
-
-
-        """ draw Gamma RVs using phi and 1 """
-        num_samps = self.num_samps_for_switch
-        concentration_param = phi.view(-1, 1).repeat(1, num_samps).to(device)
-        beta_param = torch.ones(concentration_param.size()).to(device)
-        # Gamma has two parameters, concentration and beta, all of them are copied to 200,150 matrix
-        Gamma_obj = Gamma(concentration_param, beta_param)
-        gamma_samps = Gamma_obj.rsample()  # 200, 150, hidden_dim x samples_num
-
-        if any(torch.sum(gamma_samps, 0) == 0):
-            print("sum of gamma samps are zero!")
-        else:
-            Sstack = gamma_samps / torch.sum(gamma_samps, 0)  # 1dim - number of neurons (200), 2dim - samples (150)
-
-        # Sstack -switch, for output of the network (say 200) we used to have switch 200, now we have samples (150 of them), sowe have switch which is (200, 150)        #
-
-        # output.shape
-        # Out[2]: torch.Size([100, 10, 24, 24])
-        # Sstack.shape
-        # Out[3]: torch.Size([10, 150])
-
-        SstackT = Sstack.t()
+        S = phi / torch.sum(phi)
+        # Smax = torch.max(S)
+        # Sprime = S/Smax
+        Sprime = S
 
         output = self.c1(x)
-        if (switch_layer=='conv1'):
-            output, SstackT_ret=self.switch_multiplication(output, SstackT)
+        if (switch_layer == 'conv1'):
+            output = self.switch_multiplication(output, Sprime)
         output = f.relu(self.bn1(output))
         output = self.c2(output)
-        if (switch_layer=='conv2'):
-            output, SstackT_ret=self.switch_multiplication(output, SstackT)
+        if (switch_layer == 'conv2'):
+            output = self.switch_multiplication(output, Sprime)
         output = self.mp1(output)
 
-
         output = self.c3(output)
-        if (switch_layer=='conv3'):
-            output, SstackT_ret=self.switch_multiplication(output, SstackT)
+        if (switch_layer == 'conv3'):
+            output = self.switch_multiplication(output, Sprime)
         output = f.relu(self.bn3(output))
         output = self.c4(output)
-        if (switch_layer=='conv4'):
-            output, SstackT_ret=self.switch_multiplication(output, SstackT)
+        if (switch_layer == 'conv4'):
+            output = self.switch_multiplication(output, Sprime)
         output = f.relu(self.bn4(output))
         output = self.mp2(output)
 
         output = self.c5(output)
-        if (switch_layer=='conv5'):
-            output, SstackT_ret=self.switch_multiplication(output, SstackT)
+        if (switch_layer == 'conv5'):
+            output = self.switch_multiplication(output, Sprime)
         output = f.relu(self.bn5(output))
         output = self.c6(output)
-        if (switch_layer=='conv6'):
-            output, SstackT_ret=self.switch_multiplication(output, SstackT)
+        if (switch_layer == 'conv6'):
+            output = self.switch_multiplication(output, Sprime)
         output = f.relu(self.bn6(output))
         output = self.c7(output)
-        if (switch_layer=='conv7'):
-            output, SstackT_ret=self.switch_multiplication(output, SstackT)
+        if (switch_layer == 'conv7'):
+            output = self.switch_multiplication(output, Sprime)
         output = f.relu(self.bn7(output))
         output = self.mp3(output)
 
         output = self.c8(output)
-        if (switch_layer=='conv8'):
-            output, SstackT_ret=self.switch_multiplication(output, SstackT)
+        if (switch_layer == 'conv8'):
+            output = self.switch_multiplication(output, Sprime)
         output = f.relu(self.bn8(output))
         output = self.c9(output)
-        if (switch_layer=='conv9'):
-            output, SstackT_ret=self.switch_multiplication(output, SstackT)
+        if (switch_layer == 'conv9'):
+            output = self.switch_multiplication(output, Sprime)
         output = f.relu(self.bn9(output))
         output = self.c10(output)
-        if (switch_layer=='conv10'):
-            output, SstackT_ret=self.switch_multiplication(output, SstackT)
+        if (switch_layer == 'conv10'):
+            output = self.switch_multiplication(output, Sprime)
         output = f.relu(self.bn10(output))
         output = self.mp4(output)
 
         output = self.c11(output)
-        if (switch_layer=='conv11'):
-            output, SstackT_ret=self.switch_multiplication(output, SstackT)
+        if (switch_layer == 'conv11'):
+            output = self.switch_multiplication(output, Sprime)
         output = f.relu(self.bn11(output))
         output = self.c12(output)
-        if (switch_layer=='conv12'):
-            output, SstackT_ret=self.switch_multiplication(output, SstackT)
+        if (switch_layer == 'conv12'):
+            output = self.switch_multiplication(output, Sprime)
         output = f.relu(self.bn12(output))
         output = self.c13(output)
-        if (switch_layer=='conv13'):
-            output, SstackT_ret=self.switch_multiplication(output, SstackT)
+        if (switch_layer == 'conv13'):
+            output = self.switch_multiplication(output, Sprime)
         output = f.relu(self.bn13(output))
         output = self.mp5(output)
 
         output = output.view(-1, 512)
         output = self.l1(output)
         if (switch_layer == 'conv14'):
-            output, SstackT_ret = self.switch_multiplication_fc(output, SstackT)
+            output = self.switch_multiplication(output, Sprime)
         output = self.l3(output)
 
-        #output = f.relu(self.l1(output))
-        #output = self.d2(output)
-        #output = f.relu(self.l2(output))
+        # output = f.relu(self.l1(output))
+        # output = self.d2(output)
+        # output = f.relu(self.l2(output))
 
-        #out = self.features(x)
-        #out = out.view(out.size(0), -1)
-        #out = self.classifier(out)
-        output = output.reshape(BATCH_SIZE, self.num_samps_for_switch, -1)
-        output = torch.mean(output, 1)
+        # out = self.features(x)
+        # out = out.view(out.size(0), -1)
+        # out = self.classifier(out)
+        return output, Sprime
 
-        return output, phi
 
-    def _make_layers(self, cfg):
+def _make_layers(self, cfg):
         layers = []
         in_channels = 3
         for x in cfg:
@@ -355,28 +324,69 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 best_acc = 0  # best test accuracy
 start_epoch = 0  # start from epoch 0 or last checkpoint epoch
 
-# Data
-print('==> Preparing data..')
-transform_train = transforms.Compose([
-    transforms.RandomCrop(32, padding=4),
-    transforms.RandomHorizontalFlip(),
-    transforms.ToTensor(),
-    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-])
+if dataset=="cifar":
 
-transform_test = transforms.Compose([
-    transforms.ToTensor(),
-    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-])
+    # Data
+    print('==> Preparing data..')
+    transform_train = transforms.Compose([
+        transforms.RandomCrop(32, padding=4),
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+    ])
 
-trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
-trainloader = torch.utils.data.DataLoader(trainset, batch_size=BATCH_SIZE, shuffle=True, num_workers=0)
+    transform_test = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+    ])
 
-testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform_test)
-testloader = torch.utils.data.DataLoader(testset, batch_size=BATCH_SIZE, shuffle=False, num_workers=0)
+    trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
+    trainloader = torch.utils.data.DataLoader(trainset, batch_size=BATCH_SIZE, shuffle=True, num_workers=0)
 
-classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
+    testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform_test)
+    testloader = torch.utils.data.DataLoader(testset, batch_size=BATCH_SIZE, shuffle=False, num_workers=0)
 
+    classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
+
+
+
+
+
+
+
+elif dataset=='housenums':
+
+    print(socket.gethostname())
+    if 'g0' not in socket.gethostname():
+        train_data = scipy.io.loadmat('/datadisk1/data/house_ numbers/train_32x32.mat')
+        test_data = scipy.io.loadmat('/datadisk1/data/house_ numbers/train_32x32.mat')
+    else:
+        train_data = scipy.io.loadmat('/home/kadamczewski/data/house_ numbers/train_32x32.mat')
+        test_data = scipy.io.loadmat('/home/kadamczewski/data/house_ numbers/test_32x32.mat')
+
+    train_data_x = train_data['X'].swapaxes(2, 3).swapaxes(1, 2).swapaxes(0, 1).swapaxes(2,3).swapaxes(1,2)
+    train_data_y = train_data['y']
+    train_data_y=np.where(train_data_y==10, 0, train_data_y)
+
+    tensor_x = torch.stack([torch.FloatTensor(i) for i in train_data_x])  # transform to torch tensors
+    tensor_y = torch.stack([torch.FloatTensor(i) for i in train_data_y])
+
+    my_dataset = torch.utils.data.TensorDataset(tensor_x, tensor_y.squeeze())  # create your datset
+    trainloader = torch.utils.data.DataLoader(my_dataset, batch_size=BATCH_SIZE, shuffle=True)  # create your dataloader
+
+
+    ####
+
+    test_data_x = test_data['X'].swapaxes(2, 3).swapaxes(1, 2).swapaxes(0, 1).swapaxes(2, 3).swapaxes(1, 2)
+    test_data_y = test_data['y']
+    test_data_y=np.where(test_data_y==10, 0, test_data_y)
+
+
+    tensor_x_test = torch.stack([torch.FloatTensor(i) for i in test_data_x])  # transform to torch tensors
+    tensor_y_test = torch.stack([torch.FloatTensor(i) for i in test_data_y])
+
+    my_dataset = torch.utils.data.TensorDataset(tensor_x_test, tensor_y_test.squeeze())  # create your datset
+    testloader = torch.utils.data.DataLoader(my_dataset, batch_size=BATCH_SIZE, shuffle=True)
 
 
 
@@ -417,10 +427,17 @@ def load_weights(net_all):
         # Load checkpoint.
         print('==> Resuming from checkpoint..')
         #assert os.path.isdir('checkpoint'), 'Error: no checkpoint directory found!'
-        checkpoint = torch.load(path_switch+'/checkpoint/ckpt_vgg16_%s.t7' % model_parameters, map_location=lambda storage, loc: storage)
-        net_all.load_state_dict(checkpoint['net'], strict=False)
-        best_acc = checkpoint['acc']
-        start_epoch = checkpoint['epoch']
+        if dataset=='cifar':
+            checkpoint = torch.load(path_switch+'/checkpoint/ckpt_vgg16_%s.t7' % model_parameters, map_location=lambda storage, loc: storage)
+            net_all.load_state_dict(checkpoint['net'], strict=False)
+
+        elif dataset=='housenums':
+            checkpoint = torch.load('/home/kamil/Dropbox/Current_research/ranking/results_switch/models/housenums_64x2_128x2_256x3_512x8_L512x2_rel_bn_drop_trainval_modelopt1.0_epo_424_acc_95.36')
+            net_all.load_state_dict(checkpoint, strict=False)
+
+
+        #best_acc = checkpoint['acc']
+        #start_epoch = checkpoint['epoch']
 
 #load_weights(net)
 
@@ -461,7 +478,7 @@ def loss_functionKL(prediction, true_y, S, alpha, hidden_dim, batch_size, anneal
 # Training
 
 
-def train(epoch, net_all, optimizer):
+def train(epoch, net_all, optimizer, hidden_dim, switch_layer):
     print('\nEpoch: %d' % epoch)
     net_all.train()
     train_loss = 0
@@ -469,9 +486,9 @@ def train(epoch, net_all, optimizer):
     total = 0
     annealing_rate = beta_func(epoch)
     for batch_idx, (inputs, targets) in enumerate(trainloader):
-        inputs, targets = inputs.to(device), targets.to(device)
+        inputs, targets = inputs.to(device), targets.to(device=device, dtype=torch.int64)
         optimizer.zero_grad()
-        outputs, S = net_all(inputs)
+        outputs, S = net_all(inputs, switch_layer)
         #loss = criterion(outputs, targets)
         #print("alpha: %.1f" % alpha)
         loss, BCE, KLD, KLD_discounted = loss_functionKL(outputs, targets, S, alpha, hidden_dim, BATCH_SIZE, annealing_rate)
@@ -515,7 +532,9 @@ def train(epoch, net_all, optimizer):
 #################################################################
 # TEST
 
-def test(epoch, net_all):
+
+
+def test(epoch, net_all, switch_layer):
     global best_acc
     net_all.eval()
     test_loss = 0
@@ -523,8 +542,8 @@ def test(epoch, net_all):
     total = 0
     with torch.no_grad():
         for batch_idx, (inputs, targets) in enumerate(testloader):
-            inputs, targets = inputs.to(device), targets.to(device)
-            outputs = net_all(inputs)[0] #[0] added because of the tuple output,S
+            inputs, targets = inputs.to(device), targets.to(device=device, dtype=torch.int64)
+            outputs = net_all(inputs, switch_layer)[0] #[0] added because of the tuple output,S
             loss = criterion(outputs, targets)
 
             test_loss += loss.item()
@@ -619,10 +638,11 @@ def test(epoch, net_all):
 def main(switch_layer, epochs_num, switch_samps):
 
     training=True
+    hidden_dim = model_structure[int(switch_layer[4:])]  # it's a number of parameters we want to estimate, e.g. # conv1 filters
 
     # Model
     print('==> Building model..')
-    net2 = VGG('VGG16', switch_samps)
+    net2 = VGG('VGG16', switch_samps, hidden_dim)
     net2 = net2.to(device)
 
     if device == 'cuda':
@@ -656,11 +676,11 @@ def main(switch_layer, epochs_num, switch_samps):
                     print(switch_layer)
                     print(hidden_dim)
 
-                    ranks, switches = train(epoch, net2, optimizer)
-                    test(epoch, net2)
+                    ranks, switches = train(epoch, net2, optimizer, hidden_dim, switch_layer)
+                    test(epoch, net2, switch_layer)
 
     return ranks, switches
 
 
 if __name__=="__main__":
-    main("c1", epochs_num, switch_samps)
+    main("conv1", epochs_num, switch_samps)
