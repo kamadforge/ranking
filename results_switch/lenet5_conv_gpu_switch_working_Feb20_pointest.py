@@ -1,10 +1,10 @@
-#in forard we added a layer as the second argument
+#in forward we added a layer as the second argument
 #in evaluate call function we added "c3 in forward and suddenyl we get an error that the output is tuple (which it is as it returns outptu and Sprime)
 #why then before we didn't get the error when we didn't have forward as a second argument
 ###for this version invesrtiagtre
 
 #feb 27
-#we puit the net creation inside run experiment and make sure it is evaluated and upadted on that net
+#we put the net creation inside run experiment and make sure it is evaluated and upadted on that net
 
 
 
@@ -53,10 +53,8 @@ hidden_dim = 10 #it's a number of parameters we want to estimate, e.g. # conv1 f
 hidden_dims={'c1': conv1, 'c3': conv2, 'c5': fc1, 'f6' : fc2}
 hidden_dim = hidden_dims[layer] #it's a number of parameters we want to estimate, e.g. # conv1 filters
 
-
 ###################################################
 # DATA
-
 
 dataset="mnist"
 trainval_perc=1
@@ -100,18 +98,13 @@ class Lenet(nn.Module):
         self.c5=nn.Linear(nodesNum2*4*4, nodesFc1)
         self.f6=nn.Linear(nodesFc1,nodesFc2)
         self.f7=nn.Linear(nodesFc2,10)
-
         self.drop_layer = nn.Dropout(p=0.5)
 
         self.parameter = Parameter(-1*torch.ones(hidden_dims[layer]),requires_grad=True) # this parameter lies #S
-        #-2e10, 1, 5, -2
 
     def switch_func(self, output, Sprime):
-        #############S
         for i in range(len(Sprime)):
             output[:, i] *= Sprime[i].expand_as(output[:, i])
-
-        ##################
         return output, Sprime
 
     def forward(self, x, layer):
@@ -127,60 +120,31 @@ class Lenet(nn.Module):
         #x=x.view(-1,784)
         output=self.c1(x)
 
-
-        #############S
         phi = f.softplus(self.parameter)
-        #"""directly use mean of Dir RV."""
-        S = phi / torch.sum(phi)
+        S = phi / torch.sum(phi) #"""directly use mean of Dir RV, which is {E} [X_{i}]={\frac {\alpha _{i}} {\sum _{k=1}^{K}\alpha _{k}}}}
 
         #Smax = torch.max(S)
         #Sprime = S/Smax
         Sprime = S
-
-        # for i in range(len(Sprime)):
-        #     output[:, i] *= Sprime[i].expand_as(output[:, i]) #13.28 deteministic, acc increases
-
         if layer == 'c1':
             output, Sprime = self.switch_func(output, Sprime) #13.28 deteministic, acc increases
-
-
-        #for i in range(len(S)):
-        #output[:, i] = output[:, i] * S[i]
-
-
-        #output = output[1] * S
-        ##############
-
         output=f.relu(self.s2(output))
         output=self.bn1(output)
         output=self.drop_layer(output)
         output=self.c3(output)
-
         if layer == 'c3':
             output, Sprime = self.switch_func(output, Sprime)  # 13.28 deteministic, acc increases
-
-        # for i in range(len(Sprime)):
-        #     output[:, i] *= Sprime[i].expand_as(output[:, i])
-
         output=f.relu(self.s4(output))
         output=self.bn2(output)
         output=self.drop_layer(output)
         output=output.view(-1, self.nodesNum2*4*4)
-
-
-
         output=self.c5(output)
-
         if layer == 'c5':
             output, Sprime = self.switch_func(output, Sprime)  # 13.28 deteministic, acc increases
-
         output=self.f6(output)
-
         if layer == 'f6':
             output, Sprime = self.switch_func(output, Sprime)  # 13.28 deteministic, acc increases
-
         output = self.f7(output) #remove for 99.27
-
         return output, Sprime
 
 
@@ -228,7 +192,6 @@ class Lenet(nn.Module):
 ####################
 
 nodesNum1, nodesNum2, nodesFc1, nodesFc2=10,20,100,25
-# net=Lenet(nodesNum1,nodesNum2,nodesFc1,nodesFc2, layer).to(device)
 criterion = nn.CrossEntropyLoss()
 #
 # optimizer=optim.Adam(net.parameters(), lr=0.001)
@@ -249,12 +212,6 @@ path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0
 #path="/home/kamil/Dropbox/Current_research/python_tests/Dir_switch/models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:2_acc:98.75"
 
 path_full=os.path.join(package_directory, path)
-
-#net.load_state_dict(torch.load(path_full)['model_state_dict'], strict=False)
-
-#net.load_state_dict(torch.load(path)['model_state_dict'], strict=False)
-#path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_trainval_modelopt1.0_epo:309_acc:99.19"
-#path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:540_acc:99.27"
 
 
 ########################################################
@@ -290,12 +247,9 @@ print("Loaded model:")
 #######################s
 # LOSS
 
-
-
 def loss_function(prediction, true_y, S, alpha_0, hidden_dim, how_many_samps):
     # BCE = f.binary_cross_entropy(prediction, true_y, reduction='sum')
     BCE = criterion(prediction, true_y)
-
     return BCE
 
 
@@ -329,25 +283,12 @@ def run_experiment(epochs_num, layer, nodesNum1, nodesNum2, nodesFc1, nodesFc2, 
     #CHECK WHY THSI CHANGES SO MUCH
     net2 = Lenet(nodesNum1, nodesNum2, nodesFc1, nodesFc2, layer).to(device)
     criterion = nn.CrossEntropyLoss()
-
     optimizer = optim.Adam(net2.parameters(), lr=0.001)
-
     print(path)
     net2.load_state_dict(torch.load(path)['model_state_dict'], strict=False)
 
-
     print("Evaluate:\n")
     evaluate(net2, layer)
-    # for name, param in net.named_parameters():
-    #     print(name)
-    #     print(param[1])
-    # for name, param in net.named_parameters():
-    #     print(name)
-    #     #print (name, param.shape)
-    #     #print("/n")
-    #     if name!="parameter":
-    #         param.requires_grad=False
-    #     print(param.requires_grad)
     accuracy=evaluate(net2, layer)
 
 
@@ -388,19 +329,15 @@ def run_experiment(epochs_num, layer, nodesNum1, nodesNum2, nodesFc1, nodesFc2, 
             #loss=loss_function(outputs, labels, 1, 1, 1, 1)
             loss.backward()
             #print(net2.c1.weight.grad[1, :])
-            #print(net2.c1.weight[1, :])
+            print(net2.c1.weight[1, :])
             optimizer.step()
             # if i % 100==0:
             #    print (i)
             #    print (loss.item())
             #    evaluate()
-        #print (i)
         print (loss.item())
         accuracy=evaluate(net2, layer)
         print ("Epoch " +str(epoch)+ " ended.")
-        # for name, param in net2.named_parameters():
-        #     print(name)
-        #     print(param[1])
 
 
         print("S")
