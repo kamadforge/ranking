@@ -102,7 +102,8 @@ import torch.nn as nn
 network_structure_dummy=0
 
 #######
-# path stuff
+# PATH
+
 cwd = os.getcwd()
 if 'g0' in socket.gethostname() or 'p0' in socket.gethostname():
     #the cwd is where the sub file is so ranking/
@@ -137,10 +138,13 @@ parser.add_argument("--arch", default='25,25,65,80,201,158,159,460,450,490,470,4
 #parser.add_argument("--arch", default='25,25,65,80,201,158,159,460,450,490,470,465,465,450')
 # ar.add_argument("-arch", default=[21,20,65,80,201,147,148,458,436,477,454,448,445,467,441])
 parser.add_argument('--layer', help="layer to prune", default="c1")
-parser.add_argument("--method", default='switch')
+parser.add_argument("--method", default='l2')
 parser.add_argument("--switch_samps", default=100, type=int)
-parser.add_argument("--switch_epochs", default=8, type=int)
-parser.add_argument("--ranks_method", default='integral')
+parser.add_argument("--switch_epochs", default=1, type=int)
+parser.add_argument("--ranks_method", default='point')
+parser.add_argument("--resume", default=False)
+parser.add_argument("--prune_bool", default=False)
+parser.add_argument("--retrain_bool", default=False)
 # parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
 # parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')
 save_accuracy=91.0
@@ -163,7 +167,6 @@ cfg = {
     'VGG15': [64, 64, 128, 128, 256, 256, 256, 512, 512, 512, 512, 512, 512, 512],
     #'VGG15_comp': [39, 39, 63, 48, 55, 88, 87, 52, 62, 22, 42, 47, 47, 47],
     'VGG15_comp': [34, 34, 68, 68, 75, 106, 101, 92, 102, 92, 67, 67, 62, 62],
-
     'VGG19': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 256, 'M', 512, 512, 512, 512, 'M', 512, 512, 512, 512, 'M'],
 }
 
@@ -516,6 +519,7 @@ testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False,
 
 classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
+
 ###################################################
 # MAKE AN INSTANCE OF A NETWORK AND (POSSIBLY) LOAD THE MODEL
 
@@ -549,22 +553,6 @@ if device == 'cuda':
     torch.backends.cudnn.benchmark = False
     # print(device)
 
-
-#########################
-#
-#  def func(name):
-#     def hook(module, grad_input, grad_output):
-#
-#     # hook implementation
-#     return hook
-#
-# for name, layer in net.named_modules():
-#     layer.register_backward_hook(func(name))
-
-
-
-
-a=0
 
 #######################################################
 #TRAIN
@@ -756,22 +744,12 @@ def save_checkpoint(epoch, acc, best_acc, remaining=0):
 
 def prune_and_retrain(thresh):
 
-    #LOAD
     load_model(False)
-    # PRINT
-    # for name, param in net.named_parameters():
-    #    print (name)
-    #    print(param.shape)
-
-    dummy=0
-
     # PRUNE
 
     if prune_bool:
         ############################3
         # READ THE RANKS
-
-
 
         if method == 'switch':
             ranks_method=args.ranks_method
@@ -786,82 +764,24 @@ def prune_and_retrain(thresh):
                     nums_int = [int(i) for i in nums]
                     combinationss.append(nums_int)
 
-                # combinationss=torch.load('results/ranks/ranks_93.92_shapley.pt')
-                # for i in range(1,14):
-                #     name="../results_shapley/results/vgg_"+str(orig_accuracy)+"/shapley_"+str(orig_accuracy)+"_vgg16_"+str(i)+".npy"
-                #     shapley_rank=np.load(name)
-                #     combinationss.append(shapley_rank)
-                # name = "../results_shapley/results/vgg_" + str(orig_accuracy) + "/shapley_" + str(orig_accuracy) + "_vgg16_l1.npy"
-                # shapley_rank = np.load(name)
-                # combinationss.append(shapley_rank)
-            # elif ranks_method=='switches':
-            #     #combinationss=torch.load('results/ranks/ranks_93.92_switches.pt')
-            #     combinationss=[0]*15
-            #     ranks_path = '../Dir_switch/results/cifar/vgg_93.92/switch_init_0.05, alpha_0.05, annealing_6000000/'
-            #     #ranks_path = '../Dir_switch/results/cifar/vgg_93.92/switch_init_-1, alpha_2/'
-            #     for i in range(len(combinationss)):
-            #         ranks_filepath = ranks_path + "93.92_alpha0.05_switchinit0.05_conv" + str(i + 1) + "_ep"+str(switches_epoch)+".pt"
-
             elif ranks_method == 'integral':
-                # combinationss=torch.load('results/ranks/ranks_93.92_switches.pt')
-                #combinationss = [0] * len(cfg['VGGBC'])  # 15
                 ranks_path = path_switch+'/results/switch_data_cifar_integral_samps_%i_epochs_%i.npy' % (args.switch_samps, args.switch_epochs)
-
-                # for i in range(len(combinationss)):
-                #     ranks_filepath = ranks_path + "93.92_conv" + str(i + 1) + "_ep49.pt"
-                #
-                #     switch_values = torch.load(ranks_filepath)
-                #     # print(switch_values)
-                #     # combinationss[i]=torch.argsort(switch_values)
-                #     # combinationss[i]=torch.LongTensor(np.argsort(switch_values.cpu().detach().numpy()).copy())#argsort is increasing order, we want decreasing hence [::-1]
-                #
-                #     combinationss[i] = torch.LongTensor(np.argsort(switch_values.cpu().detach().numpy())[
-                #                                         ::-1].copy())  # argsort is increasing order, we want decreasing hence [::-1]
-                #     # print(combinationss[i])
-                #     # print("new")
-                #
-                # file = open("switches.txt", "a")
-                # for comb in combinationss:
-                #     comb_det = comb.detach().cpu().numpy()
-                #     comb_str = ",".join([str(a) for a in comb_det])
-                #     file.write(comb_str)
-                #     file.write("\n")
-
                 combinationss=list(np.load(ranks_path,  allow_pickle=True).item()['combinationss'])
 
             elif ranks_method == 'point':
                 print(ranks_method)
-                # combinationss=torch.load('results/ranks/ranks_93.92_switches.pt')
-                #combinationss = [0] * len(cfg['VGGBC'])  # 15
                 ranks_path = path_switch+'/results/switch_data_cifar_point_epochs_%i.npy' % (args.switch_epochs)
-
-
                 combinationss=list(np.load(ranks_path,  allow_pickle=True).item()['combinationss'])
 
-
             # these numbers from the beginning will be cut off, meaning the worse will be cut off
-            #for i in range(len(combinationss)):
-            #    combinationss[i] = torch.LongTensor(combinationss[i][:thresh[i]])
-            #print(combinationss[1])
             #we change to the other way around
             for i in range(len(combinationss)):
                 combinationss[i] = torch.LongTensor(combinationss[i][thresh[i]:].copy())
 
-
         elif method == 'l1' or method == 'l2':
             magnitude_rank.setup()
             combinationss = magnitude_rank.get_ranks(method, net)
-            # for i in range(4):
-            #     combinationss.append(torch.LongTensor(combinat[i]))
-
-            # file = open("l1.txt", "a")
-            # for comb in combinationss:
-            #     comb_det = comb
-            #     comb_str = ",".join([str(a) for a in comb_det])
-            #     file.write(comb_str)
-            #     file.write("\n")
-
-            # these numbers from the beginning will be cut off, meaning the worse will be cut off
+            # the numbers from the beginning will be cut off, meaning the worse will be cut off
             for i in range(len(combinationss)):
                 combinationss[i] = torch.LongTensor(combinationss[i][:thresh[i]].copy())
             print(combinationss[1])
@@ -871,19 +791,10 @@ def prune_and_retrain(thresh):
             # in the process of finetuning we accumulate the gradient information that w eadd for each batch. We use this gradient info for constructing a ranking.
             net.module.reset_fisher()
             finetune()
-
             combinationss = []
             for i in range(14):
                 fisher_rank = torch.argsort(net.module.running_fisher[i], descending=True)
                 combinationss.append(fisher_rank.detach().cpu())
-
-            # print(combinationss)
-            # file=open("fisher.txt", "a")
-            # for comb in combinationss:
-            #     comb_det=comb.detach().cpu().numpy()
-            #     comb_str = ",".join([str(a) for a in comb_det])
-            #     file.write(comb_str)
-            #     file.write("\n")
 
             # these numbers from the beginning will be cut off, meaning the worse will be cut off
             for i in range(len(combinationss)):
@@ -1186,9 +1097,9 @@ def prune_and_retrain(thresh):
 model2load = path_compression+'/checkpoint/ckpt_vgg16_94.34.t7'
 orig_accuracy = 94.34
 # if all False just train thenetwork
-resume = True
-prune_bool = True
-retrain_bool = True  # whether we retrain the model or just evaluate
+resume = args.resume
+prune_bool = args.prune_bool
+retrain_bool = args.retrain_bool  # whether we retrain the model or just evaluate
 
 comp_combinations = False  # must be with resume #with retrain if we want to retrain combinations
 vis = False
@@ -1217,27 +1128,10 @@ if prune_bool:
     # thresh=[5, 5, 20, 10, 20, 80, 40, 40, 40, 80, 160, 80, 80, 40, 80] #14 #0.6 #10.74 (94.34)
     # thresh = [5, 5, 10, 10, 20, 20, 20, 40, 40, 40, 40, 40, 80, 160, 80] #15
     thresh = [5, 5, 10, 10, 20, 20, 20, 40, 40, 40, 40, 40, 40, 40,
-              160]  # 16 55.86. 69.81, 58.49, 57.11 (fish, filt, l1, l2) (94.34
+160]  # 16 55.86. 69.81, 58.49, 57.11 (fish, filt, l1, l2) (94.34
     # thresh=[5, 5, 10, 10, 20, 10, 20, 20, 40, 20, 20, 40, 40, 20, 80] #17 # 87.86. 71.44, 58.49, 57.21 (94.34)
     # thresh=[5, 5, 10, 10, 10, 10, 10, 20, 20, 20, 10, 10, 10, 10, 10] #~18 #0.95
 
-    # for i1,i2,i3,i4,i5,i6,i7,i8,i9,i10,i11,i12,i13,i14,i15 in product([5,10,15], [5,10,15], [10,20,40], [10,20,40], [20,40,80], [20,40,80], [20,40,80], [40,80,160], [40,80,160], [40,80,160], [40,80,160], [40,80,160], [40,80,160], [40,80,160], [40,80,160]):
-    # for i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15 in product([5, 10], [5, 10],
-    #                                                                                 [10, 20], [10, 20],
-    #                                                                                 [20, 40], [20, 40],
-    #                                                                                 [20, 40], [40, 80],
-    #                                                                                 [40, 80], [40, 80],
-    #                                                                                 [40, 80], [40, 80],
-    #                                                                                 [40, 80], [40, 80],
-    #                                                                                 [40, 80]):
-    # for i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15 in product([25], [25],
-    #                                                                                 [60, 40], [60, 40],
-    #                                                                                 [175], [140, 170],
-    #                                                                                 [140], [430],
-    #                                                                                 [380, 430], [380, 430],
-    #                                                                                 [440], [440, 400],
-    #                                                                                 [440], [450],
-    #                                                                                 [450]):
     if 1:
         print('\n****************\n')
         for method in [args.method]:
@@ -1250,7 +1144,7 @@ if prune_bool:
 
     # prune_and_retrain(thresh) #first argument is whether to trune, False only retraining
 
-# training from scratchhttps://www.onet.pl/
+# training from scratchhttps
 if resume == False:
     best_accuracy = 0
     session1end = start_epoch + 10;
