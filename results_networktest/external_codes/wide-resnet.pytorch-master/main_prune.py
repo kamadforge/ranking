@@ -36,7 +36,7 @@ args = parser.parse_args()
 thresh = [int(n) for n in args.arch.split(",")]
 
 # Hyper Parameter settings
-use_cuda = False#torch.cuda.is_available()
+use_cuda = torch.cuda.is_available()
 best_acc = 0
 start_epoch, num_epochs, batch_size, optim_type = cf.start_epoch, cf.num_epochs, cf.batch_size, cf.optim_type
 
@@ -407,7 +407,7 @@ def test(epoch):
             }
             if not os.path.isdir('checkpoint'):
                 os.mkdir('checkpoint')
-            save_point = './checkpoint/pruned_acc_'+str(acc)+'_'+args.dataset+os.sep
+            save_point = './checkpoint/'+args.dataset+'_pruned_'+args.arch+'_acc_'+str(acc)+os.sep
             if not os.path.isdir(save_point):
                 os.mkdir(save_point)
             torch.save(state, save_point+file_name+'.t7')
