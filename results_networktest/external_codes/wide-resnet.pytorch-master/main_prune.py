@@ -28,12 +28,15 @@ parser.add_argument('--widen_factor', default=10, type=int, help='width of model
 parser.add_argument('--dropout', default=0.3, type=float, help='dropout_rate')
 parser.add_argument('--dataset', default='cifar10', type=str, help='dataset = [cifar10/cifar100]')
 parser.add_argument('--resume', '-r', action='store_false', help='resume from checkpoint')
-parser.add_argument('--testOnly', '-t', action='store_false', help='Test mode with the saved model')
+parser.add_argument('--testOnly', '-t', action='store_true', help='Test mode with the saved model')
 parser.add_argument('--prune', default=True)
+parser.add_argument('--arch', default="75,85,80,80,159,159,154,159,315,315,314,316")
 args = parser.parse_args()
 
+thresh = [int(n) for n in args.arch.split(",")]
+
 # Hyper Parameter settings
-use_cuda = torch.cuda.is_available()
+use_cuda = False#torch.cuda.is_available()
 best_acc = 0
 start_epoch, num_epochs, batch_size, optim_type = cf.start_epoch, cf.num_epochs, cf.batch_size, cf.optim_type
 
@@ -137,14 +140,16 @@ if args.resume:
 
         ranks=np.load("ranks.npy", allow_pickle=True)
 
+
+
         unimportant_channels={}
-        prune_rates={"layer1.0" : 75, "layer1.1" : 80, "layer1.2" : 79, "layer1.3" : 81, "layer2.0" : 160, "layer2.1" : 155, "layer2.2" : 162, "layer2.3" : 163, "layer3.0" : 325, "layer3.1" : 331, "layer3.2" : 329, "layer3.3" : 327 }
+        prune_rates={"layer1.0" : thresh[0], "layer1.1" : thresh[1], "layer1.2" : thresh[2], "layer1.3" : thresh[3], "layer2.0" : thresh[4], "layer2.1" : thresh[5], "layer2.2" : thresh[6], "layer2.3" : thresh[7], "layer3.0" : thresh[8], "layer3.1" : thresh[9], "layer3.2" : thresh[10], "layer3.3" : thresh[11] }
         for r in ranks[()].keys():
             print(r)
             layer=r[7:15]
             rank=ranks[()][r]
             #print(rank)
-            unimportant_channels[layer]=channels_to_remove=rank[30:]
+            unimportant_channels[layer]=channels_to_remove=rank[prune_rates[layer]:]
 
             for name, param in net.named_parameters():
                 print(name)
@@ -402,7 +407,7 @@ def test(epoch):
             }
             if not os.path.isdir('checkpoint'):
                 os.mkdir('checkpoint')
-            save_point = './checkpoint/'+args.dataset+os.sep
+            save_point = './checkpoint/pruned_acc_'+str(acc)+'_'+args.dataset+os.sep
             if not os.path.isdir(save_point):
                 os.mkdir(save_point)
             torch.save(state, save_point+file_name+'.t7')
