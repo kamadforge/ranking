@@ -635,13 +635,11 @@ def get_ranks(method):
         switch_data={}; switch_data['combinationss'] = []; switch_data['switches']=[]
         num_samps_for_switch=args.switch_samps
 
-
         print("integral evaluation")
         epochs_num = 3
         file_path=os.path.join(path_main, 'results_switch/results/switch_data_%s_9927_integral_samps_%s_epochs_%i.npy' % (dataset, str(num_samps_for_switch), epochs_num))
 
         if getranks_method=='train':
-
 
             for layer in ["c1", "c3", "c5", "f6"]:
                 best_accuracy, epoch, best_model, S= run_experiment_integral(epochs_num, layer, 10, 20, 100, 25, num_samps_for_switch, path)

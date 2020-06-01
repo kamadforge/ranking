@@ -1,5 +1,5 @@
-#in forard we added a layer as the second argument
-#in evaluate call function we added "c3 in forward and suddenyl we get an error that the output is tuple (which it is as it returns outptu and Sprime)
+#in forward we added a layer as the second argument
+#in evaluate call function we added "c3 in forward and suddenly we get an error that the output is tuple (which it is as it returns outptu and Sprime)
 #why then before we didn't get the error when we didn't have forward as a second argument
 ###for this version invesrtiagtre
 
@@ -54,7 +54,7 @@ alpha_0 = 2  # below 1 so that we encourage sparsity
 hidden_dim = 10 #it's a number of parameters we want to estimate, e.g. # conv1 filters
 hidden_dims={'c1': conv1, 'c3': conv2, 'c5': fc1, 'f6' : fc2}
 hidden_dim = hidden_dims[layer] #it's a number of parameters we want to estimate, e.g. # conv1 filters
-num_samps_for_switch = 50
+num_samps_for_switch = 5
 
 ###################################################
 # DATA
@@ -112,8 +112,6 @@ class Lenet(nn.Module):
         self.parameter = Parameter(-1*torch.ones(hidden_dims[layer]),requires_grad=True) # this parameter lies #S
         self.num_samps_for_switch = num_samps_for_switch
 
-        #-2e10, 1, 5, -2
-
     def switch_func(self, output, SstackT):
         rep = SstackT.unsqueeze(2).unsqueeze(2).repeat(1, 1, output.shape[2], output.shape[3])  # (150,10,24,24)
         # output is (100,10,24,24), we want to have 100,150,10,24,24, I guess
@@ -122,7 +120,6 @@ class Lenet(nn.Module):
         return output, SstackT
 
     def switch_func_fc(self, output, SstackT):
-        #############S
 
         #rep = SstackT.unsqueeze(2).unsqueeze(2).repeat(1, 1,)  # (150,10,24,24)
         # output is (100,10,24,24), we want to have 100,150,10,24,24, I guess
@@ -130,7 +127,6 @@ class Lenet(nn.Module):
         #output = torch.einsum('ijkl, mjkl -> imjkl', (rep, output))
         output = output.reshape(output.shape[0] * output.shape[1], output.shape[2])
 
-        ##################
         return output, SstackT
 
     def forward(self, x, layer):
@@ -152,7 +148,7 @@ class Lenet(nn.Module):
 
         """ draw Gamma RVs using phi and 1 """
         num_samps = self.num_samps_for_switch
-        concentration_param = phi.view(-1, 1).repeat(1, num_samps).to(device)
+        concentration_param = phi.view(-1, 1).repeat(1, num_samps).to(device) #[feat x samp]
         beta_param = torch.ones(concentration_param.size()).to(device)
         # Gamma has two parameters, concentration and beta, all of them are copied to 200,150 matrix
         Gamma_obj = Gamma(concentration_param, beta_param)
@@ -191,9 +187,9 @@ class Lenet(nn.Module):
         # for i in range(len(Sprime)):
         #     output[:, i] *= Sprime[i].expand_as(output[:, i]) #13.28 deteministic, acc increases
 
-        if layer == 'c1':
+        if layer == 'c1': #SstackT [samp, feat], output [batch x feat x convkernsize x convkernsize]
              output, Sprime = self.switch_func(output, SstackT) #13.28 deteministic, acc increases
-
+            #output - [batch*samp x feat x covkernsize x covkernsize]
 
         #for i in range(len(S)):
         #output[:, i] = output[:, i] * S[i]

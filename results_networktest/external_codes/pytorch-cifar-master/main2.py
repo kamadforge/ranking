@@ -40,6 +40,7 @@ resume=True
 '''VGG11/13/16/19 in Pytorch.'''
 import torch
 import torch.nn as nn
+from models.re
 
 ############################################################
 # NETWORK
@@ -130,8 +131,8 @@ classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship'
 
 # Model
 print('==> Building model..')
-net = VGG('VGG16')
-# net = ResNet18()
+# net = VGG('VGG16')
+net = ResNet18()
 # net = PreActResNet18()
 # net = GoogLeNet()
 # net = DenseNet121()

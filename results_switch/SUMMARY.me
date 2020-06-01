@@ -42,3 +42,28 @@ The function:
         for i in range(len(Sprime)):
             output[:, i] *= Sprime[i].expand_as(output[:, i])
         return output, Sprime
+
+
+We learn self.parameter, which are the parameters of Dirichlet distribution, alphas. Or in ECCV paper, Dkl[q(s_l|φ_l)||p(s_l|α_0)], they are actually φ.
+And then we either take the mean (which is normalized alpha) (pointtest) or we sample from Dirichlete distribution (say 100 samples) (integral)
+
+integral:
+
+we need to compute: \sum q(s_l) \log p(\Dat|s_l)  //also can be integral but we have samples
+
+q(s_l) is a Dirichlet distribution. We need to sample it n times and sum over those samples.
+
+one could adopt the representation of a $k$-dimensional Dirichlet random variable as a weighted sum of Gamma random variables:
+
+
+we want to learn 10 switches, we choose 50 samples (say) and create [10,50] tensor, concentration_param
+and similarly get beta of the same dimenions.
+We feed it to Gamma, we have one Gamma per switch value:
+
+Gamma_obj = Gamma(concentration_param, beta_param)
+
+Then we sample from it and normalize each switch value by the sum of switch vector.
+These are our S - switches.
+
+
+

@@ -4,7 +4,7 @@ import argparse
 arguments=argparse.ArgumentParser()
 arguments.add_argument("--method", default="switch_point")
 arguments.add_argument("--switch_samps", default=2, type=int)
-arguments.add_argument("--epoch_num", default=3, type=int)
+arguments.add_argument("--epoch_num", default=1, type=int)
 args=arguments.parse_args()
 print(args)
 sys.argv = [sys.argv[0]]

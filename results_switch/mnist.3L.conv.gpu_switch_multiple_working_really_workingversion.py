@@ -41,9 +41,9 @@ print("Drop")
 early_stopping=350
 sum_average=0; conv1=10; conv2=20; fc1=100; fc2=25
 
-dataset="fashionmnist" #to load the proper fashionmnist model
+dataset="mnist" #to load the proper fashionmnist model
 
-how_many_epochs=200
+how_many_epochs=10
 annealing_steps = float(8000. * how_many_epochs)
 beta_func = lambda s: min(s, annealing_steps) / annealing_steps
 alpha_0 = 2  # below 1 so that we encourage sparsity
@@ -186,7 +186,7 @@ class Lenet(nn.Module):
         output=self.f6(output)
         output, Sprime_f6 = self.switch_func(output, self.parameter_f6)
 
-        #output = self.f7(output)
+        output = self.f7(output)
 
 
 
@@ -207,11 +207,13 @@ optimizer=optim.Adam(net.parameters(), lr=0.001)
 ###############################################################################
 # LOAD MODEL (optionally)
 
-path="models/fashionmnist_conv:20_conv:50_fc:800_fc:500_rel_bn_trainval1.0_epo:11_acc:90.01"
-path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_trainval_modelopt1.0_epo:309_acc:99.19"
+#path="models/fashionmnist_conv:20_conv:50_fc:800_fc:500_rel_bn_trainval1.0_epo:11_acc:90.01"
+#path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_trainval_modelopt1.0_epo:309_acc:99.19"
+
 #path="/home/kamil/Dropbox/Current_research/python_tests/results_networktest/models/fashionmnist_90.04"
 if dataset=="mnist":
-    path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:540_acc:99.27"
+    #path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:540_acc:99.27"
+    path="models/MNIST_conv_10_conv_20_fc_100_fc_25_rel_bn_drop_trainval_modelopt1.0_epo_231_acc_99.19"
 elif dataset=="fashionmnist":
     path="models/fashionmnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:62_acc:90.04"
 #path="models/mnist_conv:10_conv:20_fc:100_fc:25_rel_bn_drop_trainval_modelopt1.0_epo:540_acc:99.27"
@@ -342,8 +344,7 @@ def run_experiment(early_stopping, nodesNum1, nodesNum2, nodesFc1, nodesFc2):
     print("Retraining\n")
     net.train()
     stop=0; epoch=0; best_accuracy=0; entry=np.zeros(3); best_model=-1
-    while (stop<early_stopping):
-        epoch=epoch+1
+    for epoch in range(how_many_epochs):
         annealing_rate = beta_func(epoch)
         net.train()
         evaluate()
@@ -376,10 +377,15 @@ def run_experiment(early_stopping, nodesNum1, nodesNum2, nodesFc1, nodesFc2):
 
         print("S")
         print(S)
+        combinationss=[]
         for s in S:
             print("max: %.4f, min: %.4f" % (torch.max(S[s]), torch.min(S[s])))
             ranks_sorted = np.argsort(S[s].cpu().detach().numpy())[::-1]
             print(",".join(map(str, ranks_sorted)))
+            combinationss.append(ranks_sorted)
+
+
+
         # if (epoch==3):
         #     torch.save(S, 'results/%s/switch_init_-1,alpha_2_proper/layer-%s_epoch-%s_accuracy-%.2f.pt' % (dataset, layer, epoch, accuracy))
         # #print(torch.argsort(S), descending=True)
@@ -401,6 +407,9 @@ def run_experiment(early_stopping, nodesNum1, nodesNum2, nodesFc1, nodesFc2):
         entry[0]=accuracy; entry[1]=loss
         # with open(filename, "a+") as file:
         #     file.write(",".join(map(str, entry))+"\n")
+    np.save('results/combinations_multiple_9919.npy', combinationss)
+
+
     return best_accuracy, epoch, best_model
 
 print("\n\n NEW EXPERIMENT:\n")
@@ -414,7 +423,7 @@ print("\n\n NEW EXPERIMENT:\n")
 ######################################################
 #single run  avergaed pver n iterations  
 
-for i in range(3):
+for i in range(1):
     # with open(filename, "a+") as file:
     #     file.write("\nInteration: "+ str(i)+"\n")
     print("\nIteration: "+str(i))

@@ -203,6 +203,7 @@ def compute_combinations_lenet(file_write, net, evaluate, dataset, perturbation_
 
                     #accuracy = evaluate(net)
 
+
                     param[combination] = params_saved
                     params_bias[combination]=param_bias_saved
 

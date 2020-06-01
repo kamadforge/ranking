@@ -39,3 +39,10 @@ elif example==2:
     train_dataset=data.TensorDataset(x_s, y_s)
     train_loader=data.DataLoader(train_dataset)
 
+# #### Notes
+#
+# input to criterion: [mini_batch_size, network_out] , e.g. [100,1]
+# label: [mini_batch_size] #just one number per sample [100]
+#
+# loss = criterion(output, label.squeeze(1))
+

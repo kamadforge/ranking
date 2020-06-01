@@ -58,10 +58,6 @@ def mc_sampling(vector):
 
 
 
-
-
-
-
 def get_external_weights(model, run_type):
 
 
@@ -171,13 +167,16 @@ def train(**kwargs):
     model = getattr(models, opt.model)(lambas=opt.lambas, num_classes=num_classes, weight_decay=opt.weight_decay).to(
         device)
 
-    #model.load_state_dict(torch.load("data/model_toy", map_location=lambda storage, loc: storage), strict=False)
+    model.load_state_dict(torch.load("data/model_toy_2", map_location=lambda storage, loc: storage), strict=False)
 
     for name, param in model.named_parameters():
         print (name)
 
 
     model=get_external_weights(model, "train")
+
+    for name, param in model.named_parameters():
+        print(name, param)
 
     if opt.gpus > 1:
         model = nn.DataParallel(model)
@@ -247,7 +246,11 @@ def train(**kwargs):
                 #plt.pause(0.05)
                 #print(model.conv1.z_phi.grad)
                 #print(model.conv2.z_phi)
-                print(model.output[2].z_phi)
+                print(model.output[0].weights)
+                for name, param in model.named_parameters():
+                    print (name, param)
+
+
 
             if (model.beta_ema if opt.gpus <= 1 else model.module.beta_ema) > 0.:
                 model.update_ema() if opt.gpus <= 1 else model.module.update_ema()
@@ -330,7 +333,11 @@ def test(**kwargs):
     vis = Visualizer(opt.log_dir, opt.model, current_time)
     # load model
     model = getattr(models, opt.model)(lambas=opt.lambas).to(device)
-    torch.save(model.state_dict(), "model_toy")
+
+    for name,param in model.named_parameters():
+        print(name, param.shape)
+
+    torch.save(model.state_dict(), "data/model_toy")
 
     # load data set
     train_loader, val_loader, num_classes = getattr(dataset, opt.dataset)(opt.batch_size * opt.gpus)
@@ -348,9 +355,12 @@ def test(**kwargs):
             #param.data[0]=0.5 #example how change
 
         model=get_external_weights(model, "test")
-        print(model.state_dict()['output.0.z_phi'])
-        print(model.state_dict()['output.2.z_phi'])
+        #print(model.state_dict()['output.0.z_phi'])
+        #print(model.state_dict()['output.2.z_phi'])
         #print(model.state_dict()['output.4.z_phi']) #3LA
+
+        for name, param in model.named_parameters():
+            print (name, param)
 
         #-1 everything is pruned
 
@@ -372,8 +382,8 @@ def test(**kwargs):
 
         val_accuracy0 = val_accuracy
         difference=val_accuracy1-val_accuracy0
-        with open("results/shapley_switches.txt", 'a') as file:
-            file.write(str(difference)+ "\n")
+        #with open("results/shapley_switches.txt", 'a') as file:
+        #    file.write(str(difference)+ "\n")
 
 
 

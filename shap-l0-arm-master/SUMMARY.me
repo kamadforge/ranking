@@ -21,7 +21,9 @@ train --model=ARMLeNet5 --dataset=mnist --lambas="[.1,.1,.1,.1]" --optimizer=ada
 test --model=ARMLeNet5 --dataset=mnist --lambas="[.1,.1,.1,.1]" --load_file="checkpoints/ARMLeNet5_2019-06-19 14:27:03/0.model" --use_t_in_testing=False --k=70009
 
 train --model=ARMMLP_toy --dataset=toy_dataset --lambas="[.1,.1,.1,.1]" --optimizer=adam --lr=0.001 --ar True
+//3 layer
 test --model=ARMMLP_toy --dataset=toy_dataset --lambas="[.1,.1,.1,.1]" --load_file=shap-l0-arm-master/checkpoints/ARMMLP_toy_2020-04-12 22:32:56 --use_t_in_testing=False --k=70009
+//2 layer
 test --model=ARMMLP_toy --dataset=toy_dataset --lambas="[.1,.1,.1,.1]" --load_file=shap-l0-arm-master/checkpoints/ARMMLP_toy_2020-04-14 23:25:15/10.model --use_t_in_testing=False --k=70009
 
 

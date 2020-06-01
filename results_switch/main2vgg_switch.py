@@ -15,7 +15,6 @@ import torchvision.transforms as transforms
 
 import os
 import argparse
-
 import sys
 #sys.path.append("/home/kamil/Dropbox/Current_research/python_tests/results_networktest/external_codes/pytorch-cifar-master")
 sys.path.append("/home/kamil/Dropbox/Current_research/python_tests/results_networktest/external_codes/pytorch-cifar-master/models")
@@ -63,10 +62,6 @@ beta_func = lambda s: min(s, annealing_steps) / annealing_steps
 #alpha and switch_init
 alpha = float(sys.argv[2]) if len (sys.argv)>2 else 0.5#2  # below 1 so that we encourage sparsity
 switch_init=float(sys.argv[3]) if len (sys.argv)>3 else 0.05#-1
-
-
-
-
 
 BATCH_SIZE=100
 model_parameters = '94.34'

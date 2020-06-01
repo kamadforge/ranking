@@ -530,8 +530,7 @@ for layer in vgg_layername:
     #file_tosave=open(save_textfile, "a+")
     lenet_filternums={'c1': 10, 'c3': 20, 'c5': 100, 'f6': 25}
     #vgg_filternums={"c1":64, "c2":64, "c3":128, "c4":128, "c5":256, "c6":256, "c7":256, "c8":512, "c9":512, "c10":512, "c11":512, "c12":512, "c13":512, "l1":512, "l2":512}
-
-
+    file ="/home/kamil/Desktop/Dropbox/Current_research/featimp_dp/code/combinations/model[0].txt"
 
 #NOTSAMPLED
 
@@ -568,7 +567,7 @@ for layer in vgg_layername:
 
 
 
-    original_accuracy=99.27
+    original_accuracy=59#99.27
     dict=readdata_notsampled(original_accuracy)
     dict[tuple(np.arange(10))]=original_accuracy
     print(dict)

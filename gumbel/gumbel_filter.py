@@ -30,7 +30,7 @@ class Net(nn.Module):
             a = functional.gumbel_softmax(self.gumbel, tau=0.03, hard=True)
             #print(a)
         else:
-            a = torch.zeros(hidden); a[1:8]=1
+            a = torch.zeros(hidden); a[2:8]=1
         out=out*a
         out=functional.relu(out)
         out=self.l2(out)
@@ -104,6 +104,8 @@ if mode=='train':
 
         print(loss)
         print(net.gumbel)
+        print(functional.gumbel_softmax(net.gumbel, tau=0.93, hard=False))
+        print(functional.gumbel_softmax(net.gumbel, tau=0.93, hard=True))
         #print(net.gumbel)
         #print((net.l1.weight.grad == 0).sum())  # the hook is automatically applied, here we just check the gradient
 
