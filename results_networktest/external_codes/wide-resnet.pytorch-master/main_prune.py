@@ -142,12 +142,23 @@ if args.resume:
         ranks=np.load("ranks.npy", allow_pickle=True)
 
 
+        reverse=True
 
         unimportant_channels={}
         prune_rates={"layer1.0" : thresh[0], "layer1.1" : thresh[1], "layer1.2" : thresh[2], "layer1.3" : thresh[3], "layer2.0" : thresh[4], "layer2.1" : thresh[5], "layer2.2" : thresh[6], "layer2.3" : thresh[7], "layer3.0" : thresh[8], "layer3.1" : thresh[9], "layer3.2" : thresh[10], "layer3.3" : thresh[11] }
         for r in ranks[()].keys():
             layer=r[7:15]
             rank=ranks[()][r]
+            if reverse==True:
+                # create inverted indices
+                # idx = [i for i in range(rank.size(0) - 1, -1, -1)]
+                # idx = torch.LongTensor(idx)
+                # rank_rev = rank.index_select(0, idx)
+                # rank=rank_rev
+
+                rNpArr = np.flip(rank.detach().cpu().numpy(), 0).copy()  # Reverse of copy of numpy array of given tensor
+                rank = torch.from_numpy(rNpArr)
+
             unimportant_channels[layer]=channels_to_remove=rank[prune_rates[layer]:]
 
             for name, param in net.named_parameters():
