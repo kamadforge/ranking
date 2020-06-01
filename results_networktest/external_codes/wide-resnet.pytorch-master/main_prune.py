@@ -34,6 +34,7 @@ parser.add_argument('--arch', default="75,85,80,80,159,159,154,159,315,315,314,3
 args = parser.parse_args()
 
 thresh = [int(n) for n in args.arch.split(",")]
+print(thresh)
 
 # Hyper Parameter settings
 use_cuda = torch.cuda.is_available()
@@ -145,18 +146,12 @@ if args.resume:
         unimportant_channels={}
         prune_rates={"layer1.0" : thresh[0], "layer1.1" : thresh[1], "layer1.2" : thresh[2], "layer1.3" : thresh[3], "layer2.0" : thresh[4], "layer2.1" : thresh[5], "layer2.2" : thresh[6], "layer2.3" : thresh[7], "layer3.0" : thresh[8], "layer3.1" : thresh[9], "layer3.2" : thresh[10], "layer3.3" : thresh[11] }
         for r in ranks[()].keys():
-            print(r)
             layer=r[7:15]
             rank=ranks[()][r]
-            #print(rank)
             unimportant_channels[layer]=channels_to_remove=rank[prune_rates[layer]:]
 
             for name, param in net.named_parameters():
-                print(name)
-                print(param.shape)
-
                 if layer in name and ("bn" not in name) and ("parameter" not in name) and ("shortcut" not in name):
-                    print(name)
                     channels_to_remove=unimportant_channels[layer]
                     param.data[channels_to_remove]=0
 
