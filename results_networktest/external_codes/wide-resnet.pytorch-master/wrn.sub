@@ -13,4 +13,4 @@ request_cpus = 1
 request_gpus = 1
 #queue 1
 
-queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/results_networktest/external_codes/wide-resnet.pytorch-master/utils/parameters2.txt
+queue arch from /home/kadamczewski/Dropbox_from/Current_research/ranking/results_networktest/external_codes/wide-resnet.pytorch-master/utils/parameters.txt
