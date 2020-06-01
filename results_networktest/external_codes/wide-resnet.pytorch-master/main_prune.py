@@ -134,7 +134,7 @@ if args.resume:
     _, file_name = getNetwork(args)
     checkpoint = torch.load('./checkpoint/'+args.dataset+os.sep+file_name+'.t7', map_location=lambda storage, loc: storage)
     net = checkpoint['net']
-    best_acc = checkpoint['acc']
+    best_acc = 0#checkpoint['acc']
     start_epoch = checkpoint['epoch']
     if args.prune:
 
