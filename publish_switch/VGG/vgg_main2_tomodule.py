@@ -138,7 +138,7 @@ parser.add_argument("--arch", default='25,25,65,80,201,158,159,460,450,490,470,4
 #parser.add_argument("--arch", default='25,25,65,80,201,158,159,460,450,490,470,465,465,450')
 # ar.add_argument("-arch", default=[21,20,65,80,201,147,148,458,436,477,454,448,445,467,441])
 parser.add_argument('--layer', help="layer to prune", default="c1")
-parser.add_argument("--method", default='switch')
+parser.add_argument("--method", default='l2')
 parser.add_argument("--switch_samps", default=100, type=int)
 parser.add_argument("--switch_epochs", default=1, type=int)
 parser.add_argument("--ranks_method", default='point')
@@ -147,7 +147,6 @@ parser.add_argument("--prune_bool", default=False)
 parser.add_argument("--retrain_bool", default=False)
 # parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
 # parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')
-parser.add_argument("--model", default="None")
 save_accuracy=91.0
 
 args = parser.parse_args()
@@ -493,10 +492,10 @@ transform_test = transforms.Compose([
     transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
 ])
 
-# trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
+# trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=False, transform=transform_train)
 # trainloader = torch.utils.data.DataLoader(trainset, batch_size=128, shuffle=True, num_workers=0)
 
-trainval_dataset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
+trainval_dataset = torchvision.datasets.CIFAR10(root='./data', train=True, download=False, transform=transform_train)
 # with more workers there may be an error in debug mode: RuntimeError: DataLoader worker (pid 29274) is killed by signal: Terminated.
 
 
@@ -512,10 +511,10 @@ train_dataset, val_dataset = torch.utils.data.random_split(trainval_dataset, [tr
 trainloader = torch.utils.data.DataLoader(train_dataset, batch_size=128, shuffle=False)
 valloader = torch.utils.data.DataLoader(val_dataset, batch_size=128, shuffle=False)
 
-# testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform_test)
+# testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=False, transform=transform_test)
 # testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False, num_workers=0)
 
-testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform_test)
+testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=False, transform=transform_test)
 testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False, num_workers=0)
 
 classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
@@ -1095,14 +1094,7 @@ def prune_and_retrain(thresh):
 
 #################################################################
 
-os.makedirs('checkpoint', exist_ok=True)
-
-if args.model=="None":
-    model2load = path_compression+'/checkpoint/ckpt_vgg16_94.34.t7'
-else:
-    model2load = args.model
-
-
+model2load = path_compression+'/checkpoint/ckpt_vgg16_94.34.t7'
 orig_accuracy = 94.34
 # if all False just train thenetwork
 resume = args.resume
