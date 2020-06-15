@@ -18,8 +18,8 @@ import argparse
 
 import sys
 
-print(sys.path)
-print("newh2")
+
+
 sys.path.append(
     "/home/kamil/Dropbox/Current_research/python_tests/results_networktest/external_codes/pytorch-cifar-master/models")
 sys.path.append("/home/kamil/Dropbox/Current_research/python_tests/results_compression")
@@ -56,7 +56,6 @@ best_acc = 0  # best test accuracy
 start_epoch = 0  # start from epoch 0 or last checkpoint epoch
 
 # Data
-print('==> Preparing data..')
 transform_train = transforms.Compose([
     transforms.RandomCrop(32, padding=4),
     transforms.RandomHorizontalFlip(),
@@ -76,7 +75,6 @@ trainval_perc = 0.85
 train_size = int(trainval_perc * len(trainval_dataset))
 val_size = len(trainval_dataset) - train_size
 torch.manual_seed(0)
-print(torch.rand(2))
 train_dataset, val_dataset = torch.utils.data.random_split(trainval_dataset, [train_size, val_size])
 # val_dataset=torch.load("val_dataset")
 
@@ -108,9 +106,6 @@ criterion = nn.CrossEntropyLoss()
 
 
 def test(epoch, net):
-    # for name, param in net.named_parameters():
-    #     print (name)
-    #     print (param)
     global best_acc
     net.eval()
     test_loss = 0
@@ -135,9 +130,6 @@ def test(epoch, net):
 
 
 def test_val(epoch, net):
-    # for name, param in net.named_parameters():
-    #     print (name)
-    #     print (param)
     global best_acc
     net.eval()
     test_loss = 0

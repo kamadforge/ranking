@@ -34,10 +34,7 @@ else:
     path_networktest = os.path.join(parent_path, "results_networktest")
     path_main= parent_path
 
-print(cwd)
-print(sys.path)
 
-print("newh2")
 sys.path.append(os.path.join(path_networktest, "external_codes/pytorch-cifar-master/models"))
 sys.path.append(path_compression)
 

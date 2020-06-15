@@ -121,10 +121,8 @@ else:
     path_switch = os.path.join(parent_path, "results_switch")
     path_main= parent_path
 
-print(cwd)
-print(sys.path)
+print("Current working directory:", cwd)
 
-print("newh2")
 sys.path.append(os.path.join(path_networktest, "external_codes/pytorch-cifar-master/models"))
 sys.path.append(path_compression)
 
@@ -148,11 +146,16 @@ parser.add_argument("--retrain_bool", default=False)
 # parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
 # parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')
 parser.add_argument("--model", default="None")
-save_accuracy=91.0
-
+parser.add_argument("--save_accuracy", default=50.0, type=float)
 args = parser.parse_args()
-print(args.layer)
-print("aaa", args.arch)
+
+if args.resume==False and args.prune_bool==False and args.retrain_bool==False:
+    print("Training from scratch")
+elif args.prune_bool==True:
+    print("Pruning:", args.arch)
+    #print(args.layer)
+
+save_accuracy=args.save_accuracy
 
 
 
@@ -1119,41 +1122,19 @@ if resume:
 
 # loading a pretrained model
 if prune_bool:
-    # thresh=[15,15,10,10,10,110,210,490,490,497,505,505,504,503,495]
-    # thresh=[15,15,10,10,10,110,21,49,490,497,505,505,504,503,495]
-    # thresh=[30,30,70,80,201,170,175,420,430,440,440,445,445,450,450]
-    # thresh=[30,30,60,60,181,150,155,420,410,420,420,445,445,450,450]
-    # thresh=[20,20,30,90,181,150,155,320,310,320,320,445,445,450,50]
-    # thresh=[15,15,24,10,141,150,195,220,210,220,220,345,345,350,350]
-    # thresh=args['arch']
-
-    # thresh=[20, 20, 40, 40, 80, 80, 80, 160, 160, 160, 160, 160, 160, 160, 80]
-    # thresh = [20, 20, 40, 40, 80, 80, 80, 160, 160, 160, 160, 80, 80, 80, 80]
-    # thresh = [5, 5, 40, 40, 20, 40, 120, 230, 250, 300, 300, 160, 250, 250, 160]  # 10 #0.3
-    # thresh=[5, 5, 40, 40, 20, 40, 80, 130, 190, 260, 260, 160, 250, 250, 160] #11 #0.4
-    # thresh=[5, 5, 40, 40, 20, 40, 80, 80, 160, 40, 40, 160, 80, 160, 160] #12 #0.5 %17.81
-    # thresh=[5, 5, 10, 10, 40, 20, 20, 40, 40, 160, 160, 40, 160, 80, 80] # 13
-    # thresh=[5, 5, 20, 10, 20, 80, 40, 40, 40, 80, 160, 80, 80, 40, 80] #14 #0.6 #10.74 (94.34)
-    # thresh = [5, 5, 10, 10, 20, 20, 20, 40, 40, 40, 40, 40, 80, 160, 80] #15
-    thresh = [5, 5, 10, 10, 20, 20, 20, 40, 40, 40, 40, 40, 40, 40,
-160]  # 16 55.86. 69.81, 58.49, 57.11 (fish, filt, l1, l2) (94.34
-    # thresh=[5, 5, 10, 10, 20, 10, 20, 20, 40, 20, 20, 40, 40, 20, 80] #17 # 87.86. 71.44, 58.49, 57.21 (94.34)
-    # thresh=[5, 5, 10, 10, 10, 10, 10, 20, 20, 20, 10, 10, 10, 10, 10] #~18 #0.95
-
     if 1:
         print('\n****************\n')
         for method in [args.method]:
             # for method in ['fisher']:
             print('\n\n' + method + "\n")
             thresh = [int(n) for n in args.arch.split(",")]
-            #[i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15]
             print(thresh)
             prune_and_retrain(thresh)
 
     # prune_and_retrain(thresh) #first argument is whether to trune, False only retraining
 
-# training from scratchhttps
-if resume == False:
+# training from scratch
+if resume == False and prune_bool == False and retrain_bool==False:
     best_accuracy = 0
     session1end = start_epoch + 10;
     session2end = start_epoch + 250;
