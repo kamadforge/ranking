@@ -38,9 +38,8 @@ from itertools import product
 # from utils import progress_bar
 import torch
 import torch.nn as nn
-from results_switch.main2vgg_switch_point import main as point
-from results_switch.main2vgg_switch_integral_work import main as integral
-from results_switch.script_vgg_vggswitch import switch_script
+sys.path.append("results_switch")
+from script_vgg_vggswitch import switch_script
 
 
 network_structure_dummy=0
