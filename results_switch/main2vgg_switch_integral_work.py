@@ -96,6 +96,8 @@ def get_args():
     switch_layer=args.layer
     epochs_num=args.epochs_num
     switch_samps=args.switch_samps
+    print(args.layer)
+
 
 BATCH_SIZE=100
 model_parameters = '94.34'
@@ -104,7 +106,6 @@ lr = 0.1
 
 epoch_to_save=1
 
-print(args.layer)
 
 #saving
 save_path=path_switch+"/results/cifar/vgg_%s/switch_init_%.2f_alpha_%.2f_annealing_%d" % (model_parameters, alpha, switch_init, annealing_steps)
