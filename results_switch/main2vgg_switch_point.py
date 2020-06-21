@@ -64,24 +64,14 @@ resume=True
 import torch
 import torch.nn as nn
 
-##############################3
-# CHANGE
-
-#hideen_dum
-#recopy the position of switches in class VGG
-#name at the bottom, to check if the correct version is there
-
 
 #############################
 # PARAMS
 
 architecture="vgg"
 #annealing
-#how_many_epochs=200
-#annealing_steps = float(30000 * how_many_epochs)
-annealing_steps = float(6000000)
+annealing_steps = float(6000000) #float(30000 * how_many_epochs)
 beta_func = lambda s: min(s, annealing_steps) / annealing_steps
-#alpha and switch_init
 arguments=argparse.ArgumentParser()
 arguments.add_argument("--alpha", default=0.5, type=float)#2 # below 1 so that we encourage sparsity
 arguments.add_argument("--switch_init", default=0.05, type=float)#-1
@@ -111,8 +101,8 @@ print(args.layer)
 
 #saving
 save_path=path_switch+"/results/cifar/vgg_%s/switch_init_%.2f_alpha_%.2f_annealing_%d" % (model_parameters, alpha, switch_init, annealing_steps)
-if not os.path.exists(save_path):
-    os.mkdir(save_path)
+# if not os.path.exists(save_path):
+#     os.mkdir(save_path)
 save_textfile="%s/switch_init_%.2f, alpha_%.2f.txt" % (save_path, alpha, switch_init)
 save_switches_params=True
 save_switches_text=True
@@ -285,40 +275,10 @@ class VGG(nn.Module):
         return output, Sprime
 
 
-def _make_layers(self, cfg):
-        layers = []
-        in_channels = 3
-        for x in cfg:
-            if x == 'M':
-                layers += [nn.MaxPool2d(kernel_size=2, stride=2)]
-
-            else:
-                layers += [nn.Conv2d(in_channels, x, kernel_size=3, padding=1),
-                           nn.BatchNorm2d(x),
-                           nn.ReLU(inplace=True)]
-                in_channels = x
-        layers += [nn.AvgPool2d(kernel_size=1, stride=1)]
-        return nn.Sequential(*layers)
-
-
-
-
-
-# def test():
-#     net = VGG('VGG11')
-#     x = torch.randn(2,3,32,32)
-#     y = net(x)
-#     print(y.size())
-
-# test()
 
 #####################################
 # DATA
 
-#parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
-#parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
-#parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')
-#args = parser.parse_args()
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 best_acc = 0  # best test accuracy
@@ -449,7 +409,6 @@ criterion = nn.CrossEntropyLoss()
 # LOSS
 
 
-
 def loss_function(prediction, true_y, S, alpha, hidden_dim, how_many_samps):
     # BCE = f.binary_cross_entropy(prediction, true_y, reduction='sum')
     BCE = criterion(prediction, true_y)
@@ -533,7 +492,6 @@ def train(epoch, net_all, optimizer, hidden_dim, switch_layer):
 # TEST
 
 
-
 def test(epoch, net_all, switch_layer):
     global best_acc
     net_all.eval()
@@ -555,7 +513,6 @@ def test(epoch, net_all, switch_layer):
     print('Loss: %.3f | Acc: %.3f%% (%d/%d)' % (test_loss/(batch_idx+1), 100.*correct/total, correct, total))
     return 100.*correct/total
 
-
     # Save checkpoint.
     acc = 100.*correct/total
     if acc > best_acc:
@@ -569,65 +526,6 @@ def test(epoch, net_all, switch_layer):
             os.mkdir('checkpoint')
         torch.save(state, './checkpoint/ckpt_%.2f.t7' % acc)
         best_acc = acc
-
-###########################################################
-#copied from network pruning
-#
-# def compute_combinations_random(file_write):
-#     for name, param in net.named_parameters():
-#         print(name)
-#         print(param.shape)
-#         layer = "module.features.1.weight"
-#         if layer in name:
-#             layerbias = layer[:17] + ".bias"
-#             params_bias = net.state_dict()[layerbias]
-#             while (True):
-#
-#                 all_results = {}
-#                 # s=torch.range(0,49) #list from 0 to 19 as these are the indices of the data tensor
-#                 # for r in range(1,50): #produces the combinations of the elements in s
-#                 #    results=[]
-#                 randperm = np.random.permutation(param.shape[0])
-#                 randint = 0
-#                 while (randint == 0):
-#                     randint = np.random.randint(param.shape[0])
-#                 randint_indextoremove = np.random.randint(randint)
-#                 combination = randperm[:randint]
-#                 combination2 = np.delete(combination, randint_indextoremove)
-#                 print(combination[randint_indextoremove])
-#
-#                 #if file_write:
-#                 print("in")
-#                 with open("results_running/combinations_pruning_cifar_vgg_%s.txt" % (layer),
-#                           "a+") as textfile:
-#                     textfile.write("%d\n" % randint_indextoremove)
-#
-#                 for combination in [combination, combination2]:
-#                     # for combination in list(combinations(s, r)):
-#
-#                     combination = torch.LongTensor(combination)
-#
-#                     print(combination)
-#                     params_saved = param[combination].clone()
-#                     param_bias_saved = params_bias[combination].clone()
-#
-#                     # param[torch.LongTensor([1, 4])] = 0
-#                     # workaround, first using multiple indices does not work, but if one of the change first then it works to use  param[combinations]
-#                     if len(combination) != 0:
-#                         param[combination[0]] = 0
-#                         # param[combination]=0
-#                         params_bias[combination] = 0
-#
-#                     accuracy = test(-1)
-#                     param[combination] = params_saved
-#                     params_bias[combination] = param_bias_saved
-#
-#                     #if file_write:
-#                     print("out")
-#                     with open("results_running/combinations_pruning_cifar_vgg_%s.txt" % (layer),
-#                               "a+") as textfile:
-#                         textfile.write("%s: %.2f\n" % (",".join(str(x) for x in combination.numpy()), accuracy))
-
 
 ##########################################################################3
 # RUN EXPERIMENT

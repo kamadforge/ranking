@@ -15,16 +15,12 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
-
 import torchvision
 import torchvision.transforms as transforms
-
 import os
 import argparse
-
 import sys
 import socket
-
 import numpy as np
 from torch.nn.parameter import Parameter
 import torch.nn.functional as f
@@ -36,67 +32,15 @@ from vgg_computeComb2 import compute_combinations
 from vgg_computeComb2 import test_val
 import argparse
 from itertools import product
-
 # file_dir = os.path.dirname("utlis.p")
 # sys.path.append(file_dir)
-
 # from models import *
-
 # from utils import progress_bar
 import torch
 import torch.nn as nn
-
-
-
-
-#
-# Sequential(
-#   (0): Conv2d(3, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-#   (1): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-#   (2): ReLU(inplace)
-#   (3): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-#   (4): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-#   (5): ReLU(inplace)
-#   (6): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
-#   (7): Conv2d(64, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-#   (8): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-#   (9): ReLU(inplace)
-#   (10): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-#   (11): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-#   (12): ReLU(inplace)
-#   (13): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
-#   (14): Conv2d(128, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-#   (15): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-#   (16): ReLU(inplace)
-#   (17): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-#   (18): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-#   (19): ReLU(inplace)
-#   (20): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-#   (21): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-#   (22): ReLU(inplace)
-#   (23): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
-#   (24): Conv2d(256, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-#   (25): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-#   (26): ReLU(inplace)
-#   (27): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-#   (28): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-#   (29): ReLU(inplace)
-#   (30): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-#   (31): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-#   (32): ReLU(inplace)
-#   (33): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
-#   (34): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-#   (35): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-#   (36): ReLU(inplace)
-#   (37): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-#   (38): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-#   (39): ReLU(inplace)
-#   (40): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-#   (41): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-#   (42): ReLU(inplace)
-#   (43): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
-#   (44): AvgPool2d(kernel_size=1, stride=1, padding=0)
-# )
+from results_switch.main2vgg_switch_point import main as point
+from results_switch.main2vgg_switch_integral_work import main as integral
+from results_switch.script_vgg_vggswitch import switch_script
 
 
 network_structure_dummy=0
@@ -134,14 +78,14 @@ sys.path.append(path_compression)
 parser = argparse.ArgumentParser()
 parser.add_argument("--arch", default='25,25,65,80,201,158,159,460,450,490,470,465,465,450')
 #parser.add_argument("--arch", default='25,25,65,80,201,158,159,460,450,490,470,465,465,450')
-# ar.add_argument("-arch", default=[21,20,65,80,201,147,148,458,436,477,454,448,445,467,441])
 parser.add_argument('--layer', help="layer to prune", default="c1")
 parser.add_argument("--method", default='switch')
-parser.add_argument("--switch_samps", default=100, type=int)
+parser.add_argument("--switch_samps", default=10, type=int)
 parser.add_argument("--switch_epochs", default=1, type=int)
 parser.add_argument("--ranks_method", default='point')
+parser.add_argument("--switch_train", default=False)
 parser.add_argument("--resume", default=False)
-parser.add_argument("--prune_bool", default=False)
+parser.add_argument("--prune_bool", default=True)
 parser.add_argument("--retrain_bool", default=False)
 # parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
 # parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')
@@ -461,19 +405,6 @@ class VGG(nn.Module):
     #     out = self.classifier(out)
     #     return out
 
-    def _make_layers(self, cfg):
-        layers = []
-        in_channels = 3
-        for x in cfg:
-            if x == 'M':
-                layers += [nn.MaxPool2d(kernel_size=2, stride=2)]
-            else:
-                layers += [nn.Conv2d(in_channels, x, kernel_size=3, padding=1),
-                           nn.BatchNorm2d(x),
-                           nn.ReLU(inplace=True)]
-                in_channels = x
-        layers += [nn.AvgPool2d(kernel_size=1, stride=1)]
-        return nn.Sequential(*layers)
 
 
 #####################################
@@ -769,13 +700,24 @@ def prune_and_retrain(thresh):
                     combinationss.append(nums_int)
 
             elif ranks_method == 'integral':
-                ranks_path = path_switch+'/results/switch_data_cifar_integral_samps_%i_epochs_%i.npy' % (args.switch_samps, args.switch_epochs)
-                combinationss=list(np.load(ranks_path,  allow_pickle=True).item()['combinationss'])
+                print("\nSwitch integral\n")
+                if args.switch_train:
+                    switch_data = switch_script("switch_integral", args.switch_samps, args.switch_epochs)
+                    combinationss=switch_data['combinations']
+                else:
+                    ranks_path = path_switch+'/results/switch_data_cifar_integral_samps_%i_epochs_%i.npy' % (args.switch_samps, args.switch_epochs)
+                    combinationss=list(np.load(ranks_path,  allow_pickle=True).item()['combinationss'])
 
             elif ranks_method == 'point':
-                print(ranks_method)
-                ranks_path = path_switch+'/results/switch_data_cifar_point_epochs_%i.npy' % (args.switch_epochs)
-                combinationss=list(np.load(ranks_path,  allow_pickle=True).item()['combinationss'])
+                print("\nSwitch point\n")
+
+                if args.switch_train:
+                    switch_data = switch_script("switch_point", args.switch_samps, args.switch_epochs)
+                    combinationss=switch_data['combinationss']
+                else:
+                    print(ranks_method)
+                    ranks_path = path_switch+'/results/switch_data_cifar_point_epochs_%i.npy' % (args.switch_epochs)
+                    combinationss=list(np.load(ranks_path,  allow_pickle=True).item()['combinationss'])
 
             # these numbers from the beginning will be cut off, meaning the worse will be cut off
             #we change to the other way around

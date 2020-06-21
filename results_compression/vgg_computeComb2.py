@@ -69,7 +69,7 @@ transform_test = transforms.Compose([
 
 ########## rainval
 
-trainval_dataset = torchvision.datasets.CIFAR10(root='./data', train=True, download=False, transform=transform_train)
+trainval_dataset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
 
 trainval_perc = 0.85
 train_size = int(trainval_perc * len(trainval_dataset))

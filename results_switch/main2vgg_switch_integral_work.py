@@ -107,8 +107,8 @@ print(args.layer)
 
 #saving
 save_path=path_switch+"/results/cifar/vgg_%s/switch_init_%.2f_alpha_%.2f_annealing_%d" % (model_parameters, alpha, switch_init, annealing_steps)
-if not os.path.exists(save_path):
-    os.mkdir(save_path)
+# if not os.path.exists(save_path):
+#     os.mkdir(save_path)
 save_textfile="%s/switch_init_%.2f, alpha_%.2f.txt" % (save_path, alpha, switch_init)
 save_switches_params=True
 save_switches_text=True
@@ -621,24 +621,15 @@ def main(switch_layer, epochs_num, switch_samps, hidden_dim='conv10'):
     if training:
         optimizer = optim.SGD(net2.parameters(), lr=0.1, momentum=0.9, weight_decay=5e-4)
 
-        # for i1 in [0.1, 1, 10]:dssd dsd
-        #     for i2 in [0.1, 1, 10]:
-        #         switch_init=i1
-        #         alpha=i2
+        print("switch_init %.2f, alpha %.2f" %(switch_init, alpha))
+        load_weights(net2)
 
-        if 1:
-            if 1:
+        for epoch in range(0, epochs_num):
+            print(switch_layer)
+            print(hidden_dim)
 
-
-                print("switch_init %.2f, alpha %.2f" %(switch_init, alpha))
-                load_weights(net2)
-
-                for epoch in range(0, epochs_num):
-                    print(switch_layer)
-                    print(hidden_dim)
-
-                    ranks, switches = train(epoch, net2, optimizer, hidden_dim, switch_layer)
-                    test(epoch, net2, switch_layer)
+            ranks, switches = train(epoch, net2, optimizer, hidden_dim, switch_layer)
+            test(epoch, net2, switch_layer)
 
     return ranks, switches
 

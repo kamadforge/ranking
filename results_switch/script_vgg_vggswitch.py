@@ -34,42 +34,43 @@ else:
 
 print("v4")
 
-
-#for alpha in [0.5, 1, 5, 10, 20, 50, 100, 0.05, 0.1]:
-#for alpha in [0.01, 0.05, 0.1, 0.5, -0.5, -1, -2, -5, -10]:
-#    for switch_init in [0.05, 0.1, 0.5, 1, 5]:
-alpha=0.05; switch_init=0.05
 epochs_num=args.epoch_num
 dataset='cifar'
 num_samps_for_switch=args.switch_samps
 method=args.method
 
-if method=="switch_point":
-    file_path=path_switch+'/results/switch_data_%s_point_epochs_%i.npy' % (dataset, epochs_num)
-elif method=="switch_integral":
-    file_path=path_switch+'/results/switch_data_%s_integral_samps_%s_epochs_%i.npy' % (dataset, str(num_samps_for_switch), epochs_num)
-    #file_path=os.path.join(path_main, 'results_switch/results/switch_data_%s_9032_integral_samps_%s_epochs_%i.npy' % (dataset, str(num_samps_for_switch), epochs_num))
+def switch_script(method, num_samps_for_switch, epochs_num):
+
+    alpha=0.05; switch_init=0.05
 
 
-if 1:
-    if 1:
-        switch_data={}; switch_data['combinationss'] = []; switch_data['switches']=[]
-        for i in range(1,15):
-            switch_layer='conv'+str(i)
-            #subprocess.call(['/home/kadamczewski/miniconda3/envs/BayesianNeuralNetwork/bin/python', 'main2vgg_switch.py', switch_layer, str(alpha), str(switch_init)])
-            #subprocess.call(['python', 'main2vgg_switch.py', switch_layer, str(alpha), str(switch_init)])
-            if method=="switch_point":
-                ranks, switches=main_point(switch_layer, epochs_num, num_samps_for_switch)
-            elif method=="switch_integral":
-                ranks, switches=main_integral(switch_layer, epochs_num, num_samps_for_switch)
+    if method=="switch_point":
+        file_path=path_switch+'/results/switch_data_%s_point_epochs_%i.npy' % (dataset, epochs_num)
+    elif method=="switch_integral":
+        file_path=path_switch+'/results/switch_data_%s_integral_samps_%s_epochs_%i.npy' % (dataset, str(num_samps_for_switch), epochs_num)
+        #file_path=os.path.join(path_main, 'results_switch/results/switch_data_%s_9032_integral_samps_%s_epochs_%i.npy' % (dataset, str(num_samps_for_switch), epochs_num))
 
 
-            print("\n", '*'*30, "\nThe resulting ranks and switches")
-            print(ranks, switches)
-            switch_data['combinationss'].append(ranks);
-            switch_data['switches'].append(switches)
-            np.save(file_path, switch_data)
-            print("Memory: ", process.memory_info().rss / 1024 ** 2)  # in bytes
+
+    switch_data={}; switch_data['combinationss'] = []; switch_data['switches']=[]
+    for i in range(1,15):
+        switch_layer='conv'+str(i)
+        #subprocess.call(['/home/kadamczewski/miniconda3/envs/BayesianNeuralNetwork/bin/python', 'main2vgg_switch.py', switch_layer, str(alpha), str(switch_init)])
+        #subprocess.call(['python', 'main2vgg_switch.py', switch_layer, str(alpha), str(switch_init)])
+        if method=="switch_point":
+            ranks, switches=main_point(switch_layer, epochs_num, num_samps_for_switch)
+        elif method=="switch_integral":
+            ranks, switches=main_integral(switch_layer, epochs_num, num_samps_for_switch)
+
+
+        print("\n", '*'*30, "\nThe resulting ranks and switches")
+        print(ranks, switches)
+        switch_data['combinationss'].append(ranks);
+        switch_data['switches'].append(switches)
+        np.save(file_path, switch_data)
+        print("Memory: ", process.memory_info().rss / 1024 ** 2)  # in bytes
+
+    return switch_data
 
 
 
