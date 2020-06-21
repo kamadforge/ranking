@@ -446,14 +446,19 @@ elif dataset=='housenums':
 #     print(device)
 
 #if args.resume:
-def load_weights(net_all):
+def load_weights(net_all, model):
     if (resume):
         # Load checkpoint.
         print('==> Resuming from checkpoint..')
         #assert os.path.isdir('checkpoint'), 'Error: no checkpoint directory found!'
         if dataset == 'cifar':
-            checkpoint = torch.load(path_switch + '/checkpoint/ckpt_vgg16_%s.t7' % model_parameters,
-                                    map_location=lambda storage, loc: storage)
+            if model == "None":
+                model2load = path_switch + '/checkpoint/ckpt_vgg16_%s.t7' % model_parameters
+            else:
+                model2load = model
+
+
+            checkpoint = torch.load(model2load, map_location=lambda storage, loc: storage)
             net_all.load_state_dict(checkpoint['net'], strict=False)
 
         elif dataset == 'housenums':
@@ -601,7 +606,7 @@ def test(epoch, net_all, switch_layer):
 #compute_combinations_random(file_write)
 
 #def main(switch_layer, epochs_num, switch_samps, hidden_dim):
-def main(switch_layer, epochs_num, switch_samps, hidden_dim='conv10'):
+def main(switch_layer, epochs_num, switch_samps, model, hidden_dim='conv10'):
 
     training=True
     hidden_dim = model_structure[int(switch_layer[4:])]  # it's a number of parameters we want to estimate, e.g. # conv1 filters
@@ -628,7 +633,7 @@ def main(switch_layer, epochs_num, switch_samps, hidden_dim='conv10'):
         optimizer = optim.SGD(net2.parameters(), lr=0.1, momentum=0.9, weight_decay=5e-4)
 
         print("switch_init %.2f, alpha %.2f" %(switch_init, alpha))
-        load_weights(net2)
+        load_weights(net2, model)
 
         for epoch in range(0, epochs_num):
             print(switch_layer)

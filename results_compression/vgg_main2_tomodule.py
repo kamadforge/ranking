@@ -703,7 +703,7 @@ def prune_and_retrain(thresh):
                 print("\nSwitch integral\n")
                 if args.switch_train:
                     print("\nTraining switches\n")
-                    switch_data = switch_script("switch_integral", args.switch_samps, args.switch_epochs)
+                    switch_data = switch_script("switch_integral", args.switch_samps, args.switch_epochs, args.model)
                     combinationss=switch_data['combinations']
                 else:
                     print("\nLoading switches\n")
@@ -715,7 +715,7 @@ def prune_and_retrain(thresh):
 
                 if args.switch_train:
                     print("\nTraining switches\n")
-                    switch_data = switch_script("switch_point", args.switch_samps, args.switch_epochs)
+                    switch_data = switch_script("switch_point", args.switch_samps, args.switch_epochs, args.model)
                     combinationss=switch_data['combinationss']
                 else:
                     print("\nLoading switches\n")
