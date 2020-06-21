@@ -80,21 +80,22 @@ architecture="vgg"
 annealing_steps = float(6000000)
 beta_func = lambda s: min(s, annealing_steps) / annealing_steps
 #alpha and switch_init
-arguments=argparse.ArgumentParser()
-arguments.add_argument("--alpha", default=0.5, type=float)#2 # below 1 so that we encourage sparsity
-arguments.add_argument("--switch_init", default=0.05, type=float)#-1
-arguments.add_argument("--layer", default='conv2')
-arguments.add_argument("--epochs_num", default=3)
-arguments.add_argument("--switch_samps", default=3)
-args=arguments.parse_args()
-#alpha = float(sys.argv[2]) if len (sys.argv)>2 else 0.5#2  # below 1 so that we encourage sparsity
-#switch_init=float(sys.argv[3]) if len (sys.argv)>3 else 0.05#-1
-#switch_layer= sys.argv[1] if len(sys.argv)>1 else 'conv14' # only name, need to change the position of the switches manually separately
-alpha=args.alpha
-switch_init=args.switch_init
-switch_layer=args.layer
-epochs_num=args.epochs_num
-switch_samps=args.switch_samps
+def get_args():
+    arguments=argparse.ArgumentParser()
+    arguments.add_argument("--alpha", default=0.5, type=float)#2 # below 1 so that we encourage sparsity
+    arguments.add_argument("--switch_init", default=0.05, type=float)#-1
+    arguments.add_argument("--layer", default='conv2')
+    arguments.add_argument("--epochs_num", default=3)
+    arguments.add_argument("--switch_samps", default=3)
+    args=arguments.parse_args()
+    #alpha = float(sys.argv[2]) if len (sys.argv)>2 else 0.5#2  # below 1 so that we encourage sparsity
+    #switch_init=float(sys.argv[3]) if len (sys.argv)>3 else 0.05#-1
+    #switch_layer= sys.argv[1] if len(sys.argv)>1 else 'conv14' # only name, need to change the position of the switches manually separately
+    alpha=args.alpha
+    switch_init=args.switch_init
+    switch_layer=args.layer
+    epochs_num=args.epochs_num
+    switch_samps=args.switch_samps
 
 BATCH_SIZE=100
 model_parameters = '94.34'
