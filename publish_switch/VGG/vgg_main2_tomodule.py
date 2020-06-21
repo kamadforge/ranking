@@ -145,6 +145,7 @@ parser.add_argument("--ranks_method", default='point')
 parser.add_argument("--resume", default=False)
 parser.add_argument("--prune_bool", default=False)
 parser.add_argument("--retrain_bool", default=False)
+parser.add_argument("--model", default="None")
 # parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
 # parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')
 save_accuracy=91.0
@@ -306,9 +307,6 @@ class VGG(nn.Module):
                 plt.gca().yaxis.set_major_locator(plt.NullLocator())
                 cax_00 = plt.imshow(img, cmap=cmap_col)
                 plt.show()
-                # plt.savefig(
-                #     "/home/kamil/Dropbox/Current_research/python_tests/results_networktest/vis/feature_maps/cifar/94.34/input_batch%d_filternum%d" % (
-                #         i, filter_num), bbox_inches='tight', pad_inches=0)
 
         output = f.relu(self.bn1(self.c1(x)))
 
@@ -332,9 +330,6 @@ class VGG(nn.Module):
                 plt.gca().xaxis.set_major_locator(plt.NullLocator())
                 plt.gca().yaxis.set_major_locator(plt.NullLocator())
 
-                # plt.savefig(
-                #     "/home/kamil/Dropbox/Current_research/python_tests/results_networktest/vis/feature_maps/cifar/94.34/conv1_batch%d_filternum%d" % (
-                #     i, filter_num), bbox_inches='tight', pad_inches=0)
 
         # out = self.activation1(output)
         self.act[1] = self.activation1(output)
@@ -495,7 +490,7 @@ transform_test = transforms.Compose([
 # trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=False, transform=transform_train)
 # trainloader = torch.utils.data.DataLoader(trainset, batch_size=128, shuffle=True, num_workers=0)
 
-trainval_dataset = torchvision.datasets.CIFAR10(root='./data', train=True, download=False, transform=transform_train)
+trainval_dataset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
 # with more workers there may be an error in debug mode: RuntimeError: DataLoader worker (pid 29274) is killed by signal: Terminated.
 
 
@@ -757,7 +752,7 @@ def prune_and_retrain(thresh):
             if ranks_method == 'shapley':
                 combinationss = []
                 shapley_file = open(
-                    "/home/kamil/Dropbox/Current_research/python_tests/results_shapley/combinations/94.34/zeroing_0.2val/shapley.txt")
+                    "/home/user/Dropbox/Current_research/python_tests/results_shapley/combinations/94.34/zeroing_0.2val/shapley.txt")
                 for line in shapley_file:
                     line = line.strip()[1:-2]
                     nums = line.split(",")
@@ -1093,8 +1088,13 @@ def prune_and_retrain(thresh):
 
 
 #################################################################
+os.makedirs('checkpoint', exist_ok=True)
 
-model2load = path_compression+'/checkpoint/ckpt_vgg16_94.34.t7'
+if args.model=="None":
+    model2load = path_compression+'/checkpoint/ckpt_vgg16_94.34.t7'
+else:
+    model2load = args.model
+
 orig_accuracy = 94.34
 # if all False just train thenetwork
 resume = args.resume

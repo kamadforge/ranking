@@ -18,9 +18,6 @@ import os
 import argparse
 
 import sys
-#sys.path.append("/home/kamil/Dropbox/Current_research/python_tests/results_networktest/external_codes/pytorch-cifar-master")
-sys.path.append("/home/kamil/Dropbox/Current_research/python_tests/results_networktest/external_codes/pytorch-cifar-master/models")
-#sys.path.append("/home/kamil/Dropbox/Current_research/python_tests/results_networktest/external_codes/pytorch-cifar-master/utils.py")
 import numpy as np
 from torch.nn.parameter import Parameter
 from torch.distributions import Gamma
@@ -88,6 +85,7 @@ arguments.add_argument("--switch_init", default=0.05, type=float)#-1
 arguments.add_argument("--layer", default='conv1')
 arguments.add_argument("--epochs_num", default=10)
 arguments.add_argument("--switch_samps", default=3)
+arguments.add_argument("--path_switch_checkpoint", default="None")
 args=arguments.parse_args()
 #alpha = float(sys.argv[2]) if len (sys.argv)>2 else 0.5#2  # below 1 so that we encourage sparsity
 #switch_init=float(sys.argv[3]) if len (sys.argv)>3 else 0.05#-1
@@ -111,8 +109,7 @@ print(args.layer)
 
 #saving
 save_path=path_switch+"/results/cifar/vgg_%s/switch_init_%.2f_alpha_%.2f_annealing_%d" % (model_parameters, alpha, switch_init, annealing_steps)
-if not os.path.exists(save_path):
-    os.mkdir(save_path)
+os.makedirs(save_path, exist_ok=True)
 save_textfile="%s/switch_init_%.2f, alpha_%.2f.txt" % (save_path, alpha, switch_init)
 save_switches_params=True
 save_switches_text=True
@@ -354,41 +351,6 @@ if dataset=="cifar":
 
 
 
-elif dataset=='housenums':
-
-    print(socket.gethostname())
-    if 'g0' not in socket.gethostname():
-        train_data = scipy.io.loadmat('/datadisk1/data/house_ numbers/train_32x32.mat')
-        test_data = scipy.io.loadmat('/datadisk1/data/house_ numbers/train_32x32.mat')
-    else:
-        train_data = scipy.io.loadmat('/home/kadamczewski/data/house_ numbers/train_32x32.mat')
-        test_data = scipy.io.loadmat('/home/kadamczewski/data/house_ numbers/test_32x32.mat')
-
-    train_data_x = train_data['X'].swapaxes(2, 3).swapaxes(1, 2).swapaxes(0, 1).swapaxes(2,3).swapaxes(1,2)
-    train_data_y = train_data['y']
-    train_data_y=np.where(train_data_y==10, 0, train_data_y)
-
-    tensor_x = torch.stack([torch.FloatTensor(i) for i in train_data_x])  # transform to torch tensors
-    tensor_y = torch.stack([torch.FloatTensor(i) for i in train_data_y])
-
-    my_dataset = torch.utils.data.TensorDataset(tensor_x, tensor_y.squeeze())  # create your datset
-    trainloader = torch.utils.data.DataLoader(my_dataset, batch_size=BATCH_SIZE, shuffle=True)  # create your dataloader
-
-
-    ####
-
-    test_data_x = test_data['X'].swapaxes(2, 3).swapaxes(1, 2).swapaxes(0, 1).swapaxes(2, 3).swapaxes(1, 2)
-    test_data_y = test_data['y']
-    test_data_y=np.where(test_data_y==10, 0, test_data_y)
-
-
-    tensor_x_test = torch.stack([torch.FloatTensor(i) for i in test_data_x])  # transform to torch tensors
-    tensor_y_test = torch.stack([torch.FloatTensor(i) for i in test_data_y])
-
-    my_dataset = torch.utils.data.TensorDataset(tensor_x_test, tensor_y_test.squeeze())  # create your datset
-    testloader = torch.utils.data.DataLoader(my_dataset, batch_size=BATCH_SIZE, shuffle=True)
-
-
 
 ###################################################
 # MAKE AN INSTANCE OD NETWORK AND (POSSIBLY) LOAD THE MODEL
@@ -428,12 +390,13 @@ def load_weights(net_all):
         print('==> Resuming from checkpoint..')
         #assert os.path.isdir('checkpoint'), 'Error: no checkpoint directory found!'
         if dataset=='cifar':
-            checkpoint = torch.load(path_switch+'/checkpoint/ckpt_vgg16_%s.t7' % model_parameters, map_location=lambda storage, loc: storage)
+            if args.path_switch_checkpoint=="None":
+                path_switch_checkpoint=path_switch + '/checkpoint/ckpt_vgg16_%s.t7' % model_parameters
+            else:
+                path_switch_checkpoint=args.path_switch_checkpoint
+            checkpoint = torch.load(path_switch_checkpoint, map_location=lambda storage, loc: storage)
             net_all.load_state_dict(checkpoint['net'], strict=False)
 
-        elif dataset=='housenums':
-            checkpoint = torch.load('/home/kamil/Dropbox/Current_research/ranking/results_switch/models/housenums_64x2_128x2_256x3_512x8_L512x2_rel_bn_drop_trainval_modelopt1.0_epo_424_acc_95.36')
-            net_all.load_state_dict(checkpoint, strict=False)
 
 
         #best_acc = checkpoint['acc']
