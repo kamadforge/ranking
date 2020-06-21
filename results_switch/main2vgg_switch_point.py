@@ -94,6 +94,7 @@ def get_args():
 switch_init=0.05
 switch_layer="conv1"
 epochs_num=10
+alpha=0.5
 
 
 dataset='cifar'
