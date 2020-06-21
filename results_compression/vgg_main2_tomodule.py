@@ -701,9 +701,11 @@ def prune_and_retrain(thresh):
             elif ranks_method == 'integral':
                 print("\nSwitch integral\n")
                 if args.switch_train:
+                    print("\nTraining switches\n")
                     switch_data = switch_script("switch_integral", args.switch_samps, args.switch_epochs)
                     combinationss=switch_data['combinations']
                 else:
+                    print("\nLoading switches\n")
                     ranks_path = path_switch+'/results/switch_data_cifar_integral_samps_%i_epochs_%i.npy' % (args.switch_samps, args.switch_epochs)
                     combinationss=list(np.load(ranks_path,  allow_pickle=True).item()['combinationss'])
 
@@ -711,9 +713,11 @@ def prune_and_retrain(thresh):
                 print("\nSwitch point\n")
 
                 if args.switch_train:
+                    print("\nTraining switches\n")
                     switch_data = switch_script("switch_point", args.switch_samps, args.switch_epochs)
                     combinationss=switch_data['combinationss']
                 else:
+                    print("\nLoading switches\n")
                     print(ranks_method)
                     ranks_path = path_switch+'/results/switch_data_cifar_point_epochs_%i.npy' % (args.switch_epochs)
                     combinationss=list(np.load(ranks_path,  allow_pickle=True).item()['combinationss'])
