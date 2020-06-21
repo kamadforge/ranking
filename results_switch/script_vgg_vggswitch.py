@@ -46,7 +46,7 @@ dataset='cifar'
 
 
 
-def switch_script(method, num_samps_for_switch, epochs_num):
+def switch_script(method, num_samps_for_switch, epochs_num, model):
 
     alpha=0.05; switch_init=0.05
 
@@ -65,9 +65,9 @@ def switch_script(method, num_samps_for_switch, epochs_num):
         #subprocess.call(['/home/kadamczewski/miniconda3/envs/BayesianNeuralNetwork/bin/python', 'main2vgg_switch.py', switch_layer, str(alpha), str(switch_init)])
         #subprocess.call(['python', 'main2vgg_switch.py', switch_layer, str(alpha), str(switch_init)])
         if method=="switch_point":
-            ranks, switches=main_point(switch_layer, epochs_num, num_samps_for_switch)
+            ranks, switches=main_point(switch_layer, epochs_num, num_samps_for_switch, model)
         elif method=="switch_integral":
-            ranks, switches=main_integral(switch_layer, epochs_num, num_samps_for_switch)
+            ranks, switches=main_integral(switch_layer, epochs_num, num_samps_for_switch, model)
 
 
         print("\n", '*'*30, "\nThe resulting ranks and switches")
