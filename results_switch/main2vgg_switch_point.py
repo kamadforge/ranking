@@ -91,6 +91,10 @@ def get_args():
     switch_samps=args.switch_samps
     print(args.layer)
 
+switch_init=0.05
+switch_layer="conv1"
+epochs_num=10
+
 
 dataset='cifar'
 

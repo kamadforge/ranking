@@ -98,6 +98,9 @@ def get_args():
     switch_samps=args.switch_samps
     print(args.layer)
 
+switch_init=0.05
+switch_layer="conv1"
+epochs_num=10
 
 BATCH_SIZE=100
 model_parameters = '94.34'
@@ -108,10 +111,10 @@ epoch_to_save=1
 
 
 #saving
-save_path=path_switch+"/results/cifar/vgg_%s/switch_init_%.2f_alpha_%.2f_annealing_%d" % (model_parameters, alpha, switch_init, annealing_steps)
+#save_path=path_switch+"/results/cifar/vgg_%s/switch_init_%.2f_alpha_%.2f_annealing_%d" % (model_parameters, alpha, switch_init, annealing_steps)
 # if not os.path.exists(save_path):
 #     os.mkdir(save_path)
-save_textfile="%s/switch_init_%.2f, alpha_%.2f.txt" % (save_path, alpha, switch_init)
+#save_textfile="%s/switch_init_%.2f, alpha_%.2f.txt" % (save_path, alpha, switch_init)
 save_switches_params=True
 save_switches_text=True
 
