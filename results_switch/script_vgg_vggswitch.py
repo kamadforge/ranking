@@ -1,14 +1,21 @@
 import subprocess
 import sys
 import argparse
-arguments=argparse.ArgumentParser()
-arguments.add_argument("--method", default="switch_point")
-arguments.add_argument("--switch_samps", default=2, type=int)
-arguments.add_argument("--epoch_num", default=1, type=int)
-args=arguments.parse_args()
-print(args)
-sys.argv = [sys.argv[0]]
-import magnum
+
+def get_args():
+    arguments=argparse.ArgumentParser()
+    arguments.add_argument("--method", default="switch_point")
+    arguments.add_argument("--switch_samps", default=2, type=int)
+    arguments.add_argument("--epoch_num", default=1, type=int)
+    global args
+
+    args=arguments.parse_args()
+    print(args)
+    sys.argv = [sys.argv[0]]
+
+    epochs_num = args.epoch_num
+    num_samps_for_switch = args.switch_samps
+    method = args.method
 
 from main2vgg_switch_integral_work import main as main_integral
 from main2vgg_switch_point import main as main_point #point estimate
@@ -35,10 +42,9 @@ else:
 
 print("v4")
 
-epochs_num=args.epoch_num
 dataset='cifar'
-num_samps_for_switch=args.switch_samps
-method=args.method
+
+
 
 def switch_script(method, num_samps_for_switch, epochs_num):
 
@@ -72,6 +78,10 @@ def switch_script(method, num_samps_for_switch, epochs_num):
         print("Memory: ", process.memory_info().rss / 1024 ** 2)  # in bytes
 
     return switch_data
+
+if __name__=='__main__':
+    get_args()
+    switch_script(args.method, args.switch_samps, args.epoch_num)
 
 
 
