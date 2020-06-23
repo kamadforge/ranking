@@ -78,7 +78,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--arch", default='25,25,65,80,201,158,159,460,450,490,470,465,465,450')
 #parser.add_argument("--arch", default='25,25,65,80,201,158,159,460,450,490,470,465,465,450')
 parser.add_argument('--layer', help="layer to prune", default="c1")
-parser.add_argument("--method", default='switch')
+parser.add_argument("--method", default='l1')
 parser.add_argument("--switch_samps", default=10, type=int)
 parser.add_argument("--switch_epochs", default=1, type=int)
 parser.add_argument("--ranks_method", default='point')
@@ -729,7 +729,7 @@ def prune_and_retrain(thresh):
                 combinationss[i] = torch.LongTensor(combinationss[i][thresh[i]:].copy())
 
         elif method == 'l1' or method == 'l2':
-            magnitude_rank.setup()
+            #magnitude_rank.setup()
             combinationss = magnitude_rank.get_ranks(method, net)
             # the numbers from the beginning will be cut off, meaning the worse will be cut off
             for i in range(len(combinationss)):

@@ -356,28 +356,13 @@ def setup(network_arg='vgg_cifar', dataset_arg='cifar'):
 
         net = VGG('VGG16')
 
-        if torch.cuda.is_available():
-            net = torch.nn.DataParallel(net)
+        #if torch.cuda.is_available():
+        #    net = torch.nn.DataParallel(net)
             # cudnn.benchmark = True
             # print(device)
 
-        # for name, param in net.named_parameters():
-        #     print (name, param.shape)
-
         checkpoint = torch.load(path_compression+'/checkpoint/ckpt_vgg16_94.34.t7')
-        # checkpoint = torch.load('./checkpoint/ckpt_vgg16_prunedto[39, 39, 63, 48, 55, 98, 97, 52, 62, 22, 42, 47, 47, 42, 62]_64.55.t7')
         net.load_state_dict(checkpoint['net'])
-        # print(net.module.c1.module.weight)
-
-        # path='./checkpoint/ckpt_vgg16_94.06.t7'
-
-        # path="checkpoint/ckpt_93.92.t7"
-
-        # net=net.to(device)
-
-        # net.load_state_dict(torch.load(path, map_location=lambda storage, loc: storage)['net'], strict=False)
-        # print("c1")
-        # print(net.c1.weight)
 
 
     elif network == 'lenet':
