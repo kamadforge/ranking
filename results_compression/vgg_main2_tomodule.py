@@ -38,6 +38,7 @@ from itertools import product
 # from utils import progress_bar
 import torch
 import torch.nn as nn
+sys.path.append("../results_switch")
 sys.path.append("results_switch")
 from script_vgg_vggswitch import switch_script
 
@@ -75,8 +76,8 @@ sys.path.append(path_compression)
 # PARAMETERS
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--arch", default='25,25,65,80,201,158,159,460,450,490,470,465,465,450')
 #parser.add_argument("--arch", default='25,25,65,80,201,158,159,460,450,490,470,465,465,450')
+parser.add_argument("--arch", default='5,5,5,5,6,6,6,6,7,7,7,7,8,8')
 parser.add_argument('--layer', help="layer to prune", default="c1")
 parser.add_argument("--method", default='l1')
 parser.add_argument("--switch_samps", default=10, type=int)
@@ -90,6 +91,8 @@ parser.add_argument("--retrain_bool", default=False)
 # parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')
 parser.add_argument("--model", default="None")
 parser.add_argument("--save_accuracy", default=50.0, type=float)
+parser.add_argument("--scratch_training_numepochs", default=3250, type=int, help="at least 250")
+parser.add_argument("--early_stopping", default=1000, type=int)
 args = parser.parse_args()
 print(args)
 
@@ -655,7 +658,6 @@ def save_checkpoint(epoch, acc, best_acc, remaining=0):
     # Save checkpoint.
     # acc = test(epoch)
     if acc > best_acc:
-        print('Saving..')
         state = {
             'net': net.state_dict(),
             'acc': acc,
@@ -665,10 +667,14 @@ def save_checkpoint(epoch, acc, best_acc, remaining=0):
         if not os.path.isdir('checkpoint'):
             os.mkdir('checkpoint')
         if acc > save_accuracy:
+            print('Saving..')
             if remaining == 0:  # regular training
-                torch.save(state, path_compression+'/checkpoint/ckpt_vgg16_{}.t7'.format(acc))
+                save_checkpoint_path=path_compression+'/checkpoint/ckpt_vgg16_{}.t7'.format(acc)
+                torch.save(state, save_checkpoint_path)
             else:
-                torch.save(state, path_compression+'/checkpoint/ckpt_vgg16_prunedto{}_{}.t7'.format(remaining, acc))
+                save_checkpoint_path = path_compression+'/checkpoint/ckpt_vgg16_prunedto{}_{}.t7'.format(remaining, acc)
+                torch.save(state, save_checkpoint_path)
+            print("Saving directory:", save_checkpoint_path)
         best_acc = acc
 
     return best_acc
@@ -969,8 +975,6 @@ def prune_and_retrain(thresh):
         # if prune_bool:
         #     file.write("\n\nprunedto:%s\n\n" % (" ".join(str(e) for e in remaining)))
 
-        path = path_compression+"/checkpoint/"
-
         # here retraining works
         net.train()
         stop = 0;
@@ -978,7 +982,7 @@ def prune_and_retrain(thresh):
         best_accuracy = 0;
         entry = np.zeros(3);
         best_model = -1;
-        early_stopping = 100
+        early_stopping = args.early_stopping
         optimizer = optim.SGD(net.parameters(), lr=0.0001, momentum=0.9, weight_decay=5e-4)
         while (stop < early_stopping):
             epoch = epoch + 1
@@ -1013,7 +1017,7 @@ def prune_and_retrain(thresh):
                 stop = stop + 1
                 entry[2] = 0
             else:
-                if accuracy > 90.5:
+                if accuracy > args.save_accuracy:
                     best_accuracy = save_checkpoint(epoch, accuracy, best_accuracy,
                                                     remaining)  # compares accuracy and best_accuracy by itself again
                     # if prune_bool:
@@ -1047,7 +1051,8 @@ def prune_and_retrain(thresh):
 os.makedirs('checkpoint', exist_ok=True)
 
 if args.model=="None":
-    model2load = path_compression+'/checkpoint/ckpt_vgg16_94.34.t7'
+    #model2load = path_compression+'/checkpoint/ckpt_vgg16_94.34.t7'
+    model2load = path_compression+'/checkpoint/ckpt_vgg16_last_1.t7'
 else:
     model2load = args.model
 
@@ -1084,7 +1089,7 @@ if resume == False and prune_bool == False and retrain_bool==False:
     best_accuracy = 0
     session1end = start_epoch + 10;
     session2end = start_epoch + 250;
-    session3end = start_epoch + 3250;  # was til 550
+    session3end = start_epoch + args.scratch_training_numepochs;  # was til 550
     for epoch in range(start_epoch, session1end):
         train_acc = train(epoch)
         test_acc = test(epoch)
