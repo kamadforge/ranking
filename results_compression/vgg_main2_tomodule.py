@@ -38,6 +38,7 @@ from itertools import product
 # from utils import progress_bar
 import torch
 import torch.nn as nn
+sys.path.append("../results_switch")
 sys.path.append("results_switch")
 from script_vgg_vggswitch import switch_script
 
@@ -69,14 +70,20 @@ print("Current working directory:", cwd)
 sys.path.append(os.path.join(path_networktest, "external_codes/pytorch-cifar-master/models"))
 sys.path.append(path_compression)
 
+#TODO, specify path to the benchmark, download from here https://github.com/hendrycks/robustness
+CORRUPTION_PATH = '/home/sebek/raid/datasets/cifar-c/CIFAR-10-C/'
 
 
 ##############################
 # PARAMETERS
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--arch", default='25,25,65,80,201,158,159,460,450,490,470,465,465,450')
 #parser.add_argument("--arch", default='25,25,65,80,201,158,159,460,450,490,470,465,465,450')
+#0, parser.add_argument("--arch", default='5,5,5,5,6,6,6,6,7,7,7,7,8,8')
+#1, parser.add_argument("--arch", default='5,5,10,10,20,20,20,20,40,40,40,40,80,80')
+#2, parser.add_argument("--arch", default='16,32,32,64,96,128,128,192,256,256,256,256,256,256')
+#3, parser.add_argument("--arch", default='16,32,32,64,96,128,128,192,256,256,256,256,256,256')
+parser.add_argument("--arch", default='16,32,64,64,96,128,128,192,256,256,320,320,384,448')
 parser.add_argument('--layer', help="layer to prune", default="c1")
 parser.add_argument("--method", default='switch')
 parser.add_argument("--switch_samps", default=10, type=int)
@@ -88,6 +95,7 @@ parser.add_argument("--prune_bool", default=False)
 parser.add_argument("--retrain_bool", default=False)
 # parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
 # parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')
+parser.add_argument("--run_name")
 parser.add_argument("--model", default="None")
 parser.add_argument("--save_accuracy", default=50.0, type=float)
 args = parser.parse_args()
@@ -552,35 +560,67 @@ def finetune():
 #################################################################
 # TEST
 
+def test_net_inner(net, test_loader):
+    """Evaluate network on given dataset."""
+    net.eval()
+    total_loss = 0.
+    total_correct = 0
+    with torch.no_grad():
+        for images, targets in test_loader:
+            images, targets = images.cuda(), targets.cuda()
+            logits = net(images)
+            loss = F.cross_entropy(logits, targets)
+            pred = logits.data.max(1)[1]
+            total_loss += float(loss.data)
+            total_correct += pred.eq(targets.data).sum().item()
+    return 100. * total_loss / len(test_loader.dataset), total_correct / len(test_loader.dataset), total_correct, len(test_loader.dataset)
 
 
-def test(dataset):
+def test_corruptions(net, test_data, base_path):
+    """Evaluate network on given corrupted dataset."""
+    corruption_accs = []
+    CORRUPTIONS = [
+        'gaussian_noise', 'shot_noise', 'impulse_noise', 'defocus_blur',
+        'glass_blur', 'motion_blur', 'zoom_blur', 'snow', 'frost', 'fog',
+        'brightness', 'contrast', 'elastic_transform', 'pixelate',
+        'jpeg_compression']
+
+
+    for corruption in CORRUPTIONS:
+    # Reference to original data is mutated
+        test_data.data = np.load(base_path + corruption + '.npy')
+        test_data.targets = torch.LongTensor(np.load(base_path + 'labels.npy'))
+
+        test_loader = torch.utils.data.DataLoader(
+            test_data,
+            batch_size=512,
+            shuffle=False,
+            num_workers=8,
+            pin_memory=True)
+
+        test_loss, test_acc, _, _ = test_net_inner(net, test_loader)
+        corruption_accs.append(test_acc)
+        print('{}\n\tTest Loss {:.3f} | Test Error {:.3f}'.format(
+            corruption, test_loss, 100 - 100. * test_acc))
+    return np.mean(corruption_accs)
+
+
+def test(dataset, test_corr=False):
     # for name, param in net.named_parameters():
     #     print (name)
     #     print (param)
     global best_acc
-    net.eval()
-    test_loss = 0
-    correct = 0
-    total = 0
-    with torch.no_grad():
-        for batch_idx, (inputs, targets) in enumerate(testloader):
-            inputs, targets = inputs.to(device), targets.to(device)
-            # outputs = net(inputs, batch_idx) #VISU
-            outputs = net(inputs, batch_idx)
-            loss = criterion(outputs, targets)
-
-            test_loss += loss.item()
-            _, predicted = outputs.max(1)
-            total += targets.size(0)
-            correct += predicted.eq(targets).sum().item()
-
-            # progress_bar(batch_idx, len(testloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
-            #    % (test_loss/(batch_idx+1), 100.*correct/total, correct, total))
+    test_loss, acc, correct, total = test_net_inner(net, testloader)
     print('Test Lossds: %.3f | Acc: %.3f%% (%d/%d)' % (
-    test_loss / (batch_idx + 1), 100. * correct / total, correct, total))
-    return 100.0 * float(correct) / total
-
+        test_loss, 100. * acc, correct, total))
+    
+    if test_corr:
+        corr_res = test_corruptions(net, testset, CORRUPTION_PATH)
+        with open("results.txt", "a") as myfile:
+            myfile.write("{} {}\n".format(acc, corr_res))
+        print("acc, corr = ", acc, 100. * corr_res)
+        
+    return 100.0 * acc
 
 def testval():
     # for name, param in net.named_parameters():
@@ -624,12 +664,11 @@ def testval():
 ## just LOAD MODEL AND SAVE
 
 
-
-
-def load_model(test_bool=True):
+def load_model(test_bool=True, test_corr=False):
     # Load checkpoint.
     # print('==> Resuming from checkpoint..')
     # assert os.path.isdir('checkpoint'), 'Error: no checkpoint directory found!'
+    print("LOADING model ", model2load)
     checkpoint = torch.load(model2load)
     # checkpoint = torch.load('./checkpoint/ckpt_vgg16_prunedto[39, 39, 63, 48, 55, 98, 97, 52, 62, 22, 42, 47, 47, 42, 62]_64.55.t7')
     net.load_state_dict(checkpoint['net'], strict=False)
@@ -639,7 +678,7 @@ def load_model(test_bool=True):
     if test_bool:
         print("Accuracy of the tested model: ")
 
-        test(-1)
+        test(-1, test_corr)
     print("----")
     # testval(-1)
     # test_val(-1, net)
@@ -651,7 +690,7 @@ def load_model(test_bool=True):
 ######################################################
 # SAVE experiment
 
-def save_checkpoint(epoch, acc, best_acc, remaining=0):
+def save_checkpoint(dest_dir, epoch, acc, best_acc, remaining=0):
     # Save checkpoint.
     # acc = test(epoch)
     if acc > best_acc:
@@ -662,13 +701,14 @@ def save_checkpoint(epoch, acc, best_acc, remaining=0):
             'epoch': epoch,
         }
         print("acc: ", acc)
-        if not os.path.isdir('checkpoint'):
-            os.mkdir('checkpoint')
+        if not os.path.isdir(dest_dir):
+            os.mkdir(dest_dir)
         if acc > save_accuracy:
             if remaining == 0:  # regular training
-                torch.save(state, path_compression+'/checkpoint/ckpt_vgg16_{}.t7'.format(acc))
+                torch.save(state, path_compression+'/{}/ckpt_vgg16_{}.t7'.format(dest_dir, acc))
             else:
-                torch.save(state, path_compression+'/checkpoint/ckpt_vgg16_prunedto{}_{}.t7'.format(remaining, acc))
+                torch.save(state, path_compression+'/{}/ckpt_vgg16_prunedto{}_{}.t7'.format(dest_dir, remaining, acc))
+            torch.save(state, path_compression+'/{}/ckpt_vgg16_last.t7'.format(dest_dir))
         best_acc = acc
 
     return best_acc
@@ -677,7 +717,7 @@ def save_checkpoint(epoch, acc, best_acc, remaining=0):
 ##############################################
 # PRUNEand RETRAIN
 
-def prune_and_retrain(thresh):
+def prune_and_retrain(dest_dir, thresh):
 
     load_model(False)
     # PRUNE
@@ -729,7 +769,7 @@ def prune_and_retrain(thresh):
                 combinationss[i] = torch.LongTensor(combinationss[i][thresh[i]:].copy())
 
         elif method == 'l1' or method == 'l2':
-            magnitude_rank.setup()
+            #magnitude_rank.setup(model2load)
             combinationss = magnitude_rank.get_ranks(method, net)
             # the numbers from the beginning will be cut off, meaning the worse will be cut off
             for i in range(len(combinationss)):
@@ -1014,7 +1054,7 @@ def prune_and_retrain(thresh):
                 entry[2] = 0
             else:
                 if accuracy > 90.5:
-                    best_accuracy = save_checkpoint(epoch, accuracy, best_accuracy,
+                    best_accuracy = save_checkpoint(dest_dir, epoch, accuracy, best_accuracy,
                                                     remaining)  # compares accuracy and best_accuracy by itself again
                     # if prune_bool:
                     #     torch.save(best_model, "{}_retrained_epo-{}_prunedto-{}_acc-{:.2f}".format(path, epoch, remaining, best_accuracy))
@@ -1038,16 +1078,16 @@ def prune_and_retrain(thresh):
         print(loss.item())
         accuracy = test(-1)
 
-
-
-
-
 #################################################################
+run_name = args.run_name
+dest_dir = os.path.join('checkpoint', run_name)
 
-os.makedirs('checkpoint', exist_ok=True)
+os.makedirs(dest_dir, exist_ok=True)
 
 if args.model=="None":
-    model2load = path_compression+'/checkpoint/ckpt_vgg16_94.34.t7'
+    model_name = 'ckpt_vgg16_last.t7'
+    model2load = path_compression+'/checkpoint/{}/{}'.format(run_name, model_name)
+    print("loading model: ", model2load)
 else:
     model2load = args.model
 
@@ -1058,13 +1098,15 @@ resume = args.resume
 prune_bool = args.prune_bool
 retrain_bool = args.retrain_bool  # whether we retrain the model or just evaluate
 
+test_corr = resume and not prune_bool and not retrain_bool
+
 comp_combinations = False  # must be with resume #with retrain if we want to retrain combinations
 vis = False
 # file_write=True
 # compute_combinations(file_write)
 
 if resume:
-    load_model()
+    load_model(True, test_corr)
 
 # loading a pretrained model
 if prune_bool:
@@ -1075,7 +1117,7 @@ if prune_bool:
             print('\n\n' + method + "\n")
             thresh = [int(n) for n in args.arch.split(",")]
             print(thresh)
-            prune_and_retrain(thresh)
+            prune_and_retrain(dest_dir, thresh)
 
     # prune_and_retrain(thresh) #first argument is whether to trune, False only retraining
 
@@ -1084,12 +1126,14 @@ if resume == False and prune_bool == False and retrain_bool==False:
     best_accuracy = 0
     session1end = start_epoch + 10;
     session2end = start_epoch + 250;
-    session3end = start_epoch + 3250;  # was til 550
+    session3end = start_epoch + 3250;
+#    session3end = start_epoch + 500; #SEBASTIAN, using 500 for experiments
+
     for epoch in range(start_epoch, session1end):
         train_acc = train(epoch)
         test_acc = test(epoch)
         print(test_acc)
-        best_accuracy = save_checkpoint(epoch, test_acc, best_accuracy)
+        best_accuracy = save_checkpoint(dest_dir, epoch, test_acc, best_accuracy)
 
     optimizer = optim.SGD(net.parameters(), lr=0.01, momentum=0.9, weight_decay=5e-4)
 
@@ -1097,10 +1141,10 @@ if resume == False and prune_bool == False and retrain_bool==False:
         train_acc = train(epoch)
         test_acc = test(epoch)
         print(test_acc)
-        best_accuracy = save_checkpoint(epoch, test_acc, best_accuracy)
+        best_accuracy = save_checkpoint(dest_dir, epoch, test_acc, best_accuracy)
     optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9, weight_decay=5e-4)
 
     for epoch in range(session2end, session3end):
         train_acc = train(epoch)
         test_acc = test(epoch)
-        best_accuracy = save_checkpoint(epoch, test_acc, best_accuracy)
+        best_accuracy = save_checkpoint(dest_dir, epoch, test_acc, best_accuracy)

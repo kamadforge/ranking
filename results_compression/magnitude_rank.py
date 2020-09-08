@@ -51,7 +51,7 @@ trainval_perc = 1
 BATCH_SIZE = 100
 
 
-def setup(network_arg='vgg_cifar', dataset_arg='cifar'):
+def setup(model2load, network_arg='vgg_cifar', dataset_arg='cifar'):
     global dataset;
     dataset = dataset_arg
     global network;
@@ -344,7 +344,7 @@ def setup(network_arg='vgg_cifar', dataset_arg='cifar'):
     if network == 'vgg':
         net = VGG('VGG16')
 
-        path = "checkpoint/ckpt_93.92.t7"
+        path = model2load # "checkpoint/ckpt_93.92.t7"
 
         net = net.to(device)
 
@@ -363,9 +363,10 @@ def setup(network_arg='vgg_cifar', dataset_arg='cifar'):
 
         # for name, param in net.named_parameters():
         #     print (name, param.shape)
-
-        checkpoint = torch.load(path_compression+'/checkpoint/ckpt_vgg16_94.34.t7')
-        # checkpoint = torch.load('./checkpoint/ckpt_vgg16_prunedto[39, 39, 63, 48, 55, 98, 97, 52, 62, 22, 42, 47, 47, 42, 62]_64.55.t7')
+        
+        path =  os.path.join(path_compression, model2load)
+        print("loading model for prunining: ", path)
+        checkpoint = torch.load(path)
         net.load_state_dict(checkpoint['net'])
         # print(net.module.c1.module.weight)
 
