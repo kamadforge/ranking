@@ -83,9 +83,10 @@ parser = argparse.ArgumentParser()
 #1, parser.add_argument("--arch", default='5,5,10,10,20,20,20,20,40,40,40,40,80,80')
 #2, parser.add_argument("--arch", default='16,32,32,64,96,128,128,192,256,256,256,256,256,256')
 #3, parser.add_argument("--arch", default='16,32,32,64,96,128,128,192,256,256,256,256,256,256')
-parser.add_argument("--arch", default='16,32,64,64,96,128,128,192,256,256,320,320,384,448')
+#4parser.add_argument("--arch", default='16,32,64,64,96,128,128,192,256,256,320,320,384,448')
+parser.add_argument("--arch", default='5,5,5,5,6,6,6,6,7,7,7,7,8,8')
 parser.add_argument('--layer', help="layer to prune", default="c1")
-parser.add_argument("--method", default='switch')
+parser.add_argument("--method", default='l1')
 parser.add_argument("--switch_samps", default=10, type=int)
 parser.add_argument("--switch_epochs", default=1, type=int)
 parser.add_argument("--ranks_method", default='point')
@@ -98,6 +99,8 @@ parser.add_argument("--retrain_bool", default=False)
 parser.add_argument("--run_name")
 parser.add_argument("--model", default="None")
 parser.add_argument("--save_accuracy", default=50.0, type=float)
+parser.add_argument("--scratch_training_numepochs", default=3250, type=int, help="at least 250")
+parser.add_argument("--early_stopping", default=1000, type=int)
 args = parser.parse_args()
 print(args)
 
@@ -694,7 +697,6 @@ def save_checkpoint(dest_dir, epoch, acc, best_acc, remaining=0):
     # Save checkpoint.
     # acc = test(epoch)
     if acc > best_acc:
-        print('Saving..')
         state = {
             'net': net.state_dict(),
             'acc': acc,
@@ -704,6 +706,7 @@ def save_checkpoint(dest_dir, epoch, acc, best_acc, remaining=0):
         if not os.path.isdir(dest_dir):
             os.mkdir(dest_dir)
         if acc > save_accuracy:
+            print('Saving..')
             if remaining == 0:  # regular training
                 torch.save(state, path_compression+'/{}/ckpt_vgg16_{}.t7'.format(dest_dir, acc))
             else:
@@ -770,6 +773,7 @@ def prune_and_retrain(dest_dir, thresh):
 
         elif method == 'l1' or method == 'l2':
             #magnitude_rank.setup(model2load)
+            #magnitude_rank.setup()
             combinationss = magnitude_rank.get_ranks(method, net)
             # the numbers from the beginning will be cut off, meaning the worse will be cut off
             for i in range(len(combinationss)):
@@ -1009,8 +1013,6 @@ def prune_and_retrain(dest_dir, thresh):
         # if prune_bool:
         #     file.write("\n\nprunedto:%s\n\n" % (" ".join(str(e) for e in remaining)))
 
-        path = path_compression+"/checkpoint/"
-
         # here retraining works
         net.train()
         stop = 0;
@@ -1018,7 +1020,7 @@ def prune_and_retrain(dest_dir, thresh):
         best_accuracy = 0;
         entry = np.zeros(3);
         best_model = -1;
-        early_stopping = 100
+        early_stopping = args.early_stopping
         optimizer = optim.SGD(net.parameters(), lr=0.0001, momentum=0.9, weight_decay=5e-4)
         while (stop < early_stopping):
             epoch = epoch + 1
@@ -1053,7 +1055,7 @@ def prune_and_retrain(dest_dir, thresh):
                 stop = stop + 1
                 entry[2] = 0
             else:
-                if accuracy > 90.5:
+                if accuracy > args.save_accuracy:
                     best_accuracy = save_checkpoint(dest_dir, epoch, accuracy, best_accuracy,
                                                     remaining)  # compares accuracy and best_accuracy by itself again
                     # if prune_bool:
@@ -1126,9 +1128,8 @@ if resume == False and prune_bool == False and retrain_bool==False:
     best_accuracy = 0
     session1end = start_epoch + 10;
     session2end = start_epoch + 250;
-    session3end = start_epoch + 3250;
 #    session3end = start_epoch + 500; #SEBASTIAN, using 500 for experiments
-
+    session3end = start_epoch + args.scratch_training_numepochs;  # was til 550
     for epoch in range(start_epoch, session1end):
         train_acc = train(epoch)
         test_acc = test(epoch)
