@@ -1,4 +1,5 @@
 #!/bin/bash
+#SHOULD BE CALLED FROM RESULTS_COMPRESSION DIRECTORY
 counter=1
 while [ $counter -le 1 ]
 do

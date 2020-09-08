@@ -97,6 +97,7 @@ parser.add_argument("--retrain_bool", default=False)
 # parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
 # parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')
 parser.add_argument("--run_name", default="")
+parser.add_argument("--dataset", default="CIFAR-10")
 parser.add_argument("--model", default="None")
 parser.add_argument("--save_accuracy", default=50.0, type=float)
 parser.add_argument("--scratch_training_numepochs", default=3250, type=int, help="at least 250")
@@ -139,7 +140,7 @@ class Identity(nn.Module):
 
 
 class VGG(nn.Module):
-    def __init__(self, vgg_name):
+    def __init__(self, vgg_name, num_classes):
         super(VGG, self).__init__()
 
         cfg_arch=cfg['VGG15']
@@ -181,7 +182,7 @@ class VGG(nn.Module):
         self.mp5 = nn.MaxPool2d(2)
 
         self.l1 = nn.Linear(cfg_arch[12], cfg_arch[13])
-        self.l3 = nn.Linear(cfg_arch[13], 10)
+        self.l3 = nn.Linear(cfg_arch[13], num_classes)
         self.d1 = nn.Dropout()
         self.d2 = nn.Dropout()
 
@@ -441,7 +442,16 @@ transform_test = transforms.Compose([
 # trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
 # trainloader = torch.utils.data.DataLoader(trainset, batch_size=128, shuffle=True, num_workers=0)
 
-trainval_dataset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
+if args.dataset =="CIFAR-10":
+    trainval_dataset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
+    testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform_test)
+    classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
+    num_classes = len(classes)
+    #not used anyway
+else:
+    trainval_dataset = torchvision.datasets.CIFAR100(root='./data', train=True, download=True, transform=transform_train)
+    testset = torchvision.datasets.CIFAR100(root='./data', train=False, download=True, transform=transform_test)
+    num_classes = 100
 # with more workers there may be an error in debug mode: RuntimeError: DataLoader worker (pid 29274) is killed by signal: Terminated.
 
 
@@ -460,10 +470,8 @@ valloader = torch.utils.data.DataLoader(val_dataset, batch_size=128, shuffle=Fal
 # testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform_test)
 # testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False, num_workers=0)
 
-testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform_test)
 testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False, num_workers=0)
 
-classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
 
 ###################################################
@@ -471,7 +479,7 @@ classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship'
 
 
 print('==> Building model..')
-net = VGG('VGG16')
+net = VGG('VGG16', 100)
 # net = ResNet18()
 # net = PreActResNet18()
 # net = GoogLeNet()
