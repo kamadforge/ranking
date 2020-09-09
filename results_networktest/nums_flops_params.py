@@ -8,7 +8,7 @@ def get_difference(arr1, arr2):
     return new_arr
 
 def main():
-    network = 'lenet5'
+    network = 'vgg16'
     dataset='cifar' #https://stackoverflow.com/questions/28232235/how-to-calculate-the-number-of-parameters-of-convolutional-neural-networks
 
 
@@ -113,8 +113,6 @@ def main():
 
 
 
-
-
         if dataset=='cifar':
             conv_filters=[[3,filter_nums[0],3,3],  [filter_nums[0],filter_nums[1],3,3], [2,2],
               [filter_nums[1],filter_nums[2],3,3], [filter_nums[2],filter_nums[3],3,3], [2,2],
@@ -149,6 +147,16 @@ def main():
         print(filter_nums)
         print('-'.join([str(i) for i in filter_nums]))
         get_flops_params(layers_type, conv_filters, paddings, strides, input_shape, network)
+
+
+    elif network == 'wrn':
+        if dataset == 'cifar':
+
+            input_shape = (1, 32, 32)
+            layers_type = ['C', 'C', 'P', 'C', 'C', 'P', 'C', 'C', 'C', 'P', 'C', 'C', 'C', 'P', 'C', 'C', 'C', 'P',
+                           'FC','FC']
+            filter_nums = [64, 64,  128, 128,  256, 256, 256,  512, 512, 512,   512, 512, 512,    512, 10]
+
 
 
 
@@ -283,3 +291,6 @@ def get_flops_params(layers_type, conv_filters, paddings, strides, input_shape, 
 
 if __name__ == '__main__':
     main()
+
+
+#widerresnet 28 10 36.5M
