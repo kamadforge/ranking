@@ -231,10 +231,10 @@ def get_flops_params(layers_type, conv_filters, paddings, strides, input_shape, 
     print("total flops: {:,}".format(total_flops))
     print("total params: {:,} ".format(total_params))
     if network == 'vgg16':
-        compression_rate = 4, 982, 474 / total_params
+        compression_rate = 14982474 / total_params
     elif network == 'lenet5':
         compression_rate = 25226 / total_params
-    print('Compression rate: ', compression_rate)
+    print('Compression rate: ', compression_rate, ", percentage comrpessed: ", 1/compression_rate)
     ###################### 3FULLY CONNECTED
 
     return total_params
@@ -246,11 +246,11 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--network", default="vgg16", choices=["vgg16", "lenet5"])
     parser.add_argument("--data", default="cifar", choices=["cifar"])
-    parser.add_argument("--arch", default="64, 64, 128, 128, 256, 256, 256, 512, 512, 512, 512, 512, 512, 512, 10")
+    # parser.add_argument("--arch", default="64, 64, 128, 128, 256, 256, 256, 512, 512, 512, 512, 512, 512, 512, 10")
     # parser.add_argument("--arch", default="6, 7, 35, 17")
-    args = parser.parse_args()
 
-    main(args.network, args.data, args.arch)
+
+    # python nums_flops_params.py --network vgg16 --data cifar --arch 64,64,128,128,256,256,256,512,512,512,512,512,512,512,10
 
     # filters_num=[6,16,120,84] #original lenet
     # filters_num=[3,18,284,283]
@@ -269,6 +269,7 @@ if __name__ == '__main__':
 
 # widerresnet 28 10 36.5M
 
+    parser.add_argument("--arch", default="59, 59,  88, 88,   236, 216, 176,  432, 352, 472,  472, 352, 432,  352, 10")
 # filter_nums = [64, 64, 128, 128, 256, 256, 256, 512, 512, 512, 512, 512, 512, 512, 10]
 # filter_nums = np.array(filter_nums1)-np.array([25,25,  65,80,  201,158,159,  460,450,490,  470,465,465,   450, 10])
 # filter_nums=[59, 59,  88, 88,   236, 216, 176,  432, 352, 472,  472, 352, 432,  352, 10] #0.6
@@ -294,3 +295,6 @@ if __name__ == '__main__':
 # filter_nums=[44, 58, 126, 122, 238, 242, 236, 449, 395, 360, 356, 378, 481, 484] #5%
 # filter_nums=[44, 58, 118, 113, 229, 229, 226, 428, 370, 347, 334, 361, 456, 457] #10%
 # filter_nums=[44, 58, 119, 113, 228, 230, 227, 429, 377, 336, 335, 359, 544, 406]
+
+    args = parser.parse_args()
+    main(args.network, args.data, args.arch)
