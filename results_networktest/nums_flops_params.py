@@ -25,8 +25,6 @@ def main(network_arg, dataset_arg, filters_num_arg):
 
         input_shape = (1, 28, 28)  # Format:(channels, rows,cols)
 
-
-
         # for i1 in [2, 3, 4, 5, 6, 7]:
         #     for i2 in [4, 6, 8, 10, 12]:
         #         for i3 in [20, 30, 40, 50, 60]:
@@ -61,7 +59,6 @@ def main(network_arg, dataset_arg, filters_num_arg):
 
     elif network == 'vgg16':
 
-
         if dataset == 'cifar':
             input_shape = (1, 32, 32)
             layers_type = ['C', 'C', 'P', 'C', 'C', 'P', 'C', 'C', 'C', 'P', 'C', 'C', 'C', 'P', 'C', 'C', 'C', 'P',
@@ -74,9 +71,6 @@ def main(network_arg, dataset_arg, filters_num_arg):
                            'FC',
                            'FC', 'FC']
             filter_nums = [64, 64, 128, 128, 256, 256, 256, 512, 512, 512, 512, 512, 512, 4096, 4096, 1000]
-
-
-
 
         if dataset == 'cifar':
             conv_filters = [[3, filter_nums[0], 3, 3], [filter_nums[0], filter_nums[1], 3, 3], [2, 2],
@@ -115,7 +109,6 @@ def main(network_arg, dataset_arg, filters_num_arg):
         print(filter_nums)
         print('-'.join([str(i) for i in filter_nums]))
         get_flops_params(layers_type, conv_filters, paddings, strides, input_shape, network)
-
 
     elif network == 'wrn':
         if dataset == 'cifar':
@@ -248,16 +241,14 @@ def get_flops_params(layers_type, conv_filters, paddings, strides, input_shape, 
 
 
 if __name__ == '__main__':
-
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--network", default="lenet5", choices=["vgg16, lenet5"])
+    parser.add_argument("--network", default="vgg16", choices=["vgg16", "lenet5"])
     parser.add_argument("--data", default="cifar", choices=["cifar"])
-    # parser.add_argument("--arch", default="64, 64, 128, 128, 256, 256, 256, 512, 512, 512, 512, 512, 512, 512, 10")
-    parser.add_argument("--arch", default="6, 7, 35, 17")
+    parser.add_argument("--arch", default="64, 64, 128, 128, 256, 256, 256, 512, 512, 512, 512, 512, 512, 512, 10")
+    # parser.add_argument("--arch", default="6, 7, 35, 17")
     args = parser.parse_args()
-
 
     main(args.network, args.data, args.arch)
 
