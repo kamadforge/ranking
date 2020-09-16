@@ -10,6 +10,15 @@ import config as cf
 import torchvision
 import torchvision.transforms as transforms
 
+
+'''
+differences to the original:
+- prune and arch arguments
+- counting parameters
+- pruning
+
+'''
+
 import os
 import sys
 import time
@@ -20,6 +29,8 @@ import numpy as np
 from networks import *
 from torch.autograd import Variable
 
+from get_ranks import l1_ranks
+
 parser = argparse.ArgumentParser(description='PyTorch CIFAR-10 Training')
 parser.add_argument('--lr', default=0.1, type=float, help='learning_rate')
 parser.add_argument('--net_type', default='wide-resnet', type=str, help='model')
@@ -27,10 +38,12 @@ parser.add_argument('--depth', default=28, type=int, help='depth of model')
 parser.add_argument('--widen_factor', default=10, type=int, help='width of model')
 parser.add_argument('--dropout', default=0.3, type=float, help='dropout_rate')
 parser.add_argument('--dataset', default='cifar10', type=str, help='dataset = [cifar10/cifar100]')
-parser.add_argument('--resume', '-r', action='store_false', help='resume from checkpoint')
+parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')
 parser.add_argument('--testOnly', '-t', action='store_true', help='Test mode with the saved model')
-parser.add_argument('--prune', default=True)
+parser.add_argument('--prune', default=False)
 parser.add_argument('--arch', default="75,85,80,80,159,159,154,159,315,315,314,316")
+parser.add_argument('--model_path', default='/home/kamil/Dropbox/Current_research/ranking/results_networktest/external_codes/wide-resnet.pytorch-master/checkpoint/cifar10_pruned_65,75,80,70,159,149,154,149,305,315,304,306_acc_tensor(93.0900)/wide-resnet-28x10.t7')
+parser.add_argument('--method', default='l1')
 args = parser.parse_args()
 
 thresh = [int(n) for n in args.arch.split(",")]
@@ -96,8 +109,21 @@ if (args.testOnly):
     print('\n[Test Phase] : Model setup')
     assert os.path.isdir('checkpoint'), 'Error: No checkpoint directory found!'
     _, file_name = getNetwork(args)
-    checkpoint = torch.load('./checkpoint/'+args.dataset+os.sep+file_name+'.t7')
+    checkpoint = torch.load(args.model_path)
+    #checkpoint = torch.load('./checkpoint/'+args.dataset+os.sep+file_name+'.t7')
     net = checkpoint['net']
+
+    params_num_all=0
+    for name, param in net.named_parameters():
+        print (name, param.shape)
+        if "weight" in name:
+            param_num=1
+            for i in range(len(param.shape)):
+                param_num*=param.shape[i]
+            params_num_all+=param_num
+    print(params_num_all) #exactly 36.5
+
+
 
     if use_cuda:
         net.cuda()
@@ -133,38 +159,62 @@ if args.resume:
     print('| Resuming from checkpoint...')
     assert os.path.isdir('checkpoint'), 'Error: No checkpoint directory found!'
     _, file_name = getNetwork(args)
-    checkpoint = torch.load('./checkpoint/'+args.dataset+os.sep+file_name+'.t7', map_location=lambda storage, loc: storage)
+    checkpoint = torch.load(args.model_path)
+    # checkpoint = torch.load(args.model_path, map_location=lambda storage, loc: storage)
+    # checkpoint = torch.load('./checkpoint/'+args.dataset+os.sep+file_name+'.t7', map_location=lambda storage, loc: storage)
     net = checkpoint['net']
-    best_acc = 0#checkpoint['acc']
+
+    for name, param in net.named_parameters():
+        print (name,param.shape)
+
+
+    best_acc = 0 # checkpoint['acc']
     start_epoch = checkpoint['epoch']
     if args.prune:
 
-        ranks=np.load("ranks.npy", allow_pickle=True)
-
-
-        reverse=True
+        prune_rates = {"layer1.0": thresh[0], "layer1.1": thresh[1], "layer1.2": thresh[2], "layer1.3": thresh[3],
+                       "layer2.0": thresh[4], "layer2.1": thresh[5], "layer2.2": thresh[6], "layer2.3": thresh[7],
+                       "layer3.0": thresh[8], "layer3.1": thresh[9], "layer3.2": thresh[10], "layer3.3": thresh[11]}
 
         unimportant_channels={}
-        prune_rates={"layer1.0" : thresh[0], "layer1.1" : thresh[1], "layer1.2" : thresh[2], "layer1.3" : thresh[3], "layer2.0" : thresh[4], "layer2.1" : thresh[5], "layer2.2" : thresh[6], "layer2.3" : thresh[7], "layer3.0" : thresh[8], "layer3.1" : thresh[9], "layer3.2" : thresh[10], "layer3.3" : thresh[11] }
-        for r in ranks[()].keys():
-            layer=r[7:15]
-            rank=ranks[()][r]
-            if reverse==True:
-                # create inverted indices
-                # idx = [i for i in range(rank.size(0) - 1, -1, -1)]
-                # idx = torch.LongTensor(idx)
-                # rank_rev = rank.index_select(0, idx)
-                # rank=rank_rev
 
-                rNpArr = np.flip(rank.detach().cpu().numpy(), 0).copy()  # Reverse of copy of numpy array of given tensor
-                rank = torch.from_numpy(rNpArr)
+        if args.method == "switches":
+            ranks=np.load("ranks.npy", allow_pickle=True) # smallest to biggest
 
-            unimportant_channels[layer]=channels_to_remove=rank[prune_rates[layer]:]
 
-            for name, param in net.named_parameters():
-                if layer in name and ("bn" not in name) and ("parameter" not in name) and ("shortcut" not in name):
-                    channels_to_remove=unimportant_channels[layer]
-                    param.data[channels_to_remove]=0
+            reverse = True
+
+            unimportant_channels={}
+            for r in ranks[()].keys():
+                layer=r[7:15]
+                rank=ranks[()][r]
+                if reverse==True:
+                    # create inverted indices
+                    # idx = [i for i in range(rank.size(0) - 1, -1, -1)]
+                    # idx = torch.LongTensor(idx)
+                    # rank_rev = rank.index_select(0, idx)
+                    # rank=rank_rev
+
+                    rNpArr = np.flip(rank.detach().cpu().numpy(), 0).copy()  # Reverse of copy of numpy array of given tensor
+                    rank = torch.from_numpy(rNpArr)
+
+                unimportant_channels[layer]=channels_to_remove=rank[prune_rates[layer]:]
+
+                for name, param in net.named_parameters():
+                    if layer in name and ("bn" not in name) and ("parameter" not in name) and ("shortcut" not in name):
+                        channels_to_remove=unimportant_channels[layer]
+                        param.data[channels_to_remove]=0
+        elif args.method == "l1" or args.method == "l2":
+
+            magnitude_rank, magnitude_weightranks = l1_ranks(net, "l1")  # biggest to smallest
+
+            # print(magnitude_rank["layer1.0"][prune_rates["layer1.0"]:])
+
+            for layer in magnitude_rank.keys():
+                for name, param in net.named_parameters():
+                    if layer in name and ("bn" not in name) and ("parameter" not in name) and ("shortcut" not in name):
+                        unimportant_channels[layer] = channels_to_remove = np.array(magnitude_rank[layer][prune_rates[layer]:])
+                        param.data[channels_to_remove] = 0
 
 
 else:
@@ -172,10 +222,14 @@ else:
     net, file_name = getNetwork(args)
     net.apply(conv_init)
 
+
 if use_cuda:
     net.cuda()
     net = torch.nn.DataParallel(net, device_ids=range(torch.cuda.device_count()))
     cudnn.benchmark = True
+
+
+
 
 criterion = nn.CrossEntropyLoss()
 
@@ -225,126 +279,127 @@ def train(epoch):
     def gradi33(module):
         module[unimportant_channels["layer3.3"]] = 0
 
-    if use_cuda:
-        net.module.layer1[0].conv1.weight.register_hook(gradi10)
-        net.module.layer1[0].conv1.bias.register_hook(gradi10)
-        net.module.layer1[0].bn2.weight.register_hook(gradi10)
-        net.module.layer1[0].bn2.bias.register_hook(gradi10)
+    if args.prune:
+        if use_cuda:
+            net.module.layer1[0].conv1.weight.register_hook(gradi10)
+            net.module.layer1[0].conv1.bias.register_hook(gradi10)
+            net.module.layer1[0].bn2.weight.register_hook(gradi10)
+            net.module.layer1[0].bn2.bias.register_hook(gradi10)
 
-        net.module.layer1[1].conv1.weight.register_hook(gradi11)
-        net.module.layer1[1].conv1.bias.register_hook(gradi11)
-        net.module.layer1[1].bn2.weight.register_hook(gradi11)
-        net.module.layer1[1].bn2.bias.register_hook(gradi11)
+            net.module.layer1[1].conv1.weight.register_hook(gradi11)
+            net.module.layer1[1].conv1.bias.register_hook(gradi11)
+            net.module.layer1[1].bn2.weight.register_hook(gradi11)
+            net.module.layer1[1].bn2.bias.register_hook(gradi11)
 
-        net.module.layer1[2].conv1.weight.register_hook(gradi12)
-        net.module.layer1[2].conv1.bias.register_hook(gradi12)
-        net.module.layer1[2].bn2.weight.register_hook(gradi12)
-        net.module.layer1[2].bn2.bias.register_hook(gradi12)
+            net.module.layer1[2].conv1.weight.register_hook(gradi12)
+            net.module.layer1[2].conv1.bias.register_hook(gradi12)
+            net.module.layer1[2].bn2.weight.register_hook(gradi12)
+            net.module.layer1[2].bn2.bias.register_hook(gradi12)
 
-        net.module.layer1[3].conv1.weight.register_hook(gradi13)
-        net.module.layer1[3].conv1.bias.register_hook(gradi13)
-        net.module.layer1[3].bn2.weight.register_hook(gradi13)
-        net.module.layer1[3].bn2.bias.register_hook(gradi13)
+            net.module.layer1[3].conv1.weight.register_hook(gradi13)
+            net.module.layer1[3].conv1.bias.register_hook(gradi13)
+            net.module.layer1[3].bn2.weight.register_hook(gradi13)
+            net.module.layer1[3].bn2.bias.register_hook(gradi13)
 
-        net.module.layer2[0].conv1.weight.register_hook(gradi20)
-        net.module.layer2[0].conv1.bias.register_hook(gradi20)
-        net.module.layer2[0].bn2.weight.register_hook(gradi20)
-        net.module.layer2[0].bn2.bias.register_hook(gradi20)
+            net.module.layer2[0].conv1.weight.register_hook(gradi20)
+            net.module.layer2[0].conv1.bias.register_hook(gradi20)
+            net.module.layer2[0].bn2.weight.register_hook(gradi20)
+            net.module.layer2[0].bn2.bias.register_hook(gradi20)
 
-        net.module.layer2[1].conv1.weight.register_hook(gradi21)
-        net.module.layer2[1].conv1.bias.register_hook(gradi21)
-        net.module.layer2[1].bn2.weight.register_hook(gradi21)
-        net.module.layer2[1].bn2.bias.register_hook(gradi21)
+            net.module.layer2[1].conv1.weight.register_hook(gradi21)
+            net.module.layer2[1].conv1.bias.register_hook(gradi21)
+            net.module.layer2[1].bn2.weight.register_hook(gradi21)
+            net.module.layer2[1].bn2.bias.register_hook(gradi21)
 
-        net.module.layer2[2].conv1.weight.register_hook(gradi22)
-        net.module.layer2[2].conv1.bias.register_hook(gradi22)
-        net.module.layer2[2].bn2.weight.register_hook(gradi22)
-        net.module.layer2[2].bn2.bias.register_hook(gradi22)
+            net.module.layer2[2].conv1.weight.register_hook(gradi22)
+            net.module.layer2[2].conv1.bias.register_hook(gradi22)
+            net.module.layer2[2].bn2.weight.register_hook(gradi22)
+            net.module.layer2[2].bn2.bias.register_hook(gradi22)
 
-        net.module.layer2[3].conv1.weight.register_hook(gradi23)
-        net.module.layer2[3].conv1.bias.register_hook(gradi23)
-        net.module.layer2[3].bn2.weight.register_hook(gradi23)
-        net.module.layer2[3].bn2.bias.register_hook(gradi23)
+            net.module.layer2[3].conv1.weight.register_hook(gradi23)
+            net.module.layer2[3].conv1.bias.register_hook(gradi23)
+            net.module.layer2[3].bn2.weight.register_hook(gradi23)
+            net.module.layer2[3].bn2.bias.register_hook(gradi23)
 
-        net.module.layer3[0].conv1.weight.register_hook(gradi30)
-        net.module.layer3[0].conv1.bias.register_hook(gradi30)
-        net.module.layer3[0].bn2.weight.register_hook(gradi30)
-        net.module.layer3[0].bn2.bias.register_hook(gradi30)
+            net.module.layer3[0].conv1.weight.register_hook(gradi30)
+            net.module.layer3[0].conv1.bias.register_hook(gradi30)
+            net.module.layer3[0].bn2.weight.register_hook(gradi30)
+            net.module.layer3[0].bn2.bias.register_hook(gradi30)
 
-        net.module.layer3[1].conv1.weight.register_hook(gradi31)
-        net.module.layer3[1].conv1.bias.register_hook(gradi31)
-        net.module.layer3[1].bn2.weight.register_hook(gradi31)
-        net.module.layer3[1].bn2.bias.register_hook(gradi31)
+            net.module.layer3[1].conv1.weight.register_hook(gradi31)
+            net.module.layer3[1].conv1.bias.register_hook(gradi31)
+            net.module.layer3[1].bn2.weight.register_hook(gradi31)
+            net.module.layer3[1].bn2.bias.register_hook(gradi31)
 
-        net.module.layer3[2].conv1.weight.register_hook(gradi32)
-        net.module.layer3[2].conv1.bias.register_hook(gradi32)
-        net.module.layer3[2].bn2.weight.register_hook(gradi32)
-        net.module.layer3[2].bn2.bias.register_hook(gradi32)
+            net.module.layer3[2].conv1.weight.register_hook(gradi32)
+            net.module.layer3[2].conv1.bias.register_hook(gradi32)
+            net.module.layer3[2].bn2.weight.register_hook(gradi32)
+            net.module.layer3[2].bn2.bias.register_hook(gradi32)
 
-        net.module.layer3[3].conv1.weight.register_hook(gradi33)
-        net.module.layer3[3].conv1.bias.register_hook(gradi33)
-        net.module.layer3[3].bn2.weight.register_hook(gradi33)
-        net.module.layer3[3].bn2.bias.register_hook(gradi33)
-    else:
-        net.layer1[0].conv1.weight.register_hook(gradi10)
-        net.layer1[0].conv1.bias.register_hook(gradi10)
-        net.layer1[0].bn2.weight.register_hook(gradi10)
-        net.layer1[0].bn2.bias.register_hook(gradi10)
+            net.module.layer3[3].conv1.weight.register_hook(gradi33)
+            net.module.layer3[3].conv1.bias.register_hook(gradi33)
+            net.module.layer3[3].bn2.weight.register_hook(gradi33)
+            net.module.layer3[3].bn2.bias.register_hook(gradi33)
+        else:
+            net.layer1[0].conv1.weight.register_hook(gradi10)
+            net.layer1[0].conv1.bias.register_hook(gradi10)
+            net.layer1[0].bn2.weight.register_hook(gradi10)
+            net.layer1[0].bn2.bias.register_hook(gradi10)
 
-        net.layer1[1].conv1.weight.register_hook(gradi11)
-        net.layer1[1].conv1.bias.register_hook(gradi11)
-        net.layer1[1].bn2.weight.register_hook(gradi11)
-        net.layer1[1].bn2.bias.register_hook(gradi11)
+            net.layer1[1].conv1.weight.register_hook(gradi11)
+            net.layer1[1].conv1.bias.register_hook(gradi11)
+            net.layer1[1].bn2.weight.register_hook(gradi11)
+            net.layer1[1].bn2.bias.register_hook(gradi11)
 
-        net.layer1[2].conv1.weight.register_hook(gradi12)
-        net.layer1[2].conv1.bias.register_hook(gradi12)
-        net.layer1[2].bn2.weight.register_hook(gradi12)
-        net.layer1[2].bn2.bias.register_hook(gradi12)
+            net.layer1[2].conv1.weight.register_hook(gradi12)
+            net.layer1[2].conv1.bias.register_hook(gradi12)
+            net.layer1[2].bn2.weight.register_hook(gradi12)
+            net.layer1[2].bn2.bias.register_hook(gradi12)
 
-        net.layer1[3].conv1.weight.register_hook(gradi13)
-        net.layer1[3].conv1.bias.register_hook(gradi13)
-        net.layer1[3].bn2.weight.register_hook(gradi13)
-        net.layer1[3].bn2.bias.register_hook(gradi13)
+            net.layer1[3].conv1.weight.register_hook(gradi13)
+            net.layer1[3].conv1.bias.register_hook(gradi13)
+            net.layer1[3].bn2.weight.register_hook(gradi13)
+            net.layer1[3].bn2.bias.register_hook(gradi13)
 
-        net.layer2[0].conv1.weight.register_hook(gradi20)
-        net.layer2[0].conv1.bias.register_hook(gradi20)
-        net.layer2[0].bn2.weight.register_hook(gradi20)
-        net.layer2[0].bn2.bias.register_hook(gradi20)
+            net.layer2[0].conv1.weight.register_hook(gradi20)
+            net.layer2[0].conv1.bias.register_hook(gradi20)
+            net.layer2[0].bn2.weight.register_hook(gradi20)
+            net.layer2[0].bn2.bias.register_hook(gradi20)
 
-        net.layer2[1].conv1.weight.register_hook(gradi21)
-        net.layer2[1].conv1.bias.register_hook(gradi21)
-        net.layer2[1].bn2.weight.register_hook(gradi21)
-        net.layer2[1].bn2.bias.register_hook(gradi21)
+            net.layer2[1].conv1.weight.register_hook(gradi21)
+            net.layer2[1].conv1.bias.register_hook(gradi21)
+            net.layer2[1].bn2.weight.register_hook(gradi21)
+            net.layer2[1].bn2.bias.register_hook(gradi21)
 
-        net.layer2[2].conv1.weight.register_hook(gradi22)
-        net.layer2[2].conv1.bias.register_hook(gradi22)
-        net.layer2[2].bn2.weight.register_hook(gradi22)
-        net.layer2[2].bn2.bias.register_hook(gradi22)
+            net.layer2[2].conv1.weight.register_hook(gradi22)
+            net.layer2[2].conv1.bias.register_hook(gradi22)
+            net.layer2[2].bn2.weight.register_hook(gradi22)
+            net.layer2[2].bn2.bias.register_hook(gradi22)
 
-        net.layer2[3].conv1.weight.register_hook(gradi23)
-        net.layer2[3].conv1.bias.register_hook(gradi23)
-        net.layer2[3].bn2.weight.register_hook(gradi23)
-        net.layer2[3].bn2.bias.register_hook(gradi23)
+            net.layer2[3].conv1.weight.register_hook(gradi23)
+            net.layer2[3].conv1.bias.register_hook(gradi23)
+            net.layer2[3].bn2.weight.register_hook(gradi23)
+            net.layer2[3].bn2.bias.register_hook(gradi23)
 
-        net.layer3[0].conv1.weight.register_hook(gradi30)
-        net.layer3[0].conv1.bias.register_hook(gradi30)
-        net.layer3[0].bn2.weight.register_hook(gradi30)
-        net.layer3[0].bn2.bias.register_hook(gradi30)
+            net.layer3[0].conv1.weight.register_hook(gradi30)
+            net.layer3[0].conv1.bias.register_hook(gradi30)
+            net.layer3[0].bn2.weight.register_hook(gradi30)
+            net.layer3[0].bn2.bias.register_hook(gradi30)
 
-        net.layer3[1].conv1.weight.register_hook(gradi31)
-        net.layer3[1].conv1.bias.register_hook(gradi31)
-        net.layer3[1].bn2.weight.register_hook(gradi31)
-        net.layer3[1].bn2.bias.register_hook(gradi31)
+            net.layer3[1].conv1.weight.register_hook(gradi31)
+            net.layer3[1].conv1.bias.register_hook(gradi31)
+            net.layer3[1].bn2.weight.register_hook(gradi31)
+            net.layer3[1].bn2.bias.register_hook(gradi31)
 
-        net.layer3[2].conv1.weight.register_hook(gradi32)
-        net.layer3[2].conv1.bias.register_hook(gradi32)
-        net.layer3[2].bn2.weight.register_hook(gradi32)
-        net.layer3[2].bn2.bias.register_hook(gradi32)
+            net.layer3[2].conv1.weight.register_hook(gradi32)
+            net.layer3[2].conv1.bias.register_hook(gradi32)
+            net.layer3[2].bn2.weight.register_hook(gradi32)
+            net.layer3[2].bn2.bias.register_hook(gradi32)
 
-        net.layer3[3].conv1.weight.register_hook(gradi33)
-        net.layer3[3].conv1.bias.register_hook(gradi33)
-        net.layer3[3].bn2.weight.register_hook(gradi33)
-        net.layer3[3].bn2.bias.register_hook(gradi33)
+            net.layer3[3].conv1.weight.register_hook(gradi33)
+            net.layer3[3].conv1.bias.register_hook(gradi33)
+            net.layer3[3].bn2.weight.register_hook(gradi33)
+            net.layer3[3].bn2.bias.register_hook(gradi33)
 
 
 
@@ -367,7 +422,7 @@ def train(epoch):
         loss.backward()  # Backward Propagation
         optimizer.step() # Optimizer update
 
-        #print(net.layer1[0].conv1.weight)
+        #print(net.module.layer1[0].conv1.weight[0][1])
 
         train_loss += loss.item()
         _, predicted = torch.max(outputs.data, 1)
