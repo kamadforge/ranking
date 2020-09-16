@@ -93,3 +93,9 @@ COMPARISON
 
 ranking/cluster_output  - contains the files from cluster, e.g. the outputs of the pruning and retraining file for different methods (as e.g. in vgg_main2_module.py). it contains different architectures tested for different methods.
 note: for vgg it seems that the best method is not in all teh parameters grid dearch (parameters_vgg_all.txt) but from testing in parameters_vgg2.txt
+
+-----------
+
+WIDE RES NET
+
+pytorch-prunes-master
