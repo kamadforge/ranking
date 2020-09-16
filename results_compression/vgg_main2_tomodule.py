@@ -71,7 +71,7 @@ sys.path.append(os.path.join(path_networktest, "external_codes/pytorch-cifar-mas
 sys.path.append(path_compression)
 
 #TODO, specify path to the benchmark, download from here https://github.com/hendrycks/robustness
-CORRUPTION_PATH = '/home/sebek/raid/datasets/cifar-c/CIFAR-10-C/'
+CORRUPTION_PATH = '/home/sebek/raid/datasets/cifar-c/CIFAR-100-C/'
 
 
 ##############################
