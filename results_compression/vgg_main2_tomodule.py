@@ -71,7 +71,6 @@ sys.path.append(os.path.join(path_networktest, "external_codes/pytorch-cifar-mas
 sys.path.append(path_compression)
 
 #TODO, specify path to the benchmark, download from here https://github.com/hendrycks/robustness
-CORRUPTION_PATH = '/home/sebek/raid/datasets/cifar-c/CIFAR-100-C/'
 
 
 ##############################
@@ -104,6 +103,8 @@ parser.add_argument("--scratch_training_numepochs", default=3250, type=int, help
 parser.add_argument("--early_stopping", default=1000, type=int)
 args = parser.parse_args()
 print(args)
+
+CORRUPTION_PATH = '/home/sebek/raid/datasets/cifar-c/{}-C/'.format(args.dataset)
 
 if args.resume==False and args.prune_bool==False and args.retrain_bool==False:
     print("Training from scratch")
